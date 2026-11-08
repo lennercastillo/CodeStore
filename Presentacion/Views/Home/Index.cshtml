@@ -1,8 +1,300 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Dashboard Principal";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<!-- Page Header -->
+<div class="page-header d-print-none mb-4">
+    <div class="row g-2 align-items-center">
+        <div class="col">
+            <div class="page-pretitle text-secondary">
+                Panel de Control
+            </div>
+            <h2 class="page-title text-dark fw-bold">
+                Resumen General de Operaciones
+            </h2>
+        </div>
+        <!-- Quick Action Buttons -->
+        <div class="col-auto ms-auto d-print-none">
+            <div class="btn-list">
+                <a asp-controller="Ventas" asp-action="Crear" class="btn btn-primary d-none d-sm-inline-block">
+                    <i class="ti ti-shopping-cart-plus me-1"></i> Nueva Venta
+                </a>
+                <a asp-controller="OrdenReparacion" asp-action="Crear" class="btn btn-outline-primary d-none d-sm-inline-block">
+                    <i class="ti ti-tools me-1"></i> Ingreso a Taller
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stat Cards -->
+<div class="row row-deck row-cards mb-4">
+    <!-- Ventas del Mes -->
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-hover card-sm border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <span class="avatar avatar-md bg-primary-lt text-primary rounded-3">
+                            <i class="ti ti-cash fs-1"></i>
+                        </span>
+                    </div>
+                    <div class="col">
+                        <div class="text-secondary small fw-medium">Ventas del Mes</div>
+                        <div class="fs-2 fw-bold text-dark mt-1">$14,250.00</div>
+                        <div class="text-success small mt-1 d-flex align-items-center">
+                            <i class="ti ti-trending-up me-1"></i> +12.5% vs mes anterior
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clientes Activos -->
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-hover card-sm border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <span class="avatar avatar-md bg-success-lt text-success rounded-3">
+                            <i class="ti ti-users fs-1"></i>
+                        </span>
+                    </div>
+                    <div class="col">
+                        <div class="text-secondary small fw-medium">Clientes Registrados</div>
+                        <div class="fs-2 fw-bold text-dark mt-1">128</div>
+                        <div class="text-secondary small mt-1 d-flex align-items-center">
+                            <i class="ti ti-user-plus me-1"></i> 8 nuevos esta semana
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Equipos en Taller -->
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-hover card-sm border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <span class="avatar avatar-md bg-warning-lt text-warning rounded-3">
+                            <i class="ti ti-cpu fs-1"></i>
+                        </span>
+                    </div>
+                    <div class="col">
+                        <div class="text-secondary small fw-medium">Equipos en Taller</div>
+                        <div class="fs-2 fw-bold text-dark mt-1">14</div>
+                        <div class="text-warning small mt-1 d-flex align-items-center">
+                            <i class="ti ti-clock me-1"></i> 4 por entregar hoy
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertas de Stock -->
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-hover card-sm border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <span class="avatar avatar-md bg-danger-lt text-danger rounded-3">
+                            <i class="ti ti-alert-triangle fs-1"></i>
+                        </span>
+                    </div>
+                    <div class="col">
+                        <div class="text-secondary small fw-medium">Stock Bajo Mínimo</div>
+                        <div class="fs-2 fw-bold text-danger mt-1">5</div>
+                        <div class="text-danger small mt-1 d-flex align-items-center">
+                            <i class="ti ti-arrow-down-right me-1"></i> Requiere reabastecimiento
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Modules Quick Grid -->
+<div class="row row-cards mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-bottom">
+                <h3 class="card-title fw-bold">
+                    <i class="ti ti-grid-dots text-primary me-2"></i> Módulos Principales del Sistema
+                </h3>
+            </div>
+            <div class="card-body py-4">
+                <div class="row g-3">
+                    <!-- Productos -->
+                    <div class="col-md-4 col-lg-2">
+                        <a asp-controller="Productos" asp-action="Index" class="card card-link card-hover text-center p-3 border text-decoration-none">
+                            <div class="avatar avatar-md bg-blue-lt text-primary mx-auto mb-2 rounded-circle">
+                                <i class="ti ti-box fs-2"></i>
+                            </div>
+                            <div class="fw-semibold text-dark">Productos</div>
+                            <small class="text-secondary">Inventario y Precios</small>
+                        </a>
+                    </div>
+
+                    <!-- Clientes -->
+                    <div class="col-md-4 col-lg-2">
+                        <a asp-controller="Clientes" asp-action="Index" class="card card-link card-hover text-center p-3 border text-decoration-none">
+                            <div class="avatar avatar-md bg-green-lt text-success mx-auto mb-2 rounded-circle">
+                                <i class="ti ti-users fs-2"></i>
+                            </div>
+                            <div class="fw-semibold text-dark">Clientes</div>
+                            <small class="text-secondary">Directorio comercial</small>
+                        </a>
+                    </div>
+
+                    <!-- Ventas / POS -->
+                    <div class="col-md-4 col-lg-2">
+                        <a asp-controller="Ventas" asp-action="Index" class="card card-link card-hover text-center p-3 border text-decoration-none">
+                            <div class="avatar avatar-md bg-azure-lt text-azure mx-auto mb-2 rounded-circle">
+                                <i class="ti ti-shopping-cart fs-2"></i>
+                            </div>
+                            <div class="fw-semibold text-dark">Ventas & POS</div>
+                            <small class="text-secondary">Facturación rápida</small>
+                        </a>
+                    </div>
+
+                    <!-- Kardex -->
+                    <div class="col-md-4 col-lg-2">
+                        <a asp-controller="Kardex" asp-action="Index" class="card card-link card-hover text-center p-3 border text-decoration-none">
+                            <div class="avatar avatar-md bg-purple-lt text-purple mx-auto mb-2 rounded-circle">
+                                <i class="ti ti-clipboard-list fs-2"></i>
+                            </div>
+                            <div class="fw-semibold text-dark">Kardex</div>
+                            <small class="text-secondary">Control de movimientos</small>
+                        </a>
+                    </div>
+
+                    <!-- Créditos -->
+                    <div class="col-md-4 col-lg-2">
+                        <a asp-controller="Creditos" asp-action="Index" class="card card-link card-hover text-center p-3 border text-decoration-none">
+                            <div class="avatar avatar-md bg-orange-lt text-orange mx-auto mb-2 rounded-circle">
+                                <i class="ti ti-credit-card fs-2"></i>
+                            </div>
+                            <div class="fw-semibold text-dark">Créditos</div>
+                            <small class="text-secondary">Cobros y Cuotas</small>
+                        </a>
+                    </div>
+
+                    <!-- Taller Técnico -->
+                    <div class="col-md-4 col-lg-2">
+                        <a asp-controller="OrdenReparacion" asp-action="Index" class="card card-link card-hover text-center p-3 border text-decoration-none">
+                            <div class="avatar avatar-md bg-teal-lt text-teal mx-auto mb-2 rounded-circle">
+                                <i class="ti ti-tools fs-2"></i>
+                            </div>
+                            <div class="fw-semibold text-dark">Taller</div>
+                            <small class="text-secondary">Diagnóstico y Reparación</small>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Details Grid -->
+<div class="row row-cards">
+    <!-- Ventas Recientes -->
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-bottom d-flex align-items-center justify-content-between">
+                <h3 class="card-title fw-bold">
+                    <i class="ti ti-receipt text-primary me-2"></i> Ventas Recientes
+                </h3>
+                <a asp-controller="Ventas" asp-action="Index" class="btn btn-sm btn-ghost-primary">Ver todas</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-vcenter card-table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Factura</th>
+                            <th>Cliente</th>
+                            <th>Tipo</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="fw-semibold">FAC-00104</td>
+                            <td>Carlos Mendoza</td>
+                            <td><span class="badge bg-blue-lt">Contado</span></td>
+                            <td class="fw-bold">$450.00</td>
+                            <td><span class="badge bg-green text-green-fg">Completada</span></td>
+                        </tr>
+                        <tr>
+                            <td class="fw-semibold">FAC-00103</td>
+                            <td>Distribuidora Alpha</td>
+                            <td><span class="badge bg-purple-lt">Crédito</span></td>
+                            <td class="fw-bold">$1,280.00</td>
+                            <td><span class="badge bg-yellow text-yellow-fg">Pendiente</span></td>
+                        </tr>
+                        <tr>
+                            <td class="fw-semibold">FAC-00102</td>
+                            <td>María González</td>
+                            <td><span class="badge bg-blue-lt">Contado</span></td>
+                            <td class="fw-bold">$85.00</td>
+                            <td><span class="badge bg-green text-green-fg">Completada</span></td>
+                        </tr>
+                        <tr>
+                            <td class="fw-semibold">FAC-00101</td>
+                            <td>Roberto Alvarado</td>
+                            <td><span class="badge bg-blue-lt">Contado</span></td>
+                            <td class="fw-bold">$320.00</td>
+                            <td><span class="badge bg-green text-green-fg">Completada</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Taller y Reparaciones Activas -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-bottom d-flex align-items-center justify-content-between">
+                <h3 class="card-title fw-bold">
+                    <i class="ti ti-device-desktop text-warning me-2"></i> Reparaciones en Curso
+                </h3>
+                <a asp-controller="OrdenReparacion" asp-action="Index" class="btn btn-sm btn-ghost-primary">Ver taller</a>
+            </div>
+            <div class="list-group list-group-flush">
+                <div class="list-group-item">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="fw-semibold text-dark">Laptop Dell Inspiron 15</div>
+                            <small class="text-secondary">Cliente: Ana Martínez &bull; Falla: Pantalla azul</small>
+                        </div>
+                        <span class="badge bg-warning-lt">En Diagnóstico</span>
+                    </div>
+                </div>
+                <div class="list-group-item">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="fw-semibold text-dark">PC Gamer Ryzen 7</div>
+                            <small class="text-secondary">Cliente: David Castro &bull; Mant. preventivo</small>
+                        </div>
+                        <span class="badge bg-azure-lt">En Proceso</span>
+                    </div>
+                </div>
+                <div class="list-group-item">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="fw-semibold text-dark">Impresora Epson L3150</div>
+                            <small class="text-secondary">Cliente: Imprenta Express &bull; Cambio cabezal</small>
+                        </div>
+                        <span class="badge bg-green-lt">Listo para Entrega</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
