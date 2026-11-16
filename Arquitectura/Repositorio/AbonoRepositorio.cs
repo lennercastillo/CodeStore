@@ -38,10 +38,10 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@MontoAplicadoCapital", abono.MontoAplicadoCapital));
                 cmd.Parameters.Add(new SqlParameter("@MetodoPago", abono.MetodoPago));
                 cmd.Parameters.Add(new SqlParameter("@Estado", abono.Estado));
-                cmd.Parameters.Add(new SqlParameter("@Observaciones", (object?)abono.Observaciones ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@IdUsuarioAnulacion", (object?)abono.IdUsuarioAnulacion ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@FechaAnulacion", (object?)abono.FechaAnulacion ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@MotivoAnulacion", (object?)abono.MotivoAnulacion ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@Observaciones", abono.Observaciones == null ? DBNull.Value : abono.Observaciones));
+                cmd.Parameters.Add(new SqlParameter("@IdUsuarioAnulacion", abono.IdUsuarioAnulacion == null ? DBNull.Value : abono.IdUsuarioAnulacion));
+                cmd.Parameters.Add(new SqlParameter("@FechaAnulacion", abono.FechaAnulacion == null ? DBNull.Value : abono.FechaAnulacion));
+                cmd.Parameters.Add(new SqlParameter("@MotivoAnulacion", abono.MotivoAnulacion == null ? DBNull.Value : abono.MotivoAnulacion));
 
                 await cmd.ExecuteReaderAsync();
             }
@@ -69,7 +69,7 @@ namespace Estructura.Repositorio
             }
         }
 
-        public async Task<IEnumerable<Abono>> ListarAbonoAsync(int? idCuota = null)
+        public async Task<IEnumerable<Abono>> ListarAbonoAsync()
         {
             var list = new List<Abono>();
             using var con = _cone.GetConnection();
@@ -79,8 +79,6 @@ namespace Estructura.Repositorio
             {
                 using var cmd = new SqlCommand("ListarAbonos", con);
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(new SqlParameter("@IdAbono", DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@IdCuota", idCuota == null ? DBNull.Value : idCuota));
 
                 using var dr = await cmd.ExecuteReaderAsync();
 
@@ -126,14 +124,14 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@IdUsuarioRegistro", abono.IdUsuarioRegistro));
                 cmd.Parameters.Add(new SqlParameter("@MontoAbono", abono.MontoAbono));
                 cmd.Parameters.Add(new SqlParameter("@MetodoPago", abono.MetodoPago));
-                cmd.Parameters.Add(new SqlParameter("@FechaAbono", (object?)abono.FechaAbono == null || abono.FechaAbono == default ? DBNull.Value : abono.FechaAbono));
+                cmd.Parameters.Add(new SqlParameter("@FechaAbono", abono.FechaAbono));
                 cmd.Parameters.Add(new SqlParameter("@MontoAplicadoMora", abono.MontoAplicadoMora));
                 cmd.Parameters.Add(new SqlParameter("@MontoAplicadoCapital", abono.MontoAplicadoCapital));
-                cmd.Parameters.Add(new SqlParameter("@Observaciones", (object?)abono.Observaciones ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@Observaciones", abono.Observaciones == null ? DBNull.Value : abono.Observaciones));
                 cmd.Parameters.Add(new SqlParameter("@Estado", abono.Estado));
-                cmd.Parameters.Add(new SqlParameter("@IdUsuarioAnulacion", (object?)abono.IdUsuarioAnulacion ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@FechaAnulacion", (object?)abono.FechaAnulacion ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@MotivoAnulacion", (object?)abono.MotivoAnulacion ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@IdUsuarioAnulacion", abono.IdUsuarioAnulacion == null ? DBNull.Value : abono.IdUsuarioAnulacion));
+                cmd.Parameters.Add(new SqlParameter("@FechaAnulacion", abono.FechaAnulacion == null ? DBNull.Value : abono.FechaAnulacion));
+                cmd.Parameters.Add(new SqlParameter("@MotivoAnulacion", abono.MotivoAnulacion == null ? DBNull.Value : abono.MotivoAnulacion));
 
                 await cmd.ExecuteReaderAsync();
             }

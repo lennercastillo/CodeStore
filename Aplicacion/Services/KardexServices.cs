@@ -18,9 +18,9 @@ namespace Aplicacion.Services
             _repo = reposi;
         }
 
-        public async Task<IEnumerable<DTOSKardex>> ListarKardex(int? idProducto = null)
+        public async Task<IEnumerable<DTOSKardex>> ListarKardex()
         {
-            var Lista = await _repo.ListarKardexAsync(idProducto);
+            var Lista = await _repo.ListarKardexAsync();
 
             return Lista.Select(li => new DTOSKardex
             {

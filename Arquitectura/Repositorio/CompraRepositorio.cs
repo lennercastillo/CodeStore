@@ -35,12 +35,12 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@FechaCompra", compra.FechaCompra));
                 cmd.Parameters.Add(new SqlParameter("@TotalCompra", compra.TotalCompra));
                 cmd.Parameters.Add(new SqlParameter("@Estado", compra.Estado));
-                cmd.Parameters.Add(new SqlParameter("@IdUsuarioRecepcion", (object?)compra.IdUsuarioRecepcion ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@FechaRecepcion", (object?)compra.FechaRecepcion ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@Observaciones", (object?)compra.Observaciones ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@IdUsuarioAnulacion", (object?)compra.IdUsuarioAnulacion ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@FechaAnulacion", (object?)compra.FechaAnulacion ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@MotivoAnulacion", (object?)compra.MotivoAnulacion ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@IdUsuarioRecepcion", compra.IdUsuarioRecepcion == null ? DBNull.Value : compra.IdUsuarioRecepcion));
+                cmd.Parameters.Add(new SqlParameter("@FechaRecepcion", compra.FechaRecepcion == null ? DBNull.Value : compra.FechaRecepcion));
+                cmd.Parameters.Add(new SqlParameter("@Observaciones", compra.Observaciones == null ? DBNull.Value : compra.Observaciones));
+                cmd.Parameters.Add(new SqlParameter("@IdUsuarioAnulacion", compra.IdUsuarioAnulacion == null ? DBNull.Value : compra.IdUsuarioAnulacion));
+                cmd.Parameters.Add(new SqlParameter("@FechaAnulacion", compra.FechaAnulacion == null ? DBNull.Value : compra.FechaAnulacion));
+                cmd.Parameters.Add(new SqlParameter("@MotivoAnulacion", compra.MotivoAnulacion == null ? DBNull.Value : compra.MotivoAnulacion));
 
                 await cmd.ExecuteReaderAsync();
             }
@@ -120,15 +120,15 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@NumeroDocumento", compra.NumeroDocumento));
                 cmd.Parameters.Add(new SqlParameter("@IdProveedor", compra.IdProveedor));
                 cmd.Parameters.Add(new SqlParameter("@IdUsuarioRegistro", compra.IdUsuarioRegistro));
-                cmd.Parameters.Add(new SqlParameter("@FechaCompra", (object?)compra.FechaCompra == null || compra.FechaCompra == default ? DBNull.Value : compra.FechaCompra));
-                cmd.Parameters.Add(new SqlParameter("@IdUsuarioRecepcion", (object?)compra.IdUsuarioRecepcion ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@FechaRecepcion", (object?)compra.FechaRecepcion ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@FechaCompra", compra.FechaCompra));
+                cmd.Parameters.Add(new SqlParameter("@IdUsuarioRecepcion", compra.IdUsuarioRecepcion == null ? DBNull.Value : compra.IdUsuarioRecepcion));
+                cmd.Parameters.Add(new SqlParameter("@FechaRecepcion", compra.FechaRecepcion == null ? DBNull.Value : compra.FechaRecepcion));
                 cmd.Parameters.Add(new SqlParameter("@TotalCompra", compra.TotalCompra));
                 cmd.Parameters.Add(new SqlParameter("@Estado", compra.Estado));
-                cmd.Parameters.Add(new SqlParameter("@Observaciones", (object?)compra.Observaciones ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@IdUsuarioAnulacion", (object?)compra.IdUsuarioAnulacion ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@FechaAnulacion", (object?)compra.FechaAnulacion ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@MotivoAnulacion", (object?)compra.MotivoAnulacion ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@Observaciones", compra.Observaciones == null ? DBNull.Value : compra.Observaciones));
+                cmd.Parameters.Add(new SqlParameter("@IdUsuarioAnulacion", compra.IdUsuarioAnulacion == null ? DBNull.Value : compra.IdUsuarioAnulacion));
+                cmd.Parameters.Add(new SqlParameter("@FechaAnulacion", compra.FechaAnulacion == null ? DBNull.Value : compra.FechaAnulacion));
+                cmd.Parameters.Add(new SqlParameter("@MotivoAnulacion", compra.MotivoAnulacion == null ? DBNull.Value : compra.MotivoAnulacion));
 
                 await cmd.ExecuteReaderAsync();
             }

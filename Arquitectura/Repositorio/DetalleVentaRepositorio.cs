@@ -35,7 +35,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@PrecioUnitario", detalle.PrecioUnitario));
                 cmd.Parameters.Add(new SqlParameter("@CostoUnitarioHistorico", detalle.CostoUnitarioHistorico));
                 cmd.Parameters.Add(new SqlParameter("@MesesGarantiaHistorico", detalle.MesesGarantiaHistorico));
-                cmd.Parameters.Add(new SqlParameter("@FechaFinGarantia", (object?)detalle.FechaFinGarantia ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@FechaFinGarantia", detalle.FechaFinGarantia == null ? DBNull.Value : detalle.FechaFinGarantia));
 
                 await cmd.ExecuteReaderAsync();
             }
@@ -63,7 +63,7 @@ namespace Estructura.Repositorio
             }
         }
 
-        public async Task<IEnumerable<DetalleVenta>> ListarDetalleVentaAsync(int? idVenta = null)
+        public async Task<IEnumerable<DetalleVenta>> ListarDetalleVentaAsync()
         {
             var list = new List<DetalleVenta>();
             using var con = _cone.GetConnection();
@@ -73,8 +73,6 @@ namespace Estructura.Repositorio
             {
                 using var cmd = new SqlCommand("ListarDetalleVentas", con);
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(new SqlParameter("@IdDetalleVenta", DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@IdVenta", (object?)idVenta ?? DBNull.Value));
 
                 using var dr = await cmd.ExecuteReaderAsync();
 
@@ -116,7 +114,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@PrecioUnitario", detalle.PrecioUnitario));
                 cmd.Parameters.Add(new SqlParameter("@CostoUnitarioHistorico", detalle.CostoUnitarioHistorico));
                 cmd.Parameters.Add(new SqlParameter("@MesesGarantiaHistorico", detalle.MesesGarantiaHistorico));
-                cmd.Parameters.Add(new SqlParameter("@FechaFinGarantia", (object?)detalle.FechaFinGarantia ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@FechaFinGarantia", detalle.FechaFinGarantia == null ? DBNull.Value : detalle.FechaFinGarantia));
 
                 await cmd.ExecuteReaderAsync();
             }

@@ -68,8 +68,8 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@Nombres", usuario.Nombres));
                 cmd.Parameters.Add(new SqlParameter("@Apellidos", usuario.Apellidos));
                 cmd.Parameters.Add(new SqlParameter("@Correo", usuario.Correo));
-                cmd.Parameters.Add(new SqlParameter("@PasswordHash", usuario.Contraseña));
-                cmd.Parameters.Add(new SqlParameter("@Telefono", (object?)usuario.Telefono ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@PasswordHash", usuario.Contraseña == null ? DBNull.Value : usuario.Contraseña));
+                cmd.Parameters.Add(new SqlParameter("@Telefono", usuario.Telefono == null ? DBNull.Value : usuario.Telefono));
                 cmd.Parameters.Add(new SqlParameter("@Activo", usuario.Activo));
 
                 await cmd.ExecuteReaderAsync();
@@ -94,8 +94,8 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@Apellidos", usuario.Apellidos));
                 cmd.Parameters.Add(new SqlParameter("@Correo", usuario.Correo));
                 cmd.Parameters.Add(new SqlParameter("@Activo", usuario.Activo));
-                cmd.Parameters.Add(new SqlParameter("@PasswordHash", (object?)usuario.Contraseña ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@Telefono", (object?)usuario.Telefono ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@PasswordHash", usuario.Contraseña == null ? DBNull.Value : usuario.Contraseña));
+                cmd.Parameters.Add(new SqlParameter("@Telefono", usuario.Telefono == null ? DBNull.Value : usuario.Telefono));
 
                 await cmd.ExecuteReaderAsync();
             }

@@ -9,7 +9,7 @@ namespace Aplicacion.Interface
 {
     public interface IDetalleVentaSerie
     {
-        Task<IEnumerable<DetalleVentaSerie>> ListarDetalleVentaSerieAsync(int? idDetalleVenta = null);
+        Task<IEnumerable<DetalleVentaSerie>> ListarDetalleVentaSerieAsync();
         Task NuevoDetalleVentaSerieAsync(DetalleVentaSerie serie);
         Task EditarDetalleVentaSerieAsync(DetalleVentaSerie serie);
         Task EliminarDetalleVentaSerieAsync(int Id);

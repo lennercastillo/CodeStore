@@ -18,9 +18,9 @@ namespace Aplicacion.Services
             _repo = reposi;
         }
 
-        public async Task<IEnumerable<DTOsDetalleCompra>> ListarDetalleCompra(int? idCompra = null)
+        public async Task<IEnumerable<DTOsDetalleCompra>> ListarDetalleCompra()
         {
-            var Lista = await _repo.ListarDetalleCompraAsync(idCompra);
+            var Lista = await _repo.ListarDetalleCompraAsync();
 
             return Lista.Select(li => new DTOsDetalleCompra
             {

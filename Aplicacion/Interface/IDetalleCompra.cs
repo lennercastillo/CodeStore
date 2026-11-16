@@ -9,7 +9,7 @@ namespace Aplicacion.Interface
 {
     public interface IDetalleCompra
     {
-        Task<IEnumerable<DetalleCompra>> ListarDetalleCompraAsync(int? idCompra = null);
+        Task<IEnumerable<DetalleCompra>> ListarDetalleCompraAsync();
         Task NuevoDetalleCompraAsync(DetalleCompra detalle);
         Task EditarDetalleCompraAsync(DetalleCompra detalle);
         Task EliminarDetalleCompraAsync(int Id);

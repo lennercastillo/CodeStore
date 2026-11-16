@@ -42,9 +42,9 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@MontoRecibido", venta.MontoRecibido));
                 cmd.Parameters.Add(new SqlParameter("@Vuelto", venta.Vuelto));
                 cmd.Parameters.Add(new SqlParameter("@Estado", venta.Estado));
-                cmd.Parameters.Add(new SqlParameter("@IdUsuarioAutorizaAnulacion", (object?)venta.IdUsuarioAutorizaAnulacion ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@FechaAnulacion", (object?)venta.FechaAnulacion ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@MotivoAnulacion", (object?)venta.MotivoAnulacion ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@IdUsuarioAutorizaAnulacion", venta.IdUsuarioAutorizaAnulacion == null ? DBNull.Value : venta.IdUsuarioAutorizaAnulacion));
+                cmd.Parameters.Add(new SqlParameter("@FechaAnulacion", venta.FechaAnulacion == null ? DBNull.Value : venta.FechaAnulacion));
+                cmd.Parameters.Add(new SqlParameter("@MotivoAnulacion", venta.MotivoAnulacion == null ? DBNull.Value : venta.MotivoAnulacion));
 
                 await cmd.ExecuteReaderAsync();
             }
@@ -130,7 +130,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@IdUsuarioVendedor", venta.IdUsuarioVendedor));
                 cmd.Parameters.Add(new SqlParameter("@TipoVenta", venta.TipoVenta));
                 cmd.Parameters.Add(new SqlParameter("@MetodoPago", venta.MetodoPago));
-                cmd.Parameters.Add(new SqlParameter("@FechaVenta", (object?)venta.FechaVenta == null || venta.FechaVenta == default ? DBNull.Value : venta.FechaVenta));
+                cmd.Parameters.Add(new SqlParameter("@FechaVenta", venta.FechaVenta));
                 cmd.Parameters.Add(new SqlParameter("@PorcentajeImpuesto", venta.PorcentajeImpuesto));
                 cmd.Parameters.Add(new SqlParameter("@Subtotal", venta.Subtotal));
                 cmd.Parameters.Add(new SqlParameter("@Impuesto", venta.Impuesto));
@@ -138,9 +138,9 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@MontoRecibido", venta.MontoRecibido));
                 cmd.Parameters.Add(new SqlParameter("@Vuelto", venta.Vuelto));
                 cmd.Parameters.Add(new SqlParameter("@Estado", venta.Estado));
-                cmd.Parameters.Add(new SqlParameter("@IdUsuarioAutorizaAnulacion", (object?)venta.IdUsuarioAutorizaAnulacion ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@FechaAnulacion", (object?)venta.FechaAnulacion ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@MotivoAnulacion", (object?)venta.MotivoAnulacion ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@IdUsuarioAutorizaAnulacion", venta.IdUsuarioAutorizaAnulacion == null ? DBNull.Value : venta.IdUsuarioAutorizaAnulacion));
+                cmd.Parameters.Add(new SqlParameter("@FechaAnulacion", venta.FechaAnulacion == null ? DBNull.Value : venta.FechaAnulacion));
+                cmd.Parameters.Add(new SqlParameter("@MotivoAnulacion", venta.MotivoAnulacion == null ? DBNull.Value : venta.MotivoAnulacion));
 
                 await cmd.ExecuteReaderAsync();
             }

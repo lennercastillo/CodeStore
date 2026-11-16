@@ -18,9 +18,9 @@ namespace Aplicacion.Services
             _repo = reposi;
         }
 
-        public async Task<IEnumerable<DTOSAbono>> ListarAbono(int? idCuota = null)
+        public async Task<IEnumerable<DTOSAbono>> ListarAbono()
         {
-            var Lista = await _repo.ListarAbonoAsync(idCuota);
+            var Lista = await _repo.ListarAbonoAsync();
 
             return Lista.Select(li => new DTOSAbono
             {

@@ -18,9 +18,9 @@ namespace Aplicacion.Services
             _repo = reposi;
         }
 
-        public async Task<IEnumerable<DTOSCuotaCredito>> ListarCuotaCredito(int? idCredito = null)
+        public async Task<IEnumerable<DTOSCuotaCredito>> ListarCuotaCredito()
         {
-            var Lista = await _repo.ListarCuotaCreditoAsync(idCredito);
+            var Lista = await _repo.ListarCuotaCreditoAsync();
 
             return Lista.Select(li => new DTOSCuotaCredito
             {

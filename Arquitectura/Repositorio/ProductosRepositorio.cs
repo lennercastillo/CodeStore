@@ -42,8 +42,8 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@MesesGarantia", producto.MesesGarantia));
                 cmd.Parameters.Add(new SqlParameter("@RequiereSerie", producto.RequiereSerie));
                 cmd.Parameters.Add(new SqlParameter("@Activo", producto.Activo));
-                cmd.Parameters.Add(new SqlParameter("@Descripcion", (object?)producto.Descripcion ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@IdProveedorPreferido", (object?)producto.IdProveedorPreferido ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@Descripcion", producto.Descripcion == null ? DBNull.Value : producto.Descripcion));
+                cmd.Parameters.Add(new SqlParameter("@IdProveedorPreferido", producto.IdProveedorPreferido == null ? DBNull.Value : producto.IdProveedorPreferido));
 
                 await cmd.ExecuteReaderAsync();
             }
@@ -130,14 +130,14 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@Modelo", producto.Modelo));
                 cmd.Parameters.Add(new SqlParameter("@TipoEquipo", producto.TipoEquipo));
                 cmd.Parameters.Add(new SqlParameter("@PrecioVenta", producto.PrecioVenta));
-                cmd.Parameters.Add(new SqlParameter("@Descripcion", (object?)producto.Descripcion ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@Descripcion", producto.Descripcion == null ? DBNull.Value : producto.Descripcion));
                 cmd.Parameters.Add(new SqlParameter("@UltimoCostoCompra", producto.UltimoCostoCompra));
                 cmd.Parameters.Add(new SqlParameter("@CostoPromedio", producto.CostoPromedio));
                 cmd.Parameters.Add(new SqlParameter("@StockActual", producto.StockActual));
                 cmd.Parameters.Add(new SqlParameter("@StockMinimo", producto.StockMinimo));
                 cmd.Parameters.Add(new SqlParameter("@MesesGarantia", producto.MesesGarantia));
                 cmd.Parameters.Add(new SqlParameter("@RequiereSerie", producto.RequiereSerie));
-                cmd.Parameters.Add(new SqlParameter("@IdProveedorPreferido", (object?)producto.IdProveedorPreferido ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@IdProveedorPreferido", producto.IdProveedorPreferido == null ? DBNull.Value : producto.IdProveedorPreferido));
                 cmd.Parameters.Add(new SqlParameter("@Activo", producto.Activo));
 
                 await cmd.ExecuteReaderAsync();

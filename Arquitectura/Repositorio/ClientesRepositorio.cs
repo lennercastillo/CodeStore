@@ -32,9 +32,9 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@NumeroIdentificacion", cliente.NumeroIdentificacion));
                 cmd.Parameters.Add(new SqlParameter("@Nombres", cliente.Nombres));
                 cmd.Parameters.Add(new SqlParameter("@Apellidos", cliente.Apellidos));
-                cmd.Parameters.Add(new SqlParameter("@Telefono", cliente.Telefono));
-                cmd.Parameters.Add(new SqlParameter("@Correo", cliente.Correo));
-                cmd.Parameters.Add(new SqlParameter("@Direccion", cliente.Direccion));
+                cmd.Parameters.Add(new SqlParameter("@Telefono", cliente.Telefono == null ? DBNull.Value : cliente.Telefono));
+                cmd.Parameters.Add(new SqlParameter("@Correo", cliente.Correo == null ? DBNull.Value : cliente.Correo));
+                cmd.Parameters.Add(new SqlParameter("@Direccion", cliente.Direccion == null ? DBNull.Value : cliente.Direccion));
                 cmd.Parameters.Add(new SqlParameter("@Activo", cliente.Activo));
 
                 await cmd.ExecuteReaderAsync();
@@ -113,9 +113,9 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@NumeroIdentificacion", cliente.NumeroIdentificacion));
                 cmd.Parameters.Add(new SqlParameter("@Nombres", cliente.Nombres));
                 cmd.Parameters.Add(new SqlParameter("@Apellidos", cliente.Apellidos));
-                cmd.Parameters.Add(new SqlParameter("@Telefono", cliente.Telefono));
-                cmd.Parameters.Add(new SqlParameter("@Correo", cliente.Correo));
-                cmd.Parameters.Add(new SqlParameter("@Direccion", cliente.Direccion));
+                cmd.Parameters.Add(new SqlParameter("@Telefono", cliente.Telefono == null ? DBNull.Value : cliente.Telefono));
+                cmd.Parameters.Add(new SqlParameter("@Correo", cliente.Correo == null ? DBNull.Value : cliente.Correo));
+                cmd.Parameters.Add(new SqlParameter("@Direccion", cliente.Direccion == null ? DBNull.Value : cliente.Direccion));
                 cmd.Parameters.Add(new SqlParameter("@Activo", cliente.Activo));
 
                 await cmd.ExecuteReaderAsync();

@@ -9,7 +9,7 @@ namespace Aplicacion.Interface
 {
     public interface IKardex
     {
-        Task<IEnumerable<Kardex>> ListarKardexAsync(int? idProducto = null);
+        Task<IEnumerable<Kardex>> ListarKardexAsync();
         Task NuevoKardexAsync(Kardex kardex);
         Task EditarKardexAsync(Kardex kardex);
         Task EliminarKardexAsync(int Id);
