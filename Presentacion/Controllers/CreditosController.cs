@@ -2,6 +2,7 @@ using Aplicacion.DTOs;
 using Aplicacion.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Presentacion.Helpers;
 
 namespace Presentacion.Controllers
 {
@@ -44,7 +45,7 @@ namespace Presentacion.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Error al cargar créditos: {ex.Message}";
+                TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "cargar los créditos");
                 return View(Enumerable.Empty<DTOSCredito>());
             }
         }
@@ -75,7 +76,7 @@ namespace Presentacion.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Error al cargar detalle de crédito: {ex.Message}";
+                TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "cargar el detalle del crédito");
                 return RedirectToAction(nameof(Index));
             }
         }

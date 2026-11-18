@@ -2,6 +2,7 @@ using Aplicacion.DTOs;
 using Aplicacion.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Presentacion.Helpers;
 
 namespace Presentacion.Controllers
 {
@@ -27,7 +28,7 @@ namespace Presentacion.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Error al cargar productos: {ex.Message}";
+                TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "cargar los productos");
                 return View(Enumerable.Empty<DTOSProductos>());
             }
         }
@@ -85,7 +86,7 @@ namespace Presentacion.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Error al registrar el producto: {ex.Message}";
+                TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "registrar el producto");
                 try
                 {
                     ViewBag.Proveedores = await _proveedorService.ListarProveedor();
@@ -146,7 +147,7 @@ namespace Presentacion.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Error al actualizar el producto: {ex.Message}";
+                TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "actualizar el producto");
                 try
                 {
                     ViewBag.Proveedores = await _proveedorService.ListarProveedor();
@@ -170,7 +171,7 @@ namespace Presentacion.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return Json(new { success = false, message = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "eliminar el producto") });
             }
         }
     }

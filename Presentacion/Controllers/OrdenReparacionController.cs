@@ -2,6 +2,7 @@ using Aplicacion.DTOs;
 using Aplicacion.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Presentacion.Helpers;
 using System.Security.Claims;
 
 namespace Presentacion.Controllers
@@ -35,7 +36,7 @@ namespace Presentacion.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Error al cargar órdenes de reparación: {ex.Message}";
+                TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "cargar las órdenes de reparación");
                 return View(Enumerable.Empty<DTOSOrdenReparacion>());
             }
         }
@@ -80,7 +81,7 @@ namespace Presentacion.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Error al registrar orden: {ex.Message}";
+                TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "registrar la orden");
                 await CargarCatalogos();
                 return View(model);
             }
@@ -125,7 +126,7 @@ namespace Presentacion.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Error al actualizar orden: {ex.Message}";
+                TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "actualizar la orden");
                 await CargarCatalogos();
                 return View(model);
             }
@@ -142,7 +143,7 @@ namespace Presentacion.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return Json(new { success = false, message = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "eliminar la orden") });
             }
         }
 

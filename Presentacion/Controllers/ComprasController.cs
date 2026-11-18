@@ -2,6 +2,7 @@ using Aplicacion.DTOs;
 using Aplicacion.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Presentacion.Helpers;
 using System.Security.Claims;
 
 namespace Presentacion.Controllers
@@ -38,7 +39,7 @@ namespace Presentacion.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Error al cargar compras: {ex.Message}";
+                TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "cargar las compras");
                 return View(Enumerable.Empty<DTOSCompra>());
             }
         }
@@ -58,7 +59,7 @@ namespace Presentacion.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Error al cargar formulario de compra: {ex.Message}";
+                TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "cargar el formulario de compra");
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -133,7 +134,7 @@ namespace Presentacion.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Error al cargar detalle de compra: {ex.Message}";
+                TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "cargar el detalle de la compra");
                 return RedirectToAction(nameof(Index));
             }
         }

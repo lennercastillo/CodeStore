@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Presentacion.Helpers;
 using Presentacion.Models;
 using System.Security.Claims;
 
@@ -107,7 +108,7 @@ namespace Presentacion.Controllers
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, $"Error al autenticar: {ex.Message}");
+                ModelState.AddModelError(string.Empty, MensajeErrorHelper.ObtenerMensajeAmigable(ex, "iniciar sesión"));
                 return View(model);
             }
         }
