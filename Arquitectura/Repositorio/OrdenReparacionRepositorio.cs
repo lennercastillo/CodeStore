@@ -39,11 +39,11 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@EstadoEquipo", orden.EstadoEquipo));
                 cmd.Parameters.Add(new SqlParameter("@CostoReparacion", orden.CostoReparacion));
                 cmd.Parameters.Add(new SqlParameter("@FechaIngreso", orden.FechaIngreso));
-                cmd.Parameters.Add(new SqlParameter("@IdGarantia", (object?)orden.IdGarantia ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@DiagnosticoTecnico", (object?)orden.DiagnosticoTecnico ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@FechaFinalizacion", (object?)orden.FechaFinalizacion ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@FechaEntrega", (object?)orden.FechaEntrega ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@Observaciones", (object?)orden.Observaciones ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@IdGarantia", orden.IdGarantia == null ? DBNull.Value : orden.IdGarantia));
+                cmd.Parameters.Add(new SqlParameter("@DiagnosticoTecnico", orden.DiagnosticoTecnico == null ? DBNull.Value : orden.DiagnosticoTecnico));
+                cmd.Parameters.Add(new SqlParameter("@FechaFinalizacion", orden.FechaFinalizacion == null ? DBNull.Value : orden.FechaFinalizacion));
+                cmd.Parameters.Add(new SqlParameter("@FechaEntrega", orden.FechaEntrega == null ? DBNull.Value : orden.FechaEntrega));
+                cmd.Parameters.Add(new SqlParameter("@Observaciones", orden.Observaciones == null ? DBNull.Value : orden.Observaciones));
 
                 await cmd.ExecuteReaderAsync();
             }
@@ -130,14 +130,14 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@Marca", orden.Marca));
                 cmd.Parameters.Add(new SqlParameter("@Modelo", orden.Modelo));
                 cmd.Parameters.Add(new SqlParameter("@NumeroSerie", orden.NumeroSerie));
-                cmd.Parameters.Add(new SqlParameter("@IdGarantia", (object?)orden.IdGarantia ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@DiagnosticoTecnico", (object?)orden.DiagnosticoTecnico ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@IdGarantia", orden.IdGarantia == null ? DBNull.Value : orden.IdGarantia));
+                cmd.Parameters.Add(new SqlParameter("@DiagnosticoTecnico", orden.DiagnosticoTecnico == null ? DBNull.Value : orden.DiagnosticoTecnico));
                 cmd.Parameters.Add(new SqlParameter("@EstadoEquipo", orden.EstadoEquipo));
                 cmd.Parameters.Add(new SqlParameter("@CostoReparacion", orden.CostoReparacion));
-                cmd.Parameters.Add(new SqlParameter("@FechaIngreso", (object?)orden.FechaIngreso == null || orden.FechaIngreso == default ? DBNull.Value : orden.FechaIngreso));
-                cmd.Parameters.Add(new SqlParameter("@FechaFinalizacion", (object?)orden.FechaFinalizacion ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@FechaEntrega", (object?)orden.FechaEntrega ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@Observaciones", (object?)orden.Observaciones ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@FechaIngreso", orden.FechaIngreso));
+                cmd.Parameters.Add(new SqlParameter("@FechaFinalizacion", orden.FechaFinalizacion == null ? DBNull.Value : orden.FechaFinalizacion));
+                cmd.Parameters.Add(new SqlParameter("@FechaEntrega", orden.FechaEntrega == null ? DBNull.Value : orden.FechaEntrega));
+                cmd.Parameters.Add(new SqlParameter("@Observaciones", orden.Observaciones == null ? DBNull.Value : orden.Observaciones));
 
                 await cmd.ExecuteReaderAsync();
             }

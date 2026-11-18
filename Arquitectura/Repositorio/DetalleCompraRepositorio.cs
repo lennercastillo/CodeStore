@@ -60,7 +60,7 @@ namespace Estructura.Repositorio
             }
         }
 
-        public async Task<IEnumerable<DetalleCompra>> ListarDetalleCompraAsync(int? idCompra = null)
+        public async Task<IEnumerable<DetalleCompra>> ListarDetalleCompraAsync()
         {
             var list = new List<DetalleCompra>();
             using var con = _cone.GetConnection();
@@ -70,8 +70,6 @@ namespace Estructura.Repositorio
             {
                 using var cmd = new SqlCommand("ListarDetalleCompras", con);
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(new SqlParameter("@IdDetalleCompra", DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@IdCompra", (object?)idCompra ?? DBNull.Value));
 
                 using var dr = await cmd.ExecuteReaderAsync();
 

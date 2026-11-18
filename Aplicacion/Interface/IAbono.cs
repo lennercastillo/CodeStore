@@ -9,7 +9,7 @@ namespace Aplicacion.Interface
 {
     public interface IAbono
     {
-        Task<IEnumerable<Abono>> ListarAbonoAsync(int? idCuota = null);
+        Task<IEnumerable<Abono>> ListarAbonoAsync();
         Task NuevoAbonoAsync(Abono abono);
         Task EditarAbonoAsync(Abono abono);
         Task EliminarAbonoAsync(int Id);

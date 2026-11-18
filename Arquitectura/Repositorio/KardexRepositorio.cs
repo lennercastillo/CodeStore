@@ -37,9 +37,9 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@StockNuevo", kardex.StockNuevo));
                 cmd.Parameters.Add(new SqlParameter("@CostoUnitario", kardex.CostoUnitario));
                 cmd.Parameters.Add(new SqlParameter("@IdUsuarioResponsable", kardex.IdUsuarioResponsable));
-                cmd.Parameters.Add(new SqlParameter("@DocumentoOrigen", (object?)kardex.DocumentoOrigen ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@IdReferenciaOrigen", (object?)kardex.IdReferenciaOrigen ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@Justificacion", (object?)kardex.Justificacion ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@DocumentoOrigen", kardex.DocumentoOrigen == null ? DBNull.Value : kardex.DocumentoOrigen));
+                cmd.Parameters.Add(new SqlParameter("@IdReferenciaOrigen", kardex.IdReferenciaOrigen == null ? DBNull.Value : kardex.IdReferenciaOrigen));
+                cmd.Parameters.Add(new SqlParameter("@Justificacion", kardex.Justificacion == null ? DBNull.Value : kardex.Justificacion));
 
                 await cmd.ExecuteReaderAsync();
             }
@@ -67,7 +67,7 @@ namespace Estructura.Repositorio
             }
         }
 
-        public async Task<IEnumerable<Kardex>> ListarKardexAsync(int? idProducto = null)
+        public async Task<IEnumerable<Kardex>> ListarKardexAsync()
         {
             var list = new List<Kardex>();
             using var con = _cone.GetConnection();
@@ -77,8 +77,6 @@ namespace Estructura.Repositorio
             {
                 using var cmd = new SqlCommand("ListarKardex", con);
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(new SqlParameter("@IdMovimiento", DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@IdProducto", (object?)idProducto ?? DBNull.Value));
 
                 using var dr = await cmd.ExecuteReaderAsync();
 
@@ -123,11 +121,11 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@StockAnterior", kardex.StockAnterior));
                 cmd.Parameters.Add(new SqlParameter("@StockNuevo", kardex.StockNuevo));
                 cmd.Parameters.Add(new SqlParameter("@IdUsuarioResponsable", kardex.IdUsuarioResponsable));
-                cmd.Parameters.Add(new SqlParameter("@FechaMovimiento", (object?)kardex.FechaMovimiento == null || kardex.FechaMovimiento == default ? DBNull.Value : kardex.FechaMovimiento));
+                cmd.Parameters.Add(new SqlParameter("@FechaMovimiento", kardex.FechaMovimiento));
                 cmd.Parameters.Add(new SqlParameter("@CostoUnitario", kardex.CostoUnitario));
-                cmd.Parameters.Add(new SqlParameter("@DocumentoOrigen", (object?)kardex.DocumentoOrigen ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@IdReferenciaOrigen", (object?)kardex.IdReferenciaOrigen ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@Justificacion", (object?)kardex.Justificacion ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@DocumentoOrigen", kardex.DocumentoOrigen == null ? DBNull.Value : kardex.DocumentoOrigen));
+                cmd.Parameters.Add(new SqlParameter("@IdReferenciaOrigen", kardex.IdReferenciaOrigen == null ? DBNull.Value : kardex.IdReferenciaOrigen));
+                cmd.Parameters.Add(new SqlParameter("@Justificacion", kardex.Justificacion == null ? DBNull.Value : kardex.Justificacion));
 
                 await cmd.ExecuteReaderAsync();
             }

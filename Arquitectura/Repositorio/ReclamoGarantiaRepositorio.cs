@@ -35,10 +35,10 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@FechaReclamo", reclamo.FechaReclamo));
                 cmd.Parameters.Add(new SqlParameter("@MotivoFalla", reclamo.MotivoFalla));
                 cmd.Parameters.Add(new SqlParameter("@EstadoRevision", reclamo.EstadoRevision));
-                cmd.Parameters.Add(new SqlParameter("@IdSerieVendida", (object?)reclamo.IdSerieVendida ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@AccionTomada", (object?)reclamo.AccionTomada ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@DescripcionResolucion", (object?)reclamo.DescripcionResolucion ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@FechaResolucion", (object?)reclamo.FechaResolucion ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@IdSerieVendida", reclamo.IdSerieVendida == null ? DBNull.Value : reclamo.IdSerieVendida));
+                cmd.Parameters.Add(new SqlParameter("@AccionTomada", reclamo.AccionTomada == null ? DBNull.Value : reclamo.AccionTomada));
+                cmd.Parameters.Add(new SqlParameter("@DescripcionResolucion", reclamo.DescripcionResolucion == null ? DBNull.Value : reclamo.DescripcionResolucion));
+                cmd.Parameters.Add(new SqlParameter("@FechaResolucion", reclamo.FechaResolucion == null ? DBNull.Value : reclamo.FechaResolucion));
 
                 await cmd.ExecuteReaderAsync();
             }
@@ -117,12 +117,12 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@IdDetalleVenta", reclamo.IdDetalleVenta));
                 cmd.Parameters.Add(new SqlParameter("@IdUsuarioTecnico", reclamo.IdUsuarioTecnico));
                 cmd.Parameters.Add(new SqlParameter("@MotivoFalla", reclamo.MotivoFalla));
-                cmd.Parameters.Add(new SqlParameter("@IdSerieVendida", (object?)reclamo.IdSerieVendida ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@FechaReclamo", (object?)reclamo.FechaReclamo == null || reclamo.FechaReclamo == default ? DBNull.Value : reclamo.FechaReclamo));
+                cmd.Parameters.Add(new SqlParameter("@IdSerieVendida", reclamo.IdSerieVendida == null ? DBNull.Value : reclamo.IdSerieVendida));
+                cmd.Parameters.Add(new SqlParameter("@FechaReclamo", reclamo.FechaReclamo));
                 cmd.Parameters.Add(new SqlParameter("@EstadoRevision", reclamo.EstadoRevision));
-                cmd.Parameters.Add(new SqlParameter("@AccionTomada", (object?)reclamo.AccionTomada ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@DescripcionResolucion", (object?)reclamo.DescripcionResolucion ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@FechaResolucion", (object?)reclamo.FechaResolucion ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@AccionTomada", reclamo.AccionTomada == null ? DBNull.Value : reclamo.AccionTomada));
+                cmd.Parameters.Add(new SqlParameter("@DescripcionResolucion", reclamo.DescripcionResolucion == null ? DBNull.Value : reclamo.DescripcionResolucion));
+                cmd.Parameters.Add(new SqlParameter("@FechaResolucion", reclamo.FechaResolucion == null ? DBNull.Value : reclamo.FechaResolucion));
 
                 await cmd.ExecuteReaderAsync();
             }

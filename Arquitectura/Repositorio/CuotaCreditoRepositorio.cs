@@ -64,7 +64,7 @@ namespace Estructura.Repositorio
             }
         }
 
-        public async Task<IEnumerable<CuotaCredito>> ListarCuotaCreditoAsync(int? idCredito = null)
+        public async Task<IEnumerable<CuotaCredito>> ListarCuotaCreditoAsync()
         {
             var list = new List<CuotaCredito>();
             using var con = _cone.GetConnection();
@@ -74,8 +74,6 @@ namespace Estructura.Repositorio
             {
                 using var cmd = new SqlCommand("ListarCuotasCredito", con);
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(new SqlParameter("@IdCuota", DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@IdCredito", (object?)idCredito ?? DBNull.Value));
 
                 using var dr = await cmd.ExecuteReaderAsync();
 

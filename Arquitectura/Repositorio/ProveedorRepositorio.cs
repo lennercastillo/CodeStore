@@ -31,10 +31,10 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@IdProveedor", proveedor.IdProveedor));
                 cmd.Parameters.Add(new SqlParameter("@NumeroRUC", proveedor.NumeroRUC));
                 cmd.Parameters.Add(new SqlParameter("@RazonSocial", proveedor.RazonSocial));
-                cmd.Parameters.Add(new SqlParameter("@NombreContacto", (object?)proveedor.NombreContacto ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@Telefono", (object?)proveedor.Telefono ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@Correo", (object?)proveedor.Correo ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@Direccion", (object?)proveedor.Direccion ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@NombreContacto", proveedor.NombreContacto == null ? DBNull.Value : proveedor.NombreContacto));
+                cmd.Parameters.Add(new SqlParameter("@Telefono", proveedor.Telefono == null ? DBNull.Value : proveedor.Telefono));
+                cmd.Parameters.Add(new SqlParameter("@Correo", proveedor.Correo == null ? DBNull.Value : proveedor.Correo));
+                cmd.Parameters.Add(new SqlParameter("@Direccion", proveedor.Direccion == null ? DBNull.Value : proveedor.Direccion));
                 cmd.Parameters.Add(new SqlParameter("@Activo", proveedor.Activo));
 
                 await cmd.ExecuteNonQueryAsync();
@@ -110,10 +110,10 @@ namespace Estructura.Repositorio
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter("@NumeroRUC", proveedor.NumeroRUC));
                 cmd.Parameters.Add(new SqlParameter("@RazonSocial", proveedor.RazonSocial));
-                cmd.Parameters.Add(new SqlParameter("@NombreContacto", (object?)proveedor.NombreContacto ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@Telefono", (object?)proveedor.Telefono ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@Correo", (object?)proveedor.Correo ?? DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@Direccion", (object?)proveedor.Direccion ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@NombreContacto", proveedor.NombreContacto == null ? DBNull.Value : proveedor.NombreContacto));
+                cmd.Parameters.Add(new SqlParameter("@Telefono", proveedor.Telefono == null ? DBNull.Value : proveedor.Telefono));
+                cmd.Parameters.Add(new SqlParameter("@Correo", proveedor.Correo == null ? DBNull.Value : proveedor.Correo));
+                cmd.Parameters.Add(new SqlParameter("@Direccion", proveedor.Direccion == null ? DBNull.Value : proveedor.Direccion));
                 cmd.Parameters.Add(new SqlParameter("@Activo", proveedor.Activo));
 
                 await cmd.ExecuteNonQueryAsync();

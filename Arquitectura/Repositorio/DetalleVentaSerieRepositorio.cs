@@ -59,7 +59,7 @@ namespace Estructura.Repositorio
             }
         }
 
-        public async Task<IEnumerable<DetalleVentaSerie>> ListarDetalleVentaSerieAsync(int? idDetalleVenta = null)
+        public async Task<IEnumerable<DetalleVentaSerie>> ListarDetalleVentaSerieAsync()
         {
             var list = new List<DetalleVentaSerie>();
             using var con = _cone.GetConnection();
@@ -69,8 +69,6 @@ namespace Estructura.Repositorio
             {
                 using var cmd = new SqlCommand("ListarDetalleVentaSeries", con);
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(new SqlParameter("@IdSerieVendida", DBNull.Value));
-                cmd.Parameters.Add(new SqlParameter("@IdDetalleVenta", (object?)idDetalleVenta ?? DBNull.Value));
 
                 using var dr = await cmd.ExecuteReaderAsync();
 
