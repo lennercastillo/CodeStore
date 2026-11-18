@@ -1,0 +1,107 @@
+@model Aplicacion.DTOs.CompraDetalleCompletoDTO
+
+@{
+    ViewData["Title"] = $"Compra #{Model.Compra.NumeroDocumento}";
+    var compra = Model.Compra;
+    var prov = Model.Proveedor;
+}
+
+<div class="page-header d-print-none mb-4">
+    <div class="row g-2 align-items-center">
+        <div class="col">
+            <div class="page-pretitle">Compras & Abastecimiento</div>
+            <h2 class="page-title text-dark">
+                <i class="ti ti-file-invoice me-2 text-primary"></i>Compra: @compra.NumeroDocumento
+            </h2>
+        </div>
+        <div class="col-auto ms-auto d-print-none">
+            <div class="btn-list">
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="ti ti-arrow-left me-1"></i> Volver
+                </a>
+                <button type="button" class="btn btn-outline-primary" onclick="window.print();">
+                    <i class="ti ti-printer me-1"></i> Imprimir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h4 class="text-uppercase text-secondary fw-bold small mb-2">Proveedor</h4>
+                <div class="fs-3 fw-bold text-dark">@(prov?.RazonSocial ?? $"Proveedor #{compra.IdProveedor}")</div>
+                @if (prov != null)
+                {
+                    <div class="text-secondary small">RUC: <span class="font-monospace fw-semibold">@prov.NumeroRUC</span></div>
+                    <div class="text-secondary small">Contacto: @(prov.NombreContacto ?? "N/D") | Tel: @(prov.Telefono ?? "N/D")</div>
+                }
+            </div>
+            <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                <div class="text-secondary small">Documento: <strong class="font-monospace text-dark">@compra.NumeroDocumento</strong></div>
+                <div class="text-secondary small">Fecha Registro: @compra.FechaCompra.ToString("dd/MM/yyyy hh:mm tt")</div>
+                @if (compra.FechaRecepcion.HasValue)
+                {
+                    <div class="text-secondary small">Fecha Recepción: @compra.FechaRecepcion.Value.ToString("dd/MM/yyyy hh:mm tt")</div>
+                }
+                <div class="mt-1">
+                    <span class="badge @(compra.Estado == "Recibida" ? "bg-success-lt" : compra.Estado == "Pendiente" ? "bg-warning-lt" : "bg-danger-lt") fs-5">
+                        @compra.Estado
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive mb-4">
+            <table class="table table-vcenter">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Producto</th>
+                        <th class="text-center">Cantidad</th>
+                        <th class="text-end">Costo Unitario</th>
+                        <th class="text-end">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ int i = 1; }
+                    @foreach (var item in Model.Detalles)
+                    {
+                        <tr>
+                            <td class="text-secondary">@(i++)</td>
+                            <td>
+                                <div class="fw-semibold text-dark">@(item.Producto?.Nombre ?? $"Producto #{item.Detalle.IdProducto}")</div>
+                                <div class="text-secondary small font-monospace">@(item.Producto?.CodigoSKU ?? "")</div>
+                            </td>
+                            <td class="text-center fw-bold">@item.Detalle.Cantidad</td>
+                            <td class="text-end">C$ @item.Detalle.CostoUnitario.ToString("N2")</td>
+                            <td class="text-end fw-bold">C$ @item.Detalle.Subtotal.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4" class="text-end fs-3 fw-bold">Total Compra:</td>
+                        <td class="text-end fs-2 fw-bold text-primary">C$ @compra.TotalCompra.ToString("N2")</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        @if (!string.IsNullOrEmpty(compra.Observaciones))
+        {
+            <div class="alert alert-info mb-0">
+                <strong>Observaciones:</strong> @compra.Observaciones
+            </div>
+        }
+        @if (compra.Estado == "Anulada" && !string.IsNullOrEmpty(compra.MotivoAnulacion))
+        {
+            <div class="alert alert-danger mt-3 mb-0">
+                <strong>Motivo de Anulación:</strong> @compra.MotivoAnulacion
+            </div>
+        }
+    </div>
+</div>
+

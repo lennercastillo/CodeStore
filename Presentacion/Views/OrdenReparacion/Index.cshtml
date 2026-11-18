@@ -1,0 +1,129 @@
+@model IEnumerable<Aplicacion.DTOs.DTOSOrdenReparacion>
+
+@{
+    ViewData["Title"] = "Órdenes de Reparación";
+    var clientesDict = ViewBag.Clientes as Dictionary<int, string> ?? new Dictionary<int, string>();
+    var activas = Model.Count(o => o.EstadoEquipo != "Entregado" && o.EstadoEquipo != "Sin Solucion");
+}
+
+<div class="page-header d-print-none mb-4">
+    <div class="row g-2 align-items-center">
+        <div class="col">
+            <div class="page-pretitle">Taller Técnico</div>
+            <h2 class="page-title text-dark">
+                <i class="ti ti-cpu me-2 text-primary"></i>Órdenes de Reparación
+            </h2>
+            <div class="text-secondary mt-1">Control de ingreso de equipos, diagnóstico técnico y seguimiento de entregas</div>
+        </div>
+        <div class="col-auto ms-auto d-print-none">
+            <a asp-action="Crear" class="btn btn-primary d-inline-flex align-items-center">
+                <i class="ti ti-plus me-1 fs-3"></i> Ingresar Equipo
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+        <h3 class="card-title fw-bold text-dark m-0">
+            <i class="ti ti-tools me-2 text-primary"></i>Equipos en Servicio
+        </h3>
+        <span class="badge bg-warning-lt fs-4">@activas activos en taller</span>
+    </div>
+
+    <div class="card-body p-3">
+        <div class="table-responsive">
+            <table id="tablaOrdenes" class="table table-vcenter table-hover card-table">
+                <thead>
+                    <tr>
+                        <th class="w-1">Orden</th>
+                        <th>Fecha Ingreso</th>
+                        <th>Cliente</th>
+                        <th>Equipo / Serie</th>
+                        <th class="text-end">Costo</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center w-1">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var cliNombre = clientesDict.ContainsKey(item.IdCliente) ? clientesDict[item.IdCliente] : $"Cliente #{item.IdCliente}";
+                        <tr>
+                            <td><span class="badge bg-dark-lt font-monospace">@item.NumeroOrden</span></td>
+                            <td>@item.FechaIngreso.ToString("dd/MM/yyyy")</td>
+                            <td class="fw-semibold text-dark">@cliNombre</td>
+                            <td>
+                                <div class="fw-medium text-dark">@item.DescripcionEquipo</div>
+                                <div class="text-secondary small">@item.Marca @item.Modelo | Serie: <span class="font-monospace">@item.NumeroSerie</span></div>
+                            </td>
+                            <td class="text-end fw-bold">C$ @item.CostoReparacion.ToString("N2")</td>
+                            <td class="text-center">
+                                <span class="badge @(item.EstadoEquipo == "Entregado" ? "bg-success-lt" : item.EstadoEquipo == "Reparado" ? "bg-azure-lt" : item.EstadoEquipo == "Sin Solucion" ? "bg-danger-lt" : "bg-warning-lt")">
+                                    @item.EstadoEquipo
+                                </span>
+                            </td>
+                            <td class="text-center text-nowrap">
+                                <div class="btn-group">
+                                    <a asp-action="Editar" asp-route-id="@item.IdOrdenReparacion" class="btn btn-sm btn-outline-primary" title="Actualizar / Diagnóstico">
+                                        <i class="ti ti-pencil"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-orden" data-id="@item.IdOrdenReparacion" data-num="@item.NumeroOrden" title="Eliminar">
+                                        <i class="ti ti-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#tablaOrdenes').DataTable({
+                language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
+                order: [],
+                pageLength: 10,
+                responsive: true
+            });
+
+            @if (TempData["Success"] != null)
+            {
+                <text>Swal.fire({ icon: 'success', title: '¡Éxito!', text: '@Html.Raw(TempData["Success"])', timer: 3000, showConfirmButton: false });</text>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <text>Swal.fire({ icon: 'error', title: 'Atención', text: '@Html.Raw(TempData["Error"])' });</text>
+            }
+
+            $(document).on('click', '.btn-eliminar-orden', function () {
+                const id = $(this).data('id');
+                const num = $(this).data('num');
+                Swal.fire({
+                    title: '¿Eliminar orden?',
+                    text: `¿Deseas eliminar la orden "${num}"?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d63939',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((r) => {
+                    if (r.isConfirmed) {
+                        $.post('@Url.Action("Eliminar", "OrdenReparacion")', { id: id }, function (res) {
+                            if (res.success) {
+                                Swal.fire({ icon: 'success', title: 'Eliminada', text: res.message, timer: 2000, showConfirmButton: false }).then(() => location.reload());
+                            } else {
+                                Swal.fire({ icon: 'error', title: 'Error', text: res.message });
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}
+

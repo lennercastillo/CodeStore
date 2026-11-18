@@ -32,7 +32,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@NumeroReclamo", reclamo.NumeroReclamo));
                 cmd.Parameters.Add(new SqlParameter("@IdDetalleVenta", reclamo.IdDetalleVenta));
                 cmd.Parameters.Add(new SqlParameter("@IdUsuarioTecnico", reclamo.IdUsuarioTecnico));
-                cmd.Parameters.Add(new SqlParameter("@FechaReclamo", reclamo.FechaReclamo));
+                cmd.Parameters.Add(new SqlParameter("@FechaReclamo", reclamo.FechaReclamo == default ? DBNull.Value : reclamo.FechaReclamo));
                 cmd.Parameters.Add(new SqlParameter("@MotivoFalla", reclamo.MotivoFalla));
                 cmd.Parameters.Add(new SqlParameter("@EstadoRevision", reclamo.EstadoRevision));
                 cmd.Parameters.Add(new SqlParameter("@IdSerieVendida", reclamo.IdSerieVendida == null ? DBNull.Value : reclamo.IdSerieVendida));
@@ -40,7 +40,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@DescripcionResolucion", reclamo.DescripcionResolucion == null ? DBNull.Value : reclamo.DescripcionResolucion));
                 cmd.Parameters.Add(new SqlParameter("@FechaResolucion", reclamo.FechaResolucion == null ? DBNull.Value : reclamo.FechaResolucion));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
@@ -58,7 +58,7 @@ namespace Estructura.Repositorio
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter("@IdGarantia", Id));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
@@ -118,13 +118,13 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@IdUsuarioTecnico", reclamo.IdUsuarioTecnico));
                 cmd.Parameters.Add(new SqlParameter("@MotivoFalla", reclamo.MotivoFalla));
                 cmd.Parameters.Add(new SqlParameter("@IdSerieVendida", reclamo.IdSerieVendida == null ? DBNull.Value : reclamo.IdSerieVendida));
-                cmd.Parameters.Add(new SqlParameter("@FechaReclamo", reclamo.FechaReclamo));
+                cmd.Parameters.Add(new SqlParameter("@FechaReclamo", reclamo.FechaReclamo == default ? DBNull.Value : reclamo.FechaReclamo));
                 cmd.Parameters.Add(new SqlParameter("@EstadoRevision", reclamo.EstadoRevision));
                 cmd.Parameters.Add(new SqlParameter("@AccionTomada", reclamo.AccionTomada == null ? DBNull.Value : reclamo.AccionTomada));
                 cmd.Parameters.Add(new SqlParameter("@DescripcionResolucion", reclamo.DescripcionResolucion == null ? DBNull.Value : reclamo.DescripcionResolucion));
                 cmd.Parameters.Add(new SqlParameter("@FechaResolucion", reclamo.FechaResolucion == null ? DBNull.Value : reclamo.FechaResolucion));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {

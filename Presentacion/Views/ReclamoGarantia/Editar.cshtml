@@ -1,0 +1,100 @@
+@model Aplicacion.DTOs.DTOSReclamoGarantia
+
+@{
+    ViewData["Title"] = $"Reclamo {Model.NumeroReclamo}";
+    var tecnicos = ViewBag.Tecnicos as List<Aplicacion.DTOs.DTOSUsuario> ?? new List<Aplicacion.DTOs.DTOSUsuario>();
+}
+
+<div class="page-header d-print-none mb-4">
+    <div class="row g-2 align-items-center">
+        <div class="col">
+            <div class="page-pretitle">Taller Técnico & Garantías</div>
+            <h2 class="page-title text-dark">
+                <i class="ti ti-pencil me-2 text-primary"></i>Evaluar Reclamo: @Model.NumeroReclamo
+            </h2>
+        </div>
+        <div class="col-auto ms-auto d-print-none">
+            <a asp-action="Index" class="btn btn-outline-secondary">Volver</a>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <form asp-action="Editar" method="post" class="card border-0 shadow-sm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="IdGarantia" />
+            <input type="hidden" asp-for="IdDetalleVenta" />
+            <input type="hidden" asp-for="IdSerieVendida" />
+            <input type="hidden" asp-for="FechaReclamo" />
+
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h3 class="card-title text-dark fw-bold m-0">Resolución de Garantía</h3>
+                <span class="badge bg-dark-lt font-monospace">@Model.NumeroReclamo</span>
+            </div>
+
+            <div class="card-body">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label asp-for="NumeroReclamo" class="form-label required"></label>
+                        <input asp-for="NumeroReclamo" class="form-control font-monospace" readonly />
+                    </div>
+
+                    <div class="col-md-8">
+                        <label asp-for="IdUsuarioTecnico" class="form-label required"></label>
+                        <select asp-for="IdUsuarioTecnico" class="form-select">
+                            @foreach (var t in tecnicos)
+                            {
+                                <option value="@t.IdUsuario" selected="@(t.IdUsuario == Model.IdUsuarioTecnico)">@t.Nombres @t.Apellidos</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label asp-for="MotivoFalla" class="form-label required"></label>
+                        <textarea asp-for="MotivoFalla" rows="2" class="form-control"></textarea>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="EstadoRevision" class="form-label required"></label>
+                        <select asp-for="EstadoRevision" class="form-select">
+                            <option value="Recibido">Recibido</option>
+                            <option value="En Revision">En Revisión</option>
+                            <option value="En Reparacion">En Reparación</option>
+                            <option value="Resuelto">Resuelto</option>
+                            <option value="Rechazado">Rechazado</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="AccionTomada" class="form-label"></label>
+                        <select asp-for="AccionTomada" class="form-select">
+                            <option value="">-- Pendiente --</option>
+                            <option value="Reparacion Tecnica">Reparación Técnica</option>
+                            <option value="Reemplazo de Equipo">Reemplazo de Equipo</option>
+                            <option value="Nota de Credito">Nota de Crédito</option>
+                            <option value="No Aplica Garantia">No Aplica Garantía</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label asp-for="DescripcionResolucion" class="form-label"></label>
+                        <textarea asp-for="DescripcionResolucion" rows="3" class="form-control" placeholder="Detalle técnico de la resolución aplicada..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer bg-light py-3 d-flex justify-content-between">
+                <a asp-action="Index" class="btn btn-link link-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary"><i class="ti ti-device-floppy me-2"></i>Guardar Resolución</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

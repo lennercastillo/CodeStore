@@ -20,5 +20,6 @@ namespace Aplicacion.Interface
             Credito? credito,
             List<CuotaCredito>? cuotas);
         Task<Venta?> ObtenerPorIdAsync(int id);
+        Task<(bool Success, string Message)> AnularVentaAsync(int idVenta, int idUsuarioAutoriza, string motivo);
     }
 }

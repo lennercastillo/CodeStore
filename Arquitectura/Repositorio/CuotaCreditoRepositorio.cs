@@ -38,7 +38,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@CapitalInteresAbonado", cuota.CapitalInteresAbonado));
                 cmd.Parameters.Add(new SqlParameter("@Estado", cuota.Estado));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
@@ -56,7 +56,7 @@ namespace Estructura.Repositorio
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter("@IdCuota", Id));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
@@ -120,7 +120,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@CapitalInteresAbonado", cuota.CapitalInteresAbonado));
                 cmd.Parameters.Add(new SqlParameter("@Estado", cuota.Estado));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {

@@ -83,5 +83,18 @@ namespace Aplicacion.Services
         {
             await _repo.EliminarKardexAsync(id);
         }
+
+        public async Task<(bool Success, string Message)> RegistrarAjuste(
+            int idProducto,
+            string tipoMovimiento,
+            int cantidad,
+            string justificacion,
+            int idUsuario)
+        {
+            if (string.IsNullOrWhiteSpace(justificacion))
+                return (false, "La justificación del ajuste es obligatoria.");
+
+            return await _repo.RegistrarAjusteInventarioAsync(idProducto, tipoMovimiento, cantidad, justificacion.Trim(), idUsuario);
+        }
     }
 }

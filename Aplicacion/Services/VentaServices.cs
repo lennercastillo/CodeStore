@@ -112,6 +112,15 @@ namespace Aplicacion.Services
             if (dto.IdCliente <= 0)
                 return (false, "Debe seleccionar un cliente válido.", 0, string.Empty);
 
+            if (dto.PorcentajeImpuesto < 0)
+                return (false, "El porcentaje de impuesto no puede ser negativo.", 0, string.Empty);
+
+            if (dto.MontoRecibido < 0)
+                return (false, "El monto recibido no puede ser negativo.", 0, string.Empty);
+
+            if (dto.Items.Any(i => i.Cantidad <= 0 || i.PrecioUnitario < 0))
+                return (false, "Todos los productos deben tener cantidad mayor a 0 y precio no negativo.", 0, string.Empty);
+
             // Validar y calcular montos
             decimal subtotal = dto.Items.Sum(i => i.Cantidad * i.PrecioUnitario);
             decimal impuesto = subtotal * (dto.PorcentajeImpuesto / 100m);
@@ -121,6 +130,18 @@ namespace Aplicacion.Services
             if (dto.TipoVenta == "Contado" && dto.MontoRecibido < total)
             {
                 return (false, $"El monto recibido (C$ {dto.MontoRecibido:N2}) es menor al total de la venta (C$ {total:N2}).", 0, string.Empty);
+            }
+
+            if (dto.TipoVenta == "Credito")
+            {
+                if (dto.PrimaInicial < 0)
+                    return (false, "La prima inicial no puede ser negativa.", 0, string.Empty);
+                if (dto.PrimaInicial >= total)
+                    return (false, "La prima inicial no puede ser mayor o igual al total; regístrela como venta al Contado.", 0, string.Empty);
+                if (dto.CantidadCuotas <= 0)
+                    return (false, "La cantidad de cuotas debe ser mayor a cero.", 0, string.Empty);
+                if (dto.PorcentajeInteres < 0)
+                    return (false, "El porcentaje de interés no puede ser negativo.", 0, string.Empty);
             }
 
             var venta = new Venta
@@ -159,7 +180,7 @@ namespace Aplicacion.Services
                         {
                             IdDetalleVenta = item.IdProducto,
                             NumeroSerie = s.Trim(),
-                            EstadoSerie = "Vendida",
+                            EstadoSerie = "Vendido",
                             FechaRegistro = DateTime.Now
                         });
                     }
@@ -216,6 +237,14 @@ namespace Aplicacion.Services
             }
 
             return await _repo.RegistrarVentaTransaccionalAsync(venta, detalles, series, credito, cuotas);
+        }
+
+        public async Task<(bool Success, string Message)> AnularVenta(int idVenta, int idUsuarioAutoriza, string motivo)
+        {
+            if (string.IsNullOrWhiteSpace(motivo))
+                return (false, "Debe especificar un motivo de anulación.");
+
+            return await _repo.AnularVentaAsync(idVenta, idUsuarioAutoriza, motivo.Trim());
         }
     }
 }

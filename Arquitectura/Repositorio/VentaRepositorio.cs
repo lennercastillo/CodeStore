@@ -286,7 +286,7 @@ namespace Estructura.Repositorio
                             VALUES (@IdDetalleVenta, @NumeroSerie, @EstadoSerie, GETDATE())", con, tran);
                         insertSerieCmd.Parameters.Add(new SqlParameter("@IdDetalleVenta", idDetalleGenerado));
                         insertSerieCmd.Parameters.Add(new SqlParameter("@NumeroSerie", s.NumeroSerie));
-                        insertSerieCmd.Parameters.Add(new SqlParameter("@EstadoSerie", string.IsNullOrWhiteSpace(s.EstadoSerie) ? "Vendida" : s.EstadoSerie));
+                        insertSerieCmd.Parameters.Add(new SqlParameter("@EstadoSerie", string.IsNullOrWhiteSpace(s.EstadoSerie) ? "Vendido" : s.EstadoSerie));
                         await insertSerieCmd.ExecuteNonQueryAsync();
                     }
 
@@ -372,10 +372,10 @@ namespace Estructura.Repositorio
                             using var insertCuotaCmd = new SqlCommand(@"
                                 INSERT INTO CuotasCredito (
                                     IdCredito, NumeroCuota, FechaVencimiento, MontoCuota,
-                                    RecargoMora, MontoAbonado, Estado
+                                    RecargoMora, MoraAbonada, CapitalInteresAbonado, Estado
                                 ) VALUES (
                                     @IdCredito, @NumeroCuota, @FechaVencimiento, @MontoCuota,
-                                    0, 0, 'Pendiente'
+                                    0, 0, 0, 'Pendiente'
                                 )", con, tran);
                             insertCuotaCmd.Parameters.Add(new SqlParameter("@IdCredito", idCreditoGenerado));
                             insertCuotaCmd.Parameters.Add(new SqlParameter("@NumeroCuota", cuota.NumeroCuota));
@@ -393,6 +393,123 @@ namespace Estructura.Repositorio
             {
                 await tran.RollbackAsync();
                 return (false, $"Error al procesar la venta: {ex.Message}", 0, string.Empty);
+            }
+        }
+
+        public async Task<(bool Success, string Message)> AnularVentaAsync(int idVenta, int idUsuarioAutoriza, string motivo)
+        {
+            using var con = _cone.GetConnection();
+            await con.OpenAsync();
+            using var tran = con.BeginTransaction();
+
+            try
+            {
+                string? estadoVenta = null;
+                string? numeroFactura = null;
+
+                using (var checkCmd = new SqlCommand("SELECT Estado, NumeroFactura FROM Ventas WITH (UPDLOCK) WHERE IdVenta = @IdVenta", con, tran))
+                {
+                    checkCmd.Parameters.Add(new SqlParameter("@IdVenta", idVenta));
+                    using var rdr = await checkCmd.ExecuteReaderAsync();
+                    if (!await rdr.ReadAsync())
+                    {
+                        await tran.RollbackAsync();
+                        return (false, "La venta especificada no existe.");
+                    }
+                    estadoVenta = rdr["Estado"].ToString();
+                    numeroFactura = rdr["NumeroFactura"].ToString();
+                }
+
+                if (estadoVenta == "Anulada")
+                {
+                    await tran.RollbackAsync();
+                    return (false, "La venta ya se encuentra anulada.");
+                }
+
+                if (estadoVenta == "Completada")
+                {
+                    var items = new List<(int IdProducto, int Cantidad, decimal Costo)>();
+                    using (var detCmd = new SqlCommand("SELECT IdProducto, Cantidad, CostoUnitarioHistorico FROM DetalleVentas WHERE IdVenta = @IdVenta", con, tran))
+                    {
+                        detCmd.Parameters.Add(new SqlParameter("@IdVenta", idVenta));
+                        using var rdr = await detCmd.ExecuteReaderAsync();
+                        while (await rdr.ReadAsync())
+                        {
+                            items.Add((Convert.ToInt32(rdr["IdProducto"]), Convert.ToInt32(rdr["Cantidad"]), Convert.ToDecimal(rdr["CostoUnitarioHistorico"])));
+                        }
+                    }
+
+                    foreach (var item in items)
+                    {
+                        int stockAnterior = 0;
+                        using (var prodCmd = new SqlCommand("SELECT StockActual FROM Productos WITH (UPDLOCK) WHERE IdProducto = @IdProducto", con, tran))
+                        {
+                            prodCmd.Parameters.Add(new SqlParameter("@IdProducto", item.IdProducto));
+                            stockAnterior = Convert.ToInt32(await prodCmd.ExecuteScalarAsync());
+                        }
+
+                        int stockNuevo = stockAnterior + item.Cantidad;
+
+                        using (var karCmd = new SqlCommand(@"
+                            INSERT INTO Kardex (
+                                IdProducto, FechaMovimiento, TipoMovimiento, Cantidad, StockAnterior, StockNuevo,
+                                CostoUnitario, DocumentoOrigen, IdReferenciaOrigen, Justificacion, IdUsuarioResponsable
+                            ) VALUES (
+                                @IdProducto, GETDATE(), 'Reversion por Anulacion Venta', @Cantidad, @StockAnterior, @StockNuevo,
+                                @CostoUnitario, @DocumentoOrigen, @IdReferenciaOrigen, @Justificacion, @IdUsuarioResponsable
+                            )", con, tran))
+                        {
+                            karCmd.Parameters.Add(new SqlParameter("@IdProducto", item.IdProducto));
+                            karCmd.Parameters.Add(new SqlParameter("@Cantidad", item.Cantidad));
+                            karCmd.Parameters.Add(new SqlParameter("@StockAnterior", stockAnterior));
+                            karCmd.Parameters.Add(new SqlParameter("@StockNuevo", stockNuevo));
+                            karCmd.Parameters.Add(new SqlParameter("@CostoUnitario", item.Costo));
+                            karCmd.Parameters.Add(new SqlParameter("@DocumentoOrigen", numeroFactura));
+                            karCmd.Parameters.Add(new SqlParameter("@IdReferenciaOrigen", idVenta));
+                            karCmd.Parameters.Add(new SqlParameter("@Justificacion", motivo));
+                            karCmd.Parameters.Add(new SqlParameter("@IdUsuarioResponsable", idUsuarioAutoriza));
+                            await karCmd.ExecuteNonQueryAsync();
+                        }
+
+                        using (var updProd = new SqlCommand("UPDATE Productos SET StockActual = StockActual + @Cantidad WHERE IdProducto = @IdProducto", con, tran))
+                        {
+                            updProd.Parameters.Add(new SqlParameter("@Cantidad", item.Cantidad));
+                            updProd.Parameters.Add(new SqlParameter("@IdProducto", item.IdProducto));
+                            await updProd.ExecuteNonQueryAsync();
+                        }
+                    }
+                }
+
+                using (var updCuotas = new SqlCommand("UPDATE CuotasCredito SET Estado = 'Anulada' WHERE IdCredito IN (SELECT IdCredito FROM Creditos WHERE IdVenta = @IdVenta)", con, tran))
+                {
+                    updCuotas.Parameters.Add(new SqlParameter("@IdVenta", idVenta));
+                    await updCuotas.ExecuteNonQueryAsync();
+                }
+
+                using (var updCred = new SqlCommand("UPDATE Creditos SET Estado = 'Anulado', SaldoPendiente = 0 WHERE IdVenta = @IdVenta", con, tran))
+                {
+                    updCred.Parameters.Add(new SqlParameter("@IdVenta", idVenta));
+                    await updCred.ExecuteNonQueryAsync();
+                }
+
+                using (var updVenta = new SqlCommand(@"
+                    UPDATE Ventas
+                    SET Estado = 'Anulada', IdUsuarioAutorizaAnulacion = @IdUsuario, FechaAnulacion = GETDATE(), MotivoAnulacion = @Motivo
+                    WHERE IdVenta = @IdVenta", con, tran))
+                {
+                    updVenta.Parameters.Add(new SqlParameter("@IdUsuario", idUsuarioAutoriza));
+                    updVenta.Parameters.Add(new SqlParameter("@Motivo", motivo));
+                    updVenta.Parameters.Add(new SqlParameter("@IdVenta", idVenta));
+                    await updVenta.ExecuteNonQueryAsync();
+                }
+
+                await tran.CommitAsync();
+                return (true, $"Factura {numeroFactura} anulada. Stock, Kardex y crédito revertidos correctamente.");
+            }
+            catch (Exception ex)
+            {
+                await tran.RollbackAsync();
+                return (false, $"Error al anular venta: {ex.Message}");
             }
         }
     }

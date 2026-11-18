@@ -1,0 +1,98 @@
+@model Aplicacion.DTOs.DTOSAbono
+
+@{
+    ViewData["Title"] = $"Recibo {Model.NumeroRecibo}";
+    var cuota = ViewBag.Cuota as Aplicacion.DTOs.DTOSCuotaCredito;
+    var credito = ViewBag.Credito as Aplicacion.DTOs.DTOSCredito;
+    var venta = ViewBag.Venta as Dominio.Entidades.Venta;
+    var cliente = ViewBag.Cliente as Aplicacion.DTOs.DTOsClientes;
+}
+
+<div class="page-header d-print-none mb-4">
+    <div class="row g-2 align-items-center">
+        <div class="col">
+            <div class="page-pretitle">Abonos / Recibo de Caja</div>
+            <h2 class="page-title text-dark">
+                <i class="ti ti-receipt me-2 text-primary"></i>Recibo: @Model.NumeroRecibo
+            </h2>
+        </div>
+        <div class="col-auto ms-auto d-print-none">
+            <div class="btn-list">
+                <a asp-action="Index" class="btn btn-outline-secondary">Volver</a>
+                <button type="button" class="btn btn-primary" onclick="window.print();">
+                    <i class="ti ti-printer me-1"></i> Imprimir Recibo
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4 p-md-5">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <span class="fs-1 fw-bold text-dark">Code<span class="text-primary">Store</span></span>
+                        <div class="text-secondary small">Comprobante Oficial de Abono a Crédito</div>
+                    </div>
+                    <div class="text-end">
+                        <div class="text-secondary small text-uppercase fw-bold">Recibo N°</div>
+                        <div class="fs-2 fw-bold font-monospace text-dark">@Model.NumeroRecibo</div>
+                        <div class="text-secondary small">@Model.FechaAbono.ToString("dd/MM/yyyy hh:mm tt")</div>
+                    </div>
+                </div>
+
+                <div class="hr my-3"></div>
+
+                <div class="row mb-4">
+                    <div class="col-sm-6">
+                        <div class="text-secondary small">Recibido de:</div>
+                        <div class="fw-bold fs-3 text-dark">@(cliente != null ? $"{cliente.Nombres} {cliente.Apellidos}" : "Cliente")</div>
+                        @if (cliente != null)
+                        {
+                            <div class="text-secondary small">Identificación: @cliente.NumeroIdentificacion</div>
+                        }
+                    </div>
+                    <div class="col-sm-6 text-sm-end mt-2 mt-sm-0">
+                        <div class="text-secondary small">Factura Asociada: <strong class="font-monospace">@(venta?.NumeroFactura ?? "-")</strong></div>
+                        <div class="text-secondary small">Cuota Abonada: <strong>#@(cuota?.NumeroCuota ?? Model.IdCuota)</strong></div>
+                        <div class="text-secondary small">Método de Pago: <strong>@Model.MetodoPago</strong></div>
+                    </div>
+                </div>
+
+                <table class="table table-bordered mb-4">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Concepto</th>
+                            <th class="text-end">Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Aplicación a Mora</td>
+                            <td class="text-end">C$ @Model.MontoAplicadoMora.ToString("N2")</td>
+                        </tr>
+                        <tr>
+                            <td>Aplicación a Capital / Interés</td>
+                            <td class="text-end">C$ @Model.MontoAplicadoCapital.ToString("N2")</td>
+                        </tr>
+                        <tr class="table-success">
+                            <td class="fw-bold fs-3">Total Abonado</td>
+                            <td class="text-end fw-bold fs-2 text-success">C$ @Model.MontoAbono.ToString("N2")</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                @if (credito != null)
+                {
+                    <div class="alert alert-info mb-0">
+                        <strong>Saldo Pendiente Actual del Crédito:</strong> C$ @credito.SaldoPendiente.ToString("N2")
+                        <span class="badge bg-blue-lt ms-2">@credito.Estado</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+

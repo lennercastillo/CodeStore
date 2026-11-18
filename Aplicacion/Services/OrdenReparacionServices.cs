@@ -95,5 +95,11 @@ namespace Aplicacion.Services
         {
             await _repo.EliminarOrdenReparacionAsync(id);
         }
+
+        public async Task<DTOSOrdenReparacion?> ObtenerPorId(int id)
+        {
+            var lista = await ListarOrdenReparacion();
+            return lista.FirstOrDefault(o => o.IdOrdenReparacion == id);
+        }
     }
 }

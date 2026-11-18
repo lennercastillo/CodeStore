@@ -1752,3 +1752,44 @@ BEGIN
 END;
 GO
 
+
+-- =========================================================
+-- DATOS SEMILLA INICIALES (ROLES Y ADMINISTRADOR)
+-- =========================================================
+IF NOT EXISTS (SELECT 1 FROM Roles WHERE CodigoRol = 'Rol-01')
+BEGIN
+    INSERT INTO Roles (CodigoRol, NombreRol, Descripcion, Activo)
+    VALUES ('Rol-01', 'Administrador', 'Acceso total al sistema, configuracion y anulaciones', 1);
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM Roles WHERE CodigoRol = 'Rol-02')
+BEGIN
+    INSERT INTO Roles (CodigoRol, NombreRol, Descripcion, Activo)
+    VALUES ('Rol-02', 'Vendedor', 'Gestion de clientes, ventas POS y consultas de catalogo', 1);
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM Roles WHERE CodigoRol = 'Rol-03')
+BEGIN
+    INSERT INTO Roles (CodigoRol, NombreRol, Descripcion, Activo)
+    VALUES ('Rol-03', 'Tecnico', 'Gestion de ordenes de reparacion y garantias', 1);
+END
+GO
+
+-- Usuario Administrador por defecto: admin@codestore.com / Admin123*
+IF NOT EXISTS (SELECT 1 FROM Usuarios WHERE Correo = 'admin@codestore.com')
+BEGIN
+    DECLARE @IdRolAdmin INT = (SELECT TOP 1 IdRol FROM Roles WHERE CodigoRol = 'Rol-01');
+    INSERT INTO Usuarios (IdRol, Nombres, Apellidos, Correo, PasswordHash, Telefono, Activo)
+    VALUES (
+        @IdRolAdmin,
+        'Administrador',
+        'CodeStore',
+        'admin@codestore.com',
+        '0A5BC3E342432F1BAD92FFD51B785343EC72906CDBA6A26131060B008E786656',
+        '0000-0000',
+        1
+    );
+END
+GO

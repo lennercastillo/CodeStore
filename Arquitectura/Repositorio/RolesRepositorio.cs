@@ -35,7 +35,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@Descripcion", rol.Descripcion == null ? DBNull.Value : rol.Descripcion));
                 cmd.Parameters.Add(new SqlParameter("@Activo", rol.Activo));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
 
             }
             catch (Exception ex)
@@ -56,7 +56,7 @@ namespace Estructura.Repositorio
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter("@IdRol",Id));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
 
             }
             catch (Exception ex)
@@ -115,7 +115,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@Descripcion", rol.Descripcion == null ? DBNull.Value : rol.Descripcion));
                 cmd.Parameters.Add(new SqlParameter("@Activo", rol.Activo));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
 
             }
             catch (Exception ex)

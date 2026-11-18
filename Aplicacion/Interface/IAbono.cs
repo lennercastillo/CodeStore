@@ -13,5 +13,11 @@ namespace Aplicacion.Interface
         Task NuevoAbonoAsync(Abono abono);
         Task EditarAbonoAsync(Abono abono);
         Task EliminarAbonoAsync(int Id);
+        Task<(bool Success, string Message, int IdAbono, string NumeroRecibo)> RegistrarAbonoTransaccionalAsync(
+            int idCuota,
+            decimal montoAbono,
+            string metodoPago,
+            string? observaciones,
+            int idUsuarioRegistro);
     }
 }

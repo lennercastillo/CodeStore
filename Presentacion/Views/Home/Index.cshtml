@@ -1,4 +1,6 @@
-﻿@{
+@model Presentacion.Models.DashboardViewModel
+
+@{
     ViewData["Title"] = "Dashboard Principal";
 }
 
@@ -41,9 +43,9 @@
                     </div>
                     <div class="col">
                         <div class="text-secondary small fw-medium">Ventas del Mes</div>
-                        <div class="fs-2 fw-bold text-dark mt-1">$14,250.00</div>
+                        <div class="fs-2 fw-bold text-dark mt-1">C$ @Model.VentasDelMes.ToString("N2")</div>
                         <div class="text-success small mt-1 d-flex align-items-center">
-                            <i class="ti ti-trending-up me-1"></i> +12.5% vs mes anterior
+                            <i class="ti ti-receipt me-1"></i> @Model.CantidadVentasMes facturas completadas
                         </div>
                     </div>
                 </div>
@@ -62,10 +64,10 @@
                         </span>
                     </div>
                     <div class="col">
-                        <div class="text-secondary small fw-medium">Clientes Registrados</div>
-                        <div class="fs-2 fw-bold text-dark mt-1">128</div>
+                        <div class="text-secondary small fw-medium">Clientes Activos</div>
+                        <div class="fs-2 fw-bold text-dark mt-1">@Model.TotalClientesActivos</div>
                         <div class="text-secondary small mt-1 d-flex align-items-center">
-                            <i class="ti ti-user-plus me-1"></i> 8 nuevos esta semana
+                            <i class="ti ti-credit-card me-1"></i> Cartera: C$ @Model.CarteraCreditosPendiente.ToString("N2")
                         </div>
                     </div>
                 </div>
@@ -85,9 +87,9 @@
                     </div>
                     <div class="col">
                         <div class="text-secondary small fw-medium">Equipos en Taller</div>
-                        <div class="fs-2 fw-bold text-dark mt-1">14</div>
+                        <div class="fs-2 fw-bold text-dark mt-1">@Model.EquiposEnTaller</div>
                         <div class="text-warning small mt-1 d-flex align-items-center">
-                            <i class="ti ti-clock me-1"></i> 4 por entregar hoy
+                            <i class="ti ti-tools me-1"></i> Órdenes en proceso
                         </div>
                     </div>
                 </div>
@@ -95,7 +97,7 @@
         </div>
     </div>
 
-    <!-- Alertas de Stock -->
+    <!-- Stock Bajo -->
     <div class="col-sm-6 col-lg-3">
         <div class="card card-hover card-sm border-0 shadow-sm">
             <div class="card-body">
@@ -106,10 +108,10 @@
                         </span>
                     </div>
                     <div class="col">
-                        <div class="text-secondary small fw-medium">Stock Bajo Mínimo</div>
-                        <div class="fs-2 fw-bold text-danger mt-1">5</div>
+                        <div class="text-secondary small fw-medium">Stock Bajo / Crítico</div>
+                        <div class="fs-2 fw-bold text-danger mt-1">@Model.ProductosStockBajo</div>
                         <div class="text-danger small mt-1 d-flex align-items-center">
-                            <i class="ti ti-arrow-down-right me-1"></i> Requiere reabastecimiento
+                            <i class="ti ti-package me-1"></i> Requieren reposición
                         </div>
                     </div>
                 </div>
@@ -118,98 +120,16 @@
     </div>
 </div>
 
-<!-- Main Modules Quick Grid -->
-<div class="row row-cards mb-4">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-transparent border-bottom">
-                <h3 class="card-title fw-bold">
-                    <i class="ti ti-grid-dots text-primary me-2"></i> Módulos Principales del Sistema
-                </h3>
-            </div>
-            <div class="card-body py-4">
-                <div class="row g-3">
-                    <!-- Productos -->
-                    <div class="col-md-4 col-lg-2">
-                        <a asp-controller="Productos" asp-action="Index" class="card card-link card-hover text-center p-3 border text-decoration-none">
-                            <div class="avatar avatar-md bg-blue-lt text-primary mx-auto mb-2 rounded-circle">
-                                <i class="ti ti-box fs-2"></i>
-                            </div>
-                            <div class="fw-semibold text-dark">Productos</div>
-                            <small class="text-secondary">Inventario y Precios</small>
-                        </a>
-                    </div>
-
-                    <!-- Clientes -->
-                    <div class="col-md-4 col-lg-2">
-                        <a asp-controller="Clientes" asp-action="Index" class="card card-link card-hover text-center p-3 border text-decoration-none">
-                            <div class="avatar avatar-md bg-green-lt text-success mx-auto mb-2 rounded-circle">
-                                <i class="ti ti-users fs-2"></i>
-                            </div>
-                            <div class="fw-semibold text-dark">Clientes</div>
-                            <small class="text-secondary">Directorio comercial</small>
-                        </a>
-                    </div>
-
-                    <!-- Ventas / POS -->
-                    <div class="col-md-4 col-lg-2">
-                        <a asp-controller="Ventas" asp-action="Index" class="card card-link card-hover text-center p-3 border text-decoration-none">
-                            <div class="avatar avatar-md bg-azure-lt text-azure mx-auto mb-2 rounded-circle">
-                                <i class="ti ti-shopping-cart fs-2"></i>
-                            </div>
-                            <div class="fw-semibold text-dark">Ventas & POS</div>
-                            <small class="text-secondary">Facturación rápida</small>
-                        </a>
-                    </div>
-
-                    <!-- Kardex -->
-                    <div class="col-md-4 col-lg-2">
-                        <a asp-controller="Kardex" asp-action="Index" class="card card-link card-hover text-center p-3 border text-decoration-none">
-                            <div class="avatar avatar-md bg-purple-lt text-purple mx-auto mb-2 rounded-circle">
-                                <i class="ti ti-clipboard-list fs-2"></i>
-                            </div>
-                            <div class="fw-semibold text-dark">Kardex</div>
-                            <small class="text-secondary">Control de movimientos</small>
-                        </a>
-                    </div>
-
-                    <!-- Créditos -->
-                    <div class="col-md-4 col-lg-2">
-                        <a asp-controller="Creditos" asp-action="Index" class="card card-link card-hover text-center p-3 border text-decoration-none">
-                            <div class="avatar avatar-md bg-orange-lt text-orange mx-auto mb-2 rounded-circle">
-                                <i class="ti ti-credit-card fs-2"></i>
-                            </div>
-                            <div class="fw-semibold text-dark">Créditos</div>
-                            <small class="text-secondary">Cobros y Cuotas</small>
-                        </a>
-                    </div>
-
-                    <!-- Taller Técnico -->
-                    <div class="col-md-4 col-lg-2">
-                        <a asp-controller="OrdenReparacion" asp-action="Index" class="card card-link card-hover text-center p-3 border text-decoration-none">
-                            <div class="avatar avatar-md bg-teal-lt text-teal mx-auto mb-2 rounded-circle">
-                                <i class="ti ti-tools fs-2"></i>
-                            </div>
-                            <div class="fw-semibold text-dark">Taller</div>
-                            <small class="text-secondary">Diagnóstico y Reparación</small>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Details Grid -->
+<!-- Tablas Resumen -->
 <div class="row row-cards">
-    <!-- Ventas Recientes -->
+    <!-- Últimas Ventas -->
     <div class="col-lg-7">
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-transparent border-bottom d-flex align-items-center justify-content-between">
-                <h3 class="card-title fw-bold">
-                    <i class="ti ti-receipt text-primary me-2"></i> Ventas Recientes
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+                <h3 class="card-title fw-bold text-dark m-0">
+                    <i class="ti ti-receipt me-2 text-primary"></i>Últimas Ventas Registradas
                 </h3>
-                <a asp-controller="Ventas" asp-action="Index" class="btn btn-sm btn-ghost-primary">Ver todas</a>
+                <a asp-controller="Ventas" asp-action="Index" class="btn btn-sm btn-outline-primary">Ver Todas</a>
             </div>
             <div class="table-responsive">
                 <table class="table table-vcenter card-table table-hover">
@@ -218,82 +138,82 @@
                             <th>Factura</th>
                             <th>Cliente</th>
                             <th>Tipo</th>
-                            <th>Total</th>
-                            <th>Estado</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-center">Estado</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td class="fw-semibold">FAC-00104</td>
-                            <td>Carlos Mendoza</td>
-                            <td><span class="badge bg-blue-lt">Contado</span></td>
-                            <td class="fw-bold">$450.00</td>
-                            <td><span class="badge bg-green text-green-fg">Completada</span></td>
-                        </tr>
-                        <tr>
-                            <td class="fw-semibold">FAC-00103</td>
-                            <td>Distribuidora Alpha</td>
-                            <td><span class="badge bg-purple-lt">Crédito</span></td>
-                            <td class="fw-bold">$1,280.00</td>
-                            <td><span class="badge bg-yellow text-yellow-fg">Pendiente</span></td>
-                        </tr>
-                        <tr>
-                            <td class="fw-semibold">FAC-00102</td>
-                            <td>María González</td>
-                            <td><span class="badge bg-blue-lt">Contado</span></td>
-                            <td class="fw-bold">$85.00</td>
-                            <td><span class="badge bg-green text-green-fg">Completada</span></td>
-                        </tr>
-                        <tr>
-                            <td class="fw-semibold">FAC-00101</td>
-                            <td>Roberto Alvarado</td>
-                            <td><span class="badge bg-blue-lt">Contado</span></td>
-                            <td class="fw-bold">$320.00</td>
-                            <td><span class="badge bg-green text-green-fg">Completada</span></td>
-                        </tr>
+                        @if (!Model.UltimasVentas.Any())
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-secondary">Aún no hay ventas registradas.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var v in Model.UltimasVentas)
+                            {
+                                var cli = Model.ClientesNombres.ContainsKey(v.IdCliente) ? Model.ClientesNombres[v.IdCliente] : $"Cliente #{v.IdCliente}";
+                                <tr>
+                                    <td><a asp-controller="Ventas" asp-action="Detalle" asp-route-id="@v.IdVenta" class="badge bg-dark-lt font-monospace text-decoration-none">@v.NumeroFactura</a></td>
+                                    <td class="fw-medium">@cli</td>
+                                    <td><span class="badge @(v.TipoVenta == "Contado" ? "bg-azure-lt" : "bg-purple-lt")">@v.TipoVenta</span></td>
+                                    <td class="text-end fw-bold text-success">C$ @v.TotalVenta.ToString("N2")</td>
+                                    <td class="text-center">
+                                        <span class="badge @(v.Estado == "Completada" ? "bg-success-lt" : "bg-danger-lt")">@v.Estado</span>
+                                    </td>
+                                </tr>
+                            }
+                        }
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- Taller y Reparaciones Activas -->
+    <!-- Alertas de Stock Crítico -->
     <div class="col-lg-5">
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-transparent border-bottom d-flex align-items-center justify-content-between">
-                <h3 class="card-title fw-bold">
-                    <i class="ti ti-device-desktop text-warning me-2"></i> Reparaciones en Curso
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+                <h3 class="card-title fw-bold text-dark m-0">
+                    <i class="ti ti-alert-triangle me-2 text-danger"></i>Alertas de Stock Bajo
                 </h3>
-                <a asp-controller="OrdenReparacion" asp-action="Index" class="btn btn-sm btn-ghost-primary">Ver taller</a>
+                <a asp-controller="Compras" asp-action="Crear" class="btn btn-sm btn-outline-danger">Abastecer</a>
             </div>
-            <div class="list-group list-group-flush">
-                <div class="list-group-item">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <div class="fw-semibold text-dark">Laptop Dell Inspiron 15</div>
-                            <small class="text-secondary">Cliente: Ana Martínez &bull; Falla: Pantalla azul</small>
-                        </div>
-                        <span class="badge bg-warning-lt">En Diagnóstico</span>
-                    </div>
-                </div>
-                <div class="list-group-item">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <div class="fw-semibold text-dark">PC Gamer Ryzen 7</div>
-                            <small class="text-secondary">Cliente: David Castro &bull; Mant. preventivo</small>
-                        </div>
-                        <span class="badge bg-azure-lt">En Proceso</span>
-                    </div>
-                </div>
-                <div class="list-group-item">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <div class="fw-semibold text-dark">Impresora Epson L3150</div>
-                            <small class="text-secondary">Cliente: Imprenta Express &bull; Cambio cabezal</small>
-                        </div>
-                        <span class="badge bg-green-lt">Listo para Entrega</span>
-                    </div>
-                </div>
+            <div class="table-responsive">
+                <table class="table table-vcenter card-table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th class="text-center">Actual</th>
+                            <th class="text-center">Mínimo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.ProductosCriticos.Any())
+                        {
+                            <tr>
+                                <td colspan="3" class="text-center py-4 text-success">
+                                    <i class="ti ti-check me-1"></i> Todo el inventario está en niveles saludables.
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var p in Model.ProductosCriticos)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold text-dark">@p.Nombre</div>
+                                        <div class="text-secondary small font-monospace">@p.CodigoSKU</div>
+                                    </td>
+                                    <td class="text-center"><span class="badge bg-danger text-white">@p.StockActual</span></td>
+                                    <td class="text-center text-secondary">@p.StockMinimo</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

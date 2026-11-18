@@ -1,0 +1,162 @@
+@model IEnumerable<Aplicacion.DTOs.DTOSCredito>
+
+@{
+    ViewData["Title"] = "Créditos y Financiamientos";
+    var ventas = ViewBag.Ventas as Dictionary<int, Aplicacion.DTOs.DTOSVenta> ?? new Dictionary<int, Aplicacion.DTOs.DTOSVenta>();
+    var clientes = ViewBag.Clientes as Dictionary<int, string> ?? new Dictionary<int, string>();
+
+    var activos = Model.Count(c => c.Estado == "Activo" || c.Estado == "EnMora");
+    var pagados = Model.Count(c => c.Estado == "Pagado");
+    var carteraPendiente = Model.Where(c => c.Estado != "Anulado").Sum(c => c.SaldoPendiente);
+}
+
+<div class="page-header d-print-none mb-4">
+    <div class="row g-2 align-items-center">
+        <div class="col">
+            <div class="page-pretitle">Créditos & Cobranzas</div>
+            <h2 class="page-title text-dark">
+                <i class="ti ti-credit-card me-2 text-primary"></i>Cartera de Créditos
+            </h2>
+            <div class="text-secondary mt-1">Control de financiamientos otorgados, cuotas pendientes y saldos por cobrar</div>
+        </div>
+        <div class="col-auto ms-auto d-print-none">
+            <a asp-controller="Abonos" asp-action="Crear" class="btn btn-primary d-inline-flex align-items-center">
+                <i class="ti ti-coin me-1 fs-3"></i> Registrar Abono
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row row-cards mb-4">
+    <div class="col-sm-4">
+        <div class="card card-sm border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto"><span class="bg-primary-lt avatar avatar-md"><i class="ti ti-list-details fs-2"></i></span></div>
+                    <div class="col">
+                        <div class="text-secondary small fw-medium">Créditos Activos</div>
+                        <div class="fs-2 fw-bold text-dark">@activos</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="card card-sm border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto"><span class="bg-success-lt avatar avatar-md"><i class="ti ti-check fs-2"></i></span></div>
+                    <div class="col">
+                        <div class="text-secondary small fw-medium">Créditos Cancelados</div>
+                        <div class="fs-2 fw-bold text-success">@pagados</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="card card-sm border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto"><span class="bg-warning-lt avatar avatar-md"><i class="ti ti-cash fs-2"></i></span></div>
+                    <div class="col">
+                        <div class="text-secondary small fw-medium">Saldo Total por Cobrar</div>
+                        <div class="fs-2 fw-bold text-warning">C$ @carteraPendiente.ToString("N2")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+        <h3 class="card-title fw-bold text-dark m-0">
+            <i class="ti ti-list me-2 text-primary"></i>Listado de Créditos
+        </h3>
+        <span class="badge bg-blue-lt">@Model.Count() créditos</span>
+    </div>
+
+    <div class="card-body p-3">
+        <div class="table-responsive">
+            <table id="tablaCreditos" class="table table-vcenter table-hover card-table">
+                <thead>
+                    <tr>
+                        <th>Factura</th>
+                        <th>Cliente</th>
+                        <th>Frecuencia</th>
+                        <th class="text-end">Total Crédito</th>
+                        <th class="text-end">Saldo Pendiente</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center w-1">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var venta = ventas.ContainsKey(item.IdVenta) ? ventas[item.IdVenta] : null;
+                        var nombreCliente = (venta != null && clientes.ContainsKey(venta.IdCliente)) ? clientes[venta.IdCliente] : "Cliente N/D";
+                        <tr>
+                            <td><span class="badge bg-dark-lt font-monospace">@(venta?.NumeroFactura ?? $"Venta #{item.IdVenta}")</span></td>
+                            <td>
+                                <div class="fw-semibold text-dark">@nombreCliente</div>
+                                <div class="text-secondary small">@item.FechaRegistro.ToString("dd/MM/yyyy")</div>
+                            </td>
+                            <td>
+                                <span class="badge bg-purple-lt">@item.FrecuenciaPago</span>
+                                <span class="text-secondary small ms-1">@item.CantidadCuotas cuotas</span>
+                            </td>
+                            <td class="text-end fw-medium">C$ @item.MontoTotalCredito.ToString("N2")</td>
+                            <td class="text-end fw-bold @(item.SaldoPendiente > 0 ? "text-danger" : "text-success")">
+                                C$ @item.SaldoPendiente.ToString("N2")
+                            </td>
+                            <td class="text-center">
+                                @if (item.Estado == "Pagado")
+                                {
+                                    <span class="badge bg-success-lt">Pagado</span>
+                                }
+                                else if (item.Estado == "Anulado")
+                                {
+                                    <span class="badge bg-danger-lt">Anulado</span>
+                                }
+                                else if (item.Estado == "EnMora")
+                                {
+                                    <span class="badge bg-danger text-white">En Mora</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning-lt">Activo</span>
+                                }
+                            </td>
+                            <td class="text-center text-nowrap">
+                                <a asp-action="Detalle" asp-route-id="@item.IdCredito" class="btn btn-sm btn-outline-primary">
+                                    <i class="ti ti-eye me-1"></i> Cuotas
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#tablaCreditos').DataTable({
+                language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
+                order: [],
+                pageLength: 10,
+                responsive: true
+            });
+
+            @if (TempData["Error"] != null)
+            {
+                <text>Swal.fire({ icon: 'error', title: 'Atención', text: '@Html.Raw(TempData["Error"])' });</text>
+            }
+        });
+    </script>
+}
+

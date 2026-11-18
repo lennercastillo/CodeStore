@@ -1,0 +1,129 @@
+@model Aplicacion.DTOs.DTOSOrdenReparacion
+
+@{
+    ViewData["Title"] = $"Orden {Model.NumeroOrden}";
+    var clientes = ViewBag.Clientes as List<Aplicacion.DTOs.DTOsClientes> ?? new List<Aplicacion.DTOs.DTOsClientes>();
+    var tecnicos = ViewBag.Tecnicos as List<Aplicacion.DTOs.DTOSUsuario> ?? new List<Aplicacion.DTOs.DTOSUsuario>();
+}
+
+<div class="page-header d-print-none mb-4">
+    <div class="row g-2 align-items-center">
+        <div class="col">
+            <div class="page-pretitle">Taller Técnico</div>
+            <h2 class="page-title text-dark">
+                <i class="ti ti-pencil me-2 text-primary"></i>Actualizar Orden: @Model.NumeroOrden
+            </h2>
+        </div>
+        <div class="col-auto ms-auto d-print-none">
+            <a asp-action="Index" class="btn btn-outline-secondary">Volver</a>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-9">
+        <form asp-action="Editar" method="post" class="card border-0 shadow-sm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="IdOrdenReparacion" />
+            <input type="hidden" asp-for="IdGarantia" />
+            <input type="hidden" asp-for="FechaIngreso" />
+
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h3 class="card-title text-dark fw-bold m-0">Diagnóstico y Seguimiento</h3>
+                <span class="badge bg-dark-lt font-monospace">@Model.NumeroOrden</span>
+            </div>
+
+            <div class="card-body">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label asp-for="NumeroOrden" class="form-label required"></label>
+                        <input asp-for="NumeroOrden" class="form-control font-monospace" readonly />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="IdCliente" class="form-label required"></label>
+                        <select asp-for="IdCliente" class="form-select">
+                            @foreach (var c in clientes)
+                            {
+                                <option value="@c.IdCliente" selected="@(c.IdCliente == Model.IdCliente)">@c.Nombres @c.Apellidos</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="IdUsuarioTecnico" class="form-label required"></label>
+                        <select asp-for="IdUsuarioTecnico" class="form-select">
+                            @foreach (var t in tecnicos)
+                            {
+                                <option value="@t.IdUsuario" selected="@(t.IdUsuario == Model.IdUsuarioTecnico)">@t.Nombres @t.Apellidos</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label asp-for="DescripcionEquipo" class="form-label required"></label>
+                        <input asp-for="DescripcionEquipo" class="form-control" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Marca" class="form-label required"></label>
+                        <input asp-for="Marca" class="form-control" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Modelo" class="form-label required"></label>
+                        <input asp-for="Modelo" class="form-control" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="NumeroSerie" class="form-label required"></label>
+                        <input asp-for="NumeroSerie" class="form-control font-monospace" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="EstadoEquipo" class="form-label required"></label>
+                        <select asp-for="EstadoEquipo" class="form-select">
+                            <option value="Recibido">Recibido</option>
+                            <option value="En Diagnostico">En Diagnóstico</option>
+                            <option value="En Reparacion">En Reparación</option>
+                            <option value="Esperando Repuesto">Esperando Repuesto</option>
+                            <option value="Reparado">Reparado</option>
+                            <option value="Entregado">Entregado</option>
+                            <option value="Sin Solucion">Sin Solución</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="CostoReparacion" class="form-label"></label>
+                        <div class="input-group">
+                            <span class="input-group-text">C$</span>
+                            <input asp-for="CostoReparacion" type="number" step="0.01" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label asp-for="DiagnosticoTecnico" class="form-label"></label>
+                        <textarea asp-for="DiagnosticoTecnico" rows="3" class="form-control"></textarea>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label asp-for="Observaciones" class="form-label"></label>
+                        <textarea asp-for="Observaciones" rows="2" class="form-control"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer bg-light py-3 d-flex justify-content-between">
+                <a asp-action="Index" class="btn btn-link link-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary"><i class="ti ti-device-floppy me-2"></i>Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

@@ -171,9 +171,17 @@
                                 }
                             </td>
                             <td class="text-center text-nowrap">
-                                <a asp-action="Detalle" asp-route-id="@item.IdVenta" class="btn btn-sm btn-outline-primary" title="Ver Factura Completa">
-                                    <i class="ti ti-file-invoice me-1"></i> Ver
-                                </a>
+                                <div class="btn-group">
+                                    <a asp-action="Detalle" asp-route-id="@item.IdVenta" class="btn btn-sm btn-outline-primary" title="Ver Factura Completa">
+                                        <i class="ti ti-file-invoice me-1"></i> Ver
+                                    </a>
+                                    @if (item.Estado != "Anulada")
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-danger btn-anular-venta" data-id="@item.IdVenta" data-fac="@item.NumeroFactura" title="Anular Factura">
+                                            <i class="ti ti-ban"></i>
+                                        </button>
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }
@@ -218,6 +226,36 @@
                 });
                 </text>
             }
+
+            $(document).on('click', '.btn-anular-venta', function () {
+                const id = $(this).data('id');
+                const fac = $(this).data('fac');
+
+                Swal.fire({
+                    title: `Anular Factura ${fac}`,
+                    input: 'text',
+                    inputLabel: 'Motivo de anulación',
+                    inputPlaceholder: 'Ej: Devolución del cliente / Error en facturación',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d63939',
+                    confirmButtonText: 'Confirmar Anulación',
+                    cancelButtonText: 'Cancelar',
+                    inputValidator: (v) => {
+                        if (!v || !v.trim()) return 'Debe ingresar el motivo de la anulación.';
+                    }
+                }).then((r) => {
+                    if (r.isConfirmed) {
+                        $.post('@Url.Action("Anular", "Ventas")', { id: id, motivo: r.value }, function (res) {
+                            if (res.success) {
+                                Swal.fire({ icon: 'success', title: 'Anulada', text: res.message, timer: 2500, showConfirmButton: false }).then(() => location.reload());
+                            } else {
+                                Swal.fire({ icon: 'error', title: 'Error', text: res.message });
+                            }
+                        });
+                    }
+                });
+            });
         });
     </script>
 }

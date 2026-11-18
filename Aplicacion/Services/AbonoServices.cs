@@ -89,5 +89,15 @@ namespace Aplicacion.Services
         {
             await _repo.EliminarAbonoAsync(id);
         }
+
+        public async Task<(bool Success, string Message, int IdAbono, string NumeroRecibo)> RegistrarAbono(
+            int idCuota,
+            decimal montoAbono,
+            string metodoPago,
+            string? observaciones,
+            int idUsuario)
+        {
+            return await _repo.RegistrarAbonoTransaccionalAsync(idCuota, montoAbono, metodoPago, observaciones, idUsuario);
+        }
     }
 }

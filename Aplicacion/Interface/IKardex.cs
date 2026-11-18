@@ -13,5 +13,11 @@ namespace Aplicacion.Interface
         Task NuevoKardexAsync(Kardex kardex);
         Task EditarKardexAsync(Kardex kardex);
         Task EliminarKardexAsync(int Id);
+        Task<(bool Success, string Message)> RegistrarAjusteInventarioAsync(
+            int idProducto,
+            string tipoMovimiento,
+            int cantidad,
+            string justificacion,
+            int idUsuario);
     }
 }

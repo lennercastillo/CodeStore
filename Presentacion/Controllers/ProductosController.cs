@@ -1,9 +1,11 @@
 using Aplicacion.DTOs;
 using Aplicacion.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Presentacion.Controllers
 {
+    [Authorize]
     public class ProductosController : Controller
     {
         private readonly ProductosServices _productosService;

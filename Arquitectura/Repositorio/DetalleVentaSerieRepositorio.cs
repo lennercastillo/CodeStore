@@ -33,7 +33,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@NumeroSerie", serie.NumeroSerie));
                 cmd.Parameters.Add(new SqlParameter("@EstadoSerie", serie.EstadoSerie));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
@@ -51,7 +51,7 @@ namespace Estructura.Repositorio
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter("@IdSerieVendida", Id));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
@@ -104,7 +104,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@NumeroSerie", serie.NumeroSerie));
                 cmd.Parameters.Add(new SqlParameter("@EstadoSerie", serie.EstadoSerie));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {

@@ -41,7 +41,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@SaldoPendiente", credito.SaldoPendiente));
                 cmd.Parameters.Add(new SqlParameter("@Estado", credito.Estado));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
@@ -59,7 +59,7 @@ namespace Estructura.Repositorio
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter("@IdCredito", Id));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
@@ -128,7 +128,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@MontoInteresesPactados", credito.MontoInteresesPactados));
                 cmd.Parameters.Add(new SqlParameter("@Estado", credito.Estado));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {

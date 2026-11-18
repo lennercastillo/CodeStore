@@ -1,0 +1,135 @@
+@model IEnumerable<Aplicacion.DTOs.DTOSKardex>
+
+@{
+    ViewData["Title"] = "Kardex / Movimientos de Inventario";
+    var prodDict = ViewBag.Productos as Dictionary<int, Aplicacion.DTOs.DTOSProductos> ?? new Dictionary<int, Aplicacion.DTOs.DTOSProductos>();
+    int? idFiltro = ViewBag.IdProductoFiltro as int?;
+}
+
+<div class="page-header d-print-none mb-4">
+    <div class="row g-2 align-items-center">
+        <div class="col">
+            <div class="page-pretitle">Inventario</div>
+            <h2 class="page-title text-dark">
+                <i class="ti ti-clipboard-list me-2 text-primary"></i>Kardex de Inventario
+            </h2>
+            <div class="text-secondary mt-1">Trazabilidad completa de entradas, salidas, reversiones y ajustes de stock</div>
+        </div>
+        <div class="col-auto ms-auto d-print-none">
+            <a asp-action="Ajuste" class="btn btn-primary d-inline-flex align-items-center">
+                <i class="ti ti-adjustments me-1 fs-3"></i> Realizar Ajuste de Stock
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filtro por producto -->
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-2 px-3">
+        <form method="get" asp-action="Index" class="row g-2 align-items-center">
+            <div class="col-md-6">
+                <select name="idProducto" class="form-select" onchange="this.form.submit()">
+                    <option value="">-- Todos los Productos --</option>
+                    @foreach (var p in prodDict.Values.OrderBy(x => x.Nombre))
+                    {
+                        <option value="@p.IdProducto" selected="@(idFiltro == p.IdProducto)">@p.CodigoSKU - @p.Nombre (Stock: @p.StockActual)</option>
+                    }
+                </select>
+            </div>
+            @if (idFiltro.HasValue)
+            {
+                <div class="col-auto">
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Limpiar Filtro</a>
+                </div>
+            }
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+        <h3 class="card-title fw-bold text-dark m-0">
+            <i class="ti ti-history me-2 text-primary"></i>Bitácora de Movimientos
+        </h3>
+        <span class="badge bg-blue-lt">@Model.Count() movimientos</span>
+    </div>
+
+    <div class="card-body p-3">
+        <div class="table-responsive">
+            <table id="tablaKardex" class="table table-vcenter table-hover card-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Producto</th>
+                        <th>Tipo de Movimiento</th>
+                        <th class="text-center">Cant.</th>
+                        <th class="text-center">Stock Ant.</th>
+                        <th class="text-center">Stock Nuevo</th>
+                        <th>Documento / Justificación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var m in Model)
+                    {
+                        var prod = prodDict.ContainsKey(m.IdProducto) ? prodDict[m.IdProducto] : null;
+                        bool esEntrada = m.StockNuevo >= m.StockAnterior;
+                        <tr>
+                            <td class="text-nowrap">
+                                <div class="fw-medium text-dark">@m.FechaMovimiento.ToString("dd/MM/yyyy")</div>
+                                <div class="text-secondary small">@m.FechaMovimiento.ToString("hh:mm tt")</div>
+                            </td>
+                            <td>
+                                <div class="fw-semibold text-dark">@(prod?.Nombre ?? $"Producto #{m.IdProducto}")</div>
+                                <div class="text-secondary small font-monospace">@(prod?.CodigoSKU ?? "")</div>
+                            </td>
+                            <td>
+                                <span class="badge @(esEntrada ? "bg-success-lt" : "bg-danger-lt")">
+                                    <i class="ti @(esEntrada ? "ti-arrow-down-left" : "ti-arrow-up-right") me-1"></i>@m.TipoMovimiento
+                                </span>
+                            </td>
+                            <td class="text-center fw-bold @(esEntrada ? "text-success" : "text-danger")">
+                                @(esEntrada ? "+" : "-")@m.Cantidad
+                            </td>
+                            <td class="text-center text-secondary">@m.StockAnterior</td>
+                            <td class="text-center fw-bold text-dark">@m.StockNuevo</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(m.DocumentoOrigen))
+                                {
+                                    <span class="badge bg-dark-lt font-monospace me-1">@m.DocumentoOrigen</span>
+                                }
+                                <span class="text-secondary small">@m.Justificacion</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#tablaKardex').DataTable({
+                language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
+                order: [],
+                pageLength: 15,
+                responsive: true
+            });
+
+            @if (TempData["Success"] != null)
+            {
+                <text>
+                Swal.fire({ icon: 'success', title: '¡Ajuste Aplicado!', text: '@Html.Raw(TempData["Success"])', timer: 3000, showConfirmButton: false });
+                </text>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <text>
+                Swal.fire({ icon: 'error', title: 'Atención', text: '@Html.Raw(TempData["Error"])' });
+                </text>
+            }
+        });
+    </script>
+}
+

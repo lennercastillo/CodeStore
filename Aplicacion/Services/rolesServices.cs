@@ -1,4 +1,4 @@
-﻿using Aplicacion.DTOs;
+using Aplicacion.DTOs;
 using Aplicacion.Interface;
 using Dominio.Entidades;
 using System;
@@ -71,6 +71,10 @@ namespace Aplicacion.Services
             await _repo.EliminarRolAsync(id);
         }
 
-
+        public async Task<RolDT?> ObtenerPorId(int id)
+        {
+            var lista = await ListaRoles();
+            return lista.FirstOrDefault(r => r.IdRol == id);
+        }
     }
 }

@@ -1,10 +1,12 @@
 using Aplicacion.DTOs;
 using Aplicacion.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace Presentacion.Controllers
 {
+    [Authorize]
     public class VentasController : Controller
     {
         private readonly VentaServices _ventaService;
@@ -158,8 +160,8 @@ namespace Presentacion.Controllers
                     if (credito != null)
                     {
                         dtoCompleto.Credito = credito;
-                        var cuotas = await _cuotaService.ListarCuotaCredito(credito.IdCredito);
-                        dtoCompleto.Cuotas = cuotas.ToList();
+                        var cuotas = await _cuotaService.ListarCuotaCredito();
+                        dtoCompleto.Cuotas = cuotas.Where(c => c.IdCredito == credito.IdCredito).OrderBy(c => c.NumeroCuota).ToList();
                     }
                 }
 
@@ -170,6 +172,21 @@ namespace Presentacion.Controllers
                 TempData["Error"] = $"Error al cargar la venta: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }
+        }
+
+        // POST: /Ventas/Anular
+        [HttpPost]
+        public async Task<IActionResult> Anular(int id, string motivo)
+        {
+            int idUsuario = 1;
+            var claimId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(claimId, out int parsedId))
+            {
+                idUsuario = parsedId;
+            }
+
+            var res = await _ventaService.AnularVenta(id, idUsuario, motivo);
+            return Json(new { success = res.Success, message = res.Message });
         }
     }
 }

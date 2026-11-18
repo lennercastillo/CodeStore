@@ -80,5 +80,11 @@ namespace Aplicacion.Services
         {
             await _repo.EliminarReclamoGarantiaAsync(id);
         }
+
+        public async Task<DTOSReclamoGarantia?> ObtenerPorId(int id)
+        {
+            var lista = await ListarReclamoGarantia();
+            return lista.FirstOrDefault(r => r.IdGarantia == id);
+        }
     }
 }

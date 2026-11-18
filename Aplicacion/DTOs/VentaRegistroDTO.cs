@@ -47,9 +47,15 @@ namespace Aplicacion.DTOs
         public List<VentaItemDTO> Items { get; set; } = new();
 
         // Campos para Crédito
+        [Range(0, double.MaxValue, ErrorMessage = "La prima inicial no puede ser negativa")]
         public decimal PrimaInicial { get; set; } = 0;
+
+        [Range(1, 120, ErrorMessage = "La cantidad de cuotas debe estar entre 1 y 120")]
         public int CantidadCuotas { get; set; } = 1;
+
         public string FrecuenciaPago { get; set; } = "Mensual"; // "Semanal", "Quincenal", "Mensual"
+
+        [Range(0, 100, ErrorMessage = "El porcentaje de interés no puede ser negativo")]
         public decimal PorcentajeInteres { get; set; } = 0;
     }
 

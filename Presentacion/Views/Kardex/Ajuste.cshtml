@@ -1,0 +1,80 @@
+@{
+    ViewData["Title"] = "Ajuste de Inventario";
+    var productos = ViewBag.Productos as List<Aplicacion.DTOs.DTOSProductos> ?? new List<Aplicacion.DTOs.DTOSProductos>();
+}
+
+<div class="page-header d-print-none mb-4">
+    <div class="row g-2 align-items-center">
+        <div class="col">
+            <div class="page-pretitle">Inventario / Kardex</div>
+            <h2 class="page-title text-dark">
+                <i class="ti ti-adjustments me-2 text-primary"></i>Ajuste Manual de Stock
+            </h2>
+        </div>
+        <div class="col-auto ms-auto d-print-none">
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="ti ti-arrow-left me-1"></i> Volver al Kardex
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-7">
+        <form asp-action="Ajuste" method="post" class="card border-0 shadow-sm">
+            @Html.AntiForgeryToken()
+
+            <div class="card-header bg-white py-3 border-bottom">
+                <h3 class="card-title text-dark fw-bold m-0">
+                    <i class="ti ti-box me-2 text-primary"></i>Movimiento de Inventario
+                </h3>
+            </div>
+
+            <div class="card-body">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger mb-3">@TempData["Error"]</div>
+                }
+
+                <div class="mb-3">
+                    <label class="form-label required">Producto</label>
+                    <select name="idProducto" class="form-select" required>
+                        <option value="">-- Seleccione un Producto --</option>
+                        @foreach (var p in productos)
+                        {
+                            <option value="@p.IdProducto">@p.CodigoSKU - @p.Nombre (Stock actual: @p.StockActual)</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-7">
+                        <label class="form-label required">Tipo de Ajuste</label>
+                        <select name="tipoMovimiento" class="form-select" required>
+                            <option value="Ajuste de Entrada">Ajuste de Entrada (+ Suma stock)</option>
+                            <option value="Ajuste de Salida">Ajuste de Salida (- Resta stock)</option>
+                            <option value="Baja de Inventario">Baja de Inventario (Daño/Pérdida - Resta stock)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label required">Cantidad</label>
+                        <input type="number" name="cantidad" min="1" value="1" class="form-control" required />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label required">Justificación / Motivo</label>
+                    <textarea name="justificacion" rows="3" class="form-control" placeholder="Ej: Conteo físico mensual, equipo dañado en exhibición..." required></textarea>
+                </div>
+            </div>
+
+            <div class="card-footer bg-light py-3 d-flex justify-content-between align-items-center">
+                <a asp-action="Index" class="btn btn-link link-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary d-inline-flex align-items-center">
+                    <i class="ti ti-check me-2 fs-3"></i> Aplicar Ajuste
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+

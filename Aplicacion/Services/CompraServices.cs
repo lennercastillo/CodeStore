@@ -86,5 +86,58 @@ namespace Aplicacion.Services
         {
             await _repo.EliminarCompraAsync(id);
         }
+
+        public async Task<Compra?> ObtenerPorId(int id)
+        {
+            return await _repo.ObtenerPorIdAsync(id);
+        }
+
+        public async Task<(bool Success, string Message, int IdCompra, string NumeroDocumento)> RegistrarCompraCompleta(CompraRegistroDTO dto, int idUsuario)
+        {
+            if (dto.Items == null || !dto.Items.Any())
+                return (false, "La compra debe contener al menos un producto.", 0, string.Empty);
+
+            if (dto.IdProveedor <= 0)
+                return (false, "Debe seleccionar un proveedor válido.", 0, string.Empty);
+
+            if (dto.Items.Any(i => i.Cantidad <= 0 || i.CostoUnitario <= 0))
+                return (false, "Todos los productos deben tener cantidad y costo unitario mayores a cero.", 0, string.Empty);
+
+            decimal total = dto.Items.Sum(i => i.Cantidad * i.CostoUnitario);
+
+            var compra = new Compra
+            {
+                NumeroDocumento = dto.NumeroDocumento ?? string.Empty,
+                IdProveedor = dto.IdProveedor,
+                IdUsuarioRegistro = idUsuario,
+                FechaCompra = DateTime.Now,
+                TotalCompra = total,
+                Estado = dto.RecibirInmediatamente ? "Recibida" : "Pendiente",
+                Observaciones = dto.Observaciones
+            };
+
+            var detalles = dto.Items.Select(i => new DetalleCompra
+            {
+                IdProducto = i.IdProducto,
+                Cantidad = i.Cantidad,
+                CostoUnitario = i.CostoUnitario,
+                Subtotal = i.Cantidad * i.CostoUnitario
+            }).ToList();
+
+            return await _repo.RegistrarCompraTransaccionalAsync(compra, detalles, dto.RecibirInmediatamente);
+        }
+
+        public async Task<(bool Success, string Message)> ConfirmarRecepcion(int idCompra, int idUsuarioRecepcion)
+        {
+            return await _repo.ConfirmarRecepcionAsync(idCompra, idUsuarioRecepcion);
+        }
+
+        public async Task<(bool Success, string Message)> AnularCompra(int idCompra, int idUsuarioAnulacion, string motivo)
+        {
+            if (string.IsNullOrWhiteSpace(motivo))
+                return (false, "Debe especificar el motivo de anulación.");
+
+            return await _repo.AnularCompraAsync(idCompra, idUsuarioAnulacion, motivo.Trim());
+        }
     }
 }

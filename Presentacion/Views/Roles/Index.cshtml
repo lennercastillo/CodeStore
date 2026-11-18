@@ -1,0 +1,139 @@
+@model IEnumerable<Aplicacion.DTOs.RolDT>
+
+@{
+    ViewData["Title"] = "Roles y Permisos";
+    var totalRoles = Model.Count();
+    var activos = Model.Count(r => r.Activo);
+}
+
+<div class="page-header d-print-none mb-4">
+    <div class="row g-2 align-items-center">
+        <div class="col">
+            <div class="page-pretitle">Seguridad</div>
+            <h2 class="page-title text-dark">
+                <i class="ti ti-shield-lock me-2 text-primary"></i>Roles y Permisos
+            </h2>
+            <div class="text-secondary mt-1">Administración de perfiles de acceso y niveles de autorización del sistema</div>
+        </div>
+        <div class="col-auto ms-auto d-print-none">
+            <a asp-action="Crear" class="btn btn-primary d-inline-flex align-items-center">
+                <i class="ti ti-plus me-1 fs-3"></i> Nuevo Rol
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+        <h3 class="card-title fw-bold text-dark m-0">
+            <i class="ti ti-list me-2 text-primary"></i>Listado de Roles
+        </h3>
+        <span class="badge bg-blue-lt">@activos activos de @totalRoles</span>
+    </div>
+
+    <div class="card-body p-3">
+        <div class="table-responsive">
+            <table id="tablaRoles" class="table table-vcenter table-hover card-table">
+                <thead>
+                    <tr>
+                        <th class="w-1">Código</th>
+                        <th>Nombre del Rol</th>
+                        <th>Descripción</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center w-1">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <span class="badge bg-dark-lt font-monospace fs-5">@item.CodigoRol</span>
+                            </td>
+                            <td>
+                                <div class="fw-semibold text-dark">@item.NombreRol</div>
+                            </td>
+                            <td>
+                                <span class="text-secondary small">@item.Descripcion</span>
+                            </td>
+                            <td class="text-center">
+                                @if (item.Activo)
+                                {
+                                    <span class="badge bg-success-lt">Activo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger-lt">Inactivo</span>
+                                }
+                            </td>
+                            <td class="text-center text-nowrap">
+                                <div class="btn-group">
+                                    <a asp-action="Editar" asp-route-id="@item.IdRol" class="btn btn-sm btn-outline-primary" title="Editar">
+                                        <i class="ti ti-pencil"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-rol" data-id="@item.IdRol" data-nombre="@item.NombreRol" title="Eliminar">
+                                        <i class="ti ti-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#tablaRoles').DataTable({
+                language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
+                order: [[0, 'asc']],
+                pageLength: 10,
+                responsive: true
+            });
+
+            @if (TempData["Success"] != null)
+            {
+                <text>
+                Swal.fire({ icon: 'success', title: '¡Operación Exitosa!', text: '@Html.Raw(TempData["Success"])', timer: 3000, showConfirmButton: false });
+                </text>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <text>
+                Swal.fire({ icon: 'error', title: 'Atención', text: '@Html.Raw(TempData["Error"])' });
+                </text>
+            }
+
+            $(document).on('click', '.btn-eliminar-rol', function () {
+                const id = $(this).data('id');
+                const nombre = $(this).data('nombre');
+
+                Swal.fire({
+                    title: '¿Eliminar rol?',
+                    text: `¿Deseas eliminar el rol "${nombre}"?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d63939',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.post('@Url.Action("Eliminar", "Roles")', { id: id }, function (res) {
+                            if (res.success) {
+                                Swal.fire({ icon: 'success', title: 'Eliminado', text: res.message, timer: 2000, showConfirmButton: false }).then(() => location.reload());
+                            } else {
+                                Swal.fire({ icon: 'error', title: 'No se pudo eliminar', text: res.message });
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}
+

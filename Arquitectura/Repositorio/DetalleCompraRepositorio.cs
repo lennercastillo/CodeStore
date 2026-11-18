@@ -34,7 +34,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@Cantidad", detalle.Cantidad));
                 cmd.Parameters.Add(new SqlParameter("@CostoUnitario", detalle.CostoUnitario));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
@@ -52,7 +52,7 @@ namespace Estructura.Repositorio
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter("@IdDetalleCompra", Id));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
@@ -107,7 +107,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@Cantidad", detalle.Cantidad));
                 cmd.Parameters.Add(new SqlParameter("@CostoUnitario", detalle.CostoUnitario));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {

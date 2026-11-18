@@ -37,7 +37,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@MesesGarantiaHistorico", detalle.MesesGarantiaHistorico));
                 cmd.Parameters.Add(new SqlParameter("@FechaFinGarantia", detalle.FechaFinGarantia == null ? DBNull.Value : detalle.FechaFinGarantia));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
@@ -55,7 +55,7 @@ namespace Estructura.Repositorio
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter("@IdDetalleVenta", Id));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
@@ -116,7 +116,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@MesesGarantiaHistorico", detalle.MesesGarantiaHistorico));
                 cmd.Parameters.Add(new SqlParameter("@FechaFinGarantia", detalle.FechaFinGarantia == null ? DBNull.Value : detalle.FechaFinGarantia));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
