@@ -1,4 +1,4 @@
-﻿using Aplicacion.DTOs;
+using Aplicacion.DTOs;
 using Aplicacion.Interface;
 using Dominio.Entidades;
 using System;
@@ -80,5 +80,10 @@ namespace Aplicacion.Services
             await _repo.EliminarClienteAsync(id);
         }
 
+        public async Task<DTOsClientes?> ObtenerPorId(int id)
+        {
+            var lista = await ListaClientes();
+            return lista.FirstOrDefault(c => c.IdCliente == id);
+        }
     }
 }

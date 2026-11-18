@@ -1,0 +1,555 @@
+@model Aplicacion.DTOs.VentaRegistroDTO
+
+@{
+    ViewData["Title"] = "Punto de Venta (POS)";
+    var productos = ViewBag.Productos as List<Aplicacion.DTOs.DTOSProductos> ?? new List<Aplicacion.DTOs.DTOSProductos>();
+    var clientes = ViewBag.Clientes as List<Aplicacion.DTOs.DTOsClientes> ?? new List<Aplicacion.DTOs.DTOsClientes>();
+}
+
+<!-- Page Header -->
+<div class="page-header d-print-none mb-3">
+    <div class="row g-2 align-items-center">
+        <div class="col">
+            <div class="page-pretitle">Ventas & Facturación</div>
+            <h2 class="page-title text-dark">
+                <i class="ti ti-cash me-2 text-primary"></i>Punto de Venta (POS)
+            </h2>
+        </div>
+        <div class="col-auto ms-auto d-print-none">
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="ti ti-arrow-left me-1"></i> Ver Historial de Ventas
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- Columna Izquierda: Búsqueda y Carrito -->
+    <div class="col-lg-8">
+        <!-- Tarjeta de Selección de Cliente y Tipo de Venta -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body p-3">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-6">
+                        <label class="form-label required small fw-bold">Cliente</label>
+                        <select id="selectCliente" class="form-select">
+                            <option value="">-- Seleccione un Cliente --</option>
+                            @foreach (var c in clientes)
+                            {
+                                <option value="@c.IdCliente">@c.Nombres @c.Apellidos (@c.NumeroIdentificacion)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label required small fw-bold">Modalidad</label>
+                        <select id="selectTipoVenta" class="form-select">
+                            <option value="Contado" selected>Contado</option>
+                            <option value="Credito">Crédito</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label required small fw-bold">Método Pago</label>
+                        <select id="selectMetodoPago" class="form-select">
+                            <option value="Efectivo" selected>Efectivo</option>
+                            <option value="Tarjeta">Tarjeta Débito/Crédito</option>
+                            <option value="Transferencia">Transferencia Bancaria</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta de Selección de Productos -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white py-2 border-bottom">
+                <h4 class="card-title text-dark fw-bold m-0 fs-4">
+                    <i class="ti ti-search me-2 text-primary"></i>Buscar Producto / Escanear SKU
+                </h4>
+            </div>
+            <div class="card-body p-3">
+                <div class="row g-2">
+                    <div class="col">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="ti ti-barcode"></i></span>
+                            <input type="text" id="inputBuscarProducto" class="form-control" placeholder="Buscar por SKU, Nombre o Marca..." autofocus />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista rápida de productos disponibles -->
+                <div class="table-responsive mt-3" style="max-height: 220px; overflow-y: auto;">
+                    <table class="table table-sm table-hover align-middle" id="tablaBusquedaProductos">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th>SKU</th>
+                                <th>Producto</th>
+                                <th>Stock</th>
+                                <th class="text-end">Precio</th>
+                                <th class="text-center w-1">Agregar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in productos)
+                            {
+                                <tr class="fila-producto" data-id="@p.IdProducto" data-sku="@p.CodigoSKU" data-nombre="@p.Nombre" data-precio="@p.PrecioVenta" data-stock="@p.StockActual" data-serie="@(p.RequiereSerie ? "1" : "0")">
+                                    <td><span class="badge bg-dark-lt font-monospace">@p.CodigoSKU</span></td>
+                                    <td>
+                                        <div class="fw-semibold">@p.Nombre</div>
+                                        <div class="text-secondary small">@p.Marca @p.Modelo - <span class="badge bg-indigo-lt">@p.TipoEquipo</span></div>
+                                    </td>
+                                    <td>
+                                        @if (p.StockActual <= p.StockMinimo)
+                                        {
+                                            <span class="badge bg-danger">@p.StockActual uds</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success-lt">@p.StockActual uds</span>
+                                        }
+                                    </td>
+                                    <td class="text-end fw-bold text-success">C$ @p.PrecioVenta.ToString("N2")</td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-primary btn-agregar-carrito" @(p.StockActual <= 0 ? "disabled" : "")>
+                                            <i class="ti ti-plus"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla del Carrito -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-2 border-bottom d-flex justify-content-between align-items-center">
+                <h4 class="card-title text-dark fw-bold m-0 fs-4">
+                    <i class="ti ti-shopping-cart me-2 text-primary"></i>Productos en Carrito
+                </h4>
+                <button type="button" id="btnVaciarCarrito" class="btn btn-sm btn-link text-danger p-0">
+                    <i class="ti ti-trash me-1"></i> Vaciar Carrito
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-vcenter card-table" id="tablaCarrito">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th class="text-end" style="width: 120px;">Precio Unit.</th>
+                                <th class="text-center" style="width: 140px;">Cantidad</th>
+                                <th class="text-end" style="width: 130px;">Subtotal</th>
+                                <th class="text-center w-1"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="carritoBody">
+                            <tr id="filaVacia">
+                                <td colspan="5" class="text-center py-4 text-secondary">
+                                    <i class="ti ti-shopping-cart-x fs-1 d-block mb-2 text-muted"></i>
+                                    El carrito está vacío. Agrega productos de la lista superior.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Columna Derecha: Resumen de Pago y Checkout -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+            <div class="card-header bg-primary text-white py-3">
+                <h3 class="card-title fw-bold m-0 text-white">
+                    <i class="ti ti-calculator me-2"></i>Resumen de Factura
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-secondary">Subtotal:</span>
+                    <span class="fw-semibold text-dark fs-3" id="resumenSubtotal">C$ 0.00</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-secondary">IVA (15%):</span>
+                    <span class="fw-semibold text-dark fs-3" id="resumenImpuesto">C$ 0.00</span>
+                </div>
+                <div class="hr my-3"></div>
+                <div class="d-flex justify-content-between mb-4 align-items-center">
+                    <span class="fs-2 fw-bold text-dark">Total a Pagar:</span>
+                    <span class="fs-1 fw-bold text-success" id="resumenTotal">C$ 0.00</span>
+                </div>
+
+                <!-- Sección Contado -->
+                <div id="seccionContado">
+                    <div class="mb-3">
+                        <label class="form-label required small fw-bold">Monto Recibido</label>
+                        <div class="input-group">
+                            <span class="input-group-text">C$</span>
+                            <input type="number" id="inputMontoRecibido" step="0.01" class="form-control form-control-lg text-end fw-bold" placeholder="0.00" />
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between p-2 rounded bg-light mb-3">
+                        <span class="fw-medium text-dark">Vuelto / Cambio:</span>
+                        <span class="fw-bold fs-3 text-primary" id="resumenVuelto">C$ 0.00</span>
+                    </div>
+                </div>
+
+                <!-- Sección Crédito (Oculta por defecto) -->
+                <div id="seccionCredito" class="d-none">
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Prima Inicial</label>
+                        <div class="input-group">
+                            <span class="input-group-text">C$</span>
+                            <input type="number" id="inputPrima" step="0.01" value="0.00" class="form-control text-end" />
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Cuotas</label>
+                            <input type="number" id="inputCuotas" min="1" max="36" value="6" class="form-control text-center" />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Interés (%)</label>
+                            <input type="number" id="inputInteres" min="0" step="0.5" value="0" class="form-control text-center" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Frecuencia de Pago</label>
+                        <select id="selectFrecuencia" class="form-select">
+                            <option value="Semanal">Semanal</option>
+                            <option value="Quincenal">Quincenal</option>
+                            <option value="Mensual" selected>Mensual</option>
+                        </select>
+                    </div>
+                    <div class="p-2 rounded bg-purple-lt mb-3 small">
+                        <div class="d-flex justify-content-between">
+                            <span>Financiado:</span>
+                            <strong id="creditoFinanciado">C$ 0.00</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Valor Cuota:</span>
+                            <strong id="creditoValorCuota">C$ 0.00</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small">Observaciones / Notas</label>
+                    <textarea id="inputObservaciones" rows="2" class="form-control" placeholder="Detalles de la entrega, garantías, etc."></textarea>
+                </div>
+
+                <button type="button" id="btnProcesarVenta" class="btn btn-success w-100 py-3 fs-3 fw-bold d-flex align-items-center justify-content-center shadow-sm">
+                    <i class="ti ti-check me-2 fs-2"></i> Emitir Factura
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let carrito = [];
+
+        $(document).ready(function () {
+            // Filtrar productos por búsqueda
+            $('#inputBuscarProducto').on('keyup', function () {
+                const valor = $(this).val().toLowerCase();
+                $('#tablaBusquedaProductos tbody tr').filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(valor) > -1);
+                });
+            });
+
+            // Cambiar modo de venta (Contado vs Crédito)
+            $('#selectTipoVenta').on('change', function () {
+                if ($(this).val() === 'Credito') {
+                    $('#seccionContado').addClass('d-none');
+                    $('#seccionCredito').removeClass('d-none');
+                    $('#selectMetodoPago').val('Credito');
+                } else {
+                    $('#seccionContado').removeClass('d-none');
+                    $('#seccionCredito').addClass('d-none');
+                    $('#selectMetodoPago').val('Efectivo');
+                }
+                recalcularTotales();
+            });
+
+            // Agregar producto al carrito
+            $('.btn-agregar-carrito').on('click', function () {
+                const fila = $(this).closest('tr');
+                const id = parseInt(fila.data('id'));
+                const sku = fila.data('sku');
+                const nombre = fila.data('nombre');
+                const precio = parseFloat(fila.data('precio'));
+                const stock = parseInt(fila.data('stock'));
+                const requiereSerie = fila.data('serie') === 1;
+
+                const existente = carrito.find(p => p.idProducto === id);
+                if (existente) {
+                    if (existente.cantidad + 1 > stock) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Stock Límite',
+                            text: `No hay más stock disponible para "${nombre}". Stock actual: ${stock} unidades.`
+                        });
+                        return;
+                    }
+                    existente.cantidad += 1;
+                } else {
+                    carrito.push({
+                        idProducto: id,
+                        codigoSKU: sku,
+                        nombre: nombre,
+                        precioUnitario: precio,
+                        cantidad: 1,
+                        stock: stock,
+                        requiereSerie: requiereSerie,
+                        series: []
+                    });
+                }
+                renderizarCarrito();
+            });
+
+            // Vaciar carrito
+            $('#btnVaciarCarrito').on('click', function () {
+                carrito = [];
+                renderizarCarrito();
+            });
+
+            // Eventos de cambios en montos
+            $('#inputMontoRecibido, #inputPrima, #inputCuotas, #inputInteres').on('input', function () {
+                recalcularTotales();
+            });
+
+            // Procesar venta
+            $('#btnProcesarVenta').on('click', function () {
+                procesarVenta();
+            });
+        });
+
+        function renderizarCarrito() {
+            const tbody = $('#carritoBody');
+            tbody.empty();
+
+            if (carrito.length === 0) {
+                tbody.html(`
+                    <tr id="filaVacia">
+                        <td colspan="5" class="text-center py-4 text-secondary">
+                            <i class="ti ti-shopping-cart-x fs-1 d-block mb-2 text-muted"></i>
+                            El carrito está vacío. Agrega productos de la lista superior.
+                        </td>
+                    </tr>
+                `);
+                recalcularTotales();
+                return;
+            }
+
+            carrito.forEach((item, index) => {
+                const subtotal = item.cantidad * item.precioUnitario;
+                tbody.append(`
+                    <tr>
+                        <td>
+                            <div class="fw-semibold text-dark">${item.nombre}</div>
+                            <div class="text-secondary small font-monospace">${item.codigoSKU}</div>
+                            ${item.requiereSerie ? '<span class="badge bg-purple-lt small mt-1"><i class="ti ti-barcode me-1"></i>Requiere Serie</span>' : ''}
+                        </td>
+                        <td class="text-end fw-medium">C$ ${item.precioUnitario.toFixed(2)}</td>
+                        <td class="text-center">
+                            <div class="input-group input-group-sm justify-content-center">
+                                <button type="button" class="btn btn-outline-secondary btn-restar" data-index="${index}">-</button>
+                                <input type="number" class="form-control text-center input-cantidad" style="max-width: 60px;" data-index="${index}" value="${item.cantidad}" min="1" max="${item.stock}">
+                                <button type="button" class="btn btn-outline-secondary btn-sumar" data-index="${index}">+</button>
+                            </div>
+                        </td>
+                        <td class="text-end fw-bold text-dark">C$ ${subtotal.toFixed(2)}</td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-link text-danger p-0 btn-eliminar-item" data-index="${index}">
+                                <i class="ti ti-trash fs-3"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `);
+            });
+
+            // Delegar eventos de cantidad
+            $('.btn-sumar').on('click', function () {
+                const idx = $(this).data('index');
+                if (carrito[idx].cantidad + 1 > carrito[idx].stock) {
+                    Swal.fire({ icon: 'warning', text: 'Stock máximo alcanzado' });
+                    return;
+                }
+                carrito[idx].cantidad += 1;
+                renderizarCarrito();
+            });
+
+            $('.btn-restar').on('click', function () {
+                const idx = $(this).data('index');
+                if (carrito[idx].cantidad - 1 <= 0) {
+                    carrito.splice(idx, 1);
+                } else {
+                    carrito[idx].cantidad -= 1;
+                }
+                renderizarCarrito();
+            });
+
+            $('.input-cantidad').on('change', function () {
+                const idx = $(this).data('index');
+                let val = parseInt($(this).val()) || 1;
+                if (val > carrito[idx].stock) val = carrito[idx].stock;
+                if (val < 1) val = 1;
+                carrito[idx].cantidad = val;
+                renderizarCarrito();
+            });
+
+            $('.btn-eliminar-item').on('click', function () {
+                const idx = $(this).data('index');
+                carrito.splice(idx, 1);
+                renderizarCarrito();
+            });
+
+            recalcularTotales();
+        }
+
+        function recalcularTotales() {
+            let subtotal = 0;
+            carrito.forEach(item => {
+                subtotal += (item.cantidad * item.precioUnitario);
+            });
+
+            const impuesto = subtotal * 0.15;
+            const total = subtotal + impuesto;
+
+            $('#resumenSubtotal').text('C$ ' + subtotal.toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            $('#resumenImpuesto').text('C$ ' + impuesto.toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            $('#resumenTotal').text('C$ ' + total.toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+
+            const tipoVenta = $('#selectTipoVenta').val();
+            if (tipoVenta === 'Contado') {
+                const recibido = parseFloat($('#inputMontoRecibido').val()) || 0;
+                const vuelto = Math.max(0, recibido - total);
+                $('#resumenVuelto').text('C$ ' + vuelto.toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            } else {
+                const prima = parseFloat($('#inputPrima').val()) || 0;
+                const cuotas = parseInt($('#inputCuotas').val()) || 1;
+                const interesPorc = parseFloat($('#inputInteres').val()) || 0;
+
+                const financiado = Math.max(0, total - prima);
+                const interesMonto = financiado * (interesPorc / 100);
+                const totalCredito = financiado + interesMonto;
+                const valorCuota = cuotas > 0 ? (totalCredito / cuotas) : totalCredito;
+
+                $('#creditoFinanciado').text('C$ ' + financiado.toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                $('#creditoValorCuota').text('C$ ' + valorCuota.toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            }
+        }
+
+        function procesarVenta() {
+            const idCliente = parseInt($('#selectCliente').val());
+            if (!idCliente) {
+                Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor seleccione un cliente para la venta.' });
+                return;
+            }
+
+            if (carrito.length === 0) {
+                Swal.fire({ icon: 'warning', title: 'Carrito Vacío', text: 'Debe agregar al menos un producto al carrito.' });
+                return;
+            }
+
+            let subtotal = 0;
+            carrito.forEach(i => subtotal += (i.cantidad * i.precioUnitario));
+            const impuesto = subtotal * 0.15;
+            const total = subtotal + impuesto;
+
+            const tipoVenta = $('#selectTipoVenta').val();
+            const recibido = parseFloat($('#inputMontoRecibido').val()) || 0;
+
+            if (tipoVenta === 'Contado' && recibido < total) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Monto Insuficiente',
+                    text: `El monto recibido (C$ ${recibido.toFixed(2)}) es inferior al total a pagar (C$ ${total.toFixed(2)}).`
+                });
+                return;
+            }
+
+            const payload = {
+                idCliente: idCliente,
+                tipoVenta: tipoVenta,
+                metodoPago: $('#selectMetodoPago').val(),
+                porcentajeImpuesto: 15.00,
+                montoRecibido: tipoVenta === 'Contado' ? recibido : 0,
+                observaciones: $('#inputObservaciones').val(),
+                items: carrito.map(i => ({
+                    idProducto: i.idProducto,
+                    cantidad: i.cantidad,
+                    precioUnitario: i.precioUnitario,
+                    requiereSerie: i.requiereSerie,
+                    series: i.series
+                })),
+                primaInicial: parseFloat($('#inputPrima').val()) || 0,
+                cantidadCuotas: parseInt($('#inputCuotas').val()) || 1,
+                frecuenciaPago: $('#selectFrecuencia').val(),
+                porcentajeInteres: parseFloat($('#inputInteres').val()) || 0
+            };
+
+            Swal.fire({
+                title: '¿Confirmar Factura?',
+                html: `Total a cobrar: <strong class="text-success fs-2">C$ ${total.toFixed(2)}</strong><br>Modalidad: <strong>${tipoVenta}</strong>`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#2fb344',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="ti ti-check me-1"></i> Sí, confirmar venta',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Procesando venta...',
+                        text: 'Actualizando inventario y registrando Kardex...',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    $.ajax({
+                        url: '@Url.Action("RegistrarVenta", "Ventas")',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(payload),
+                        success: function (res) {
+                            if (res.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡Venta Realizada con Éxito!',
+                                    html: `Factura: <strong class="badge bg-dark-lt fs-3">${res.numeroFactura}</strong><br>El stock y Kardex fueron actualizados en tiempo real.`,
+                                    showCancelButton: true,
+                                    confirmButtonText: '<i class="ti ti-file-invoice me-1"></i> Ver Factura',
+                                    cancelButtonText: 'Nueva Venta'
+                                }).then((action) => {
+                                    if (action.isConfirmed) {
+                                        window.location.href = '@Url.Action("Detalle", "Ventas")/' + res.idVenta;
+                                    } else {
+                                        window.location.reload();
+                                    }
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error al registrar venta',
+                                    text: res.message
+                                });
+                            }
+                        },
+                        error: function () {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error de Servidor',
+                                text: 'Ocurrió un error inesperado al procesar la solicitud.'
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}
+

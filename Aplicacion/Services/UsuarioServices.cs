@@ -1,4 +1,4 @@
-﻿using Aplicacion.DTOs;
+using Aplicacion.DTOs;
 using Aplicacion.Interface;
 using Dominio.Entidades;
 using System;
@@ -81,6 +81,43 @@ namespace Aplicacion.Services
         public async Task Eliminarusuario(int id)
         {
             await _repo.EliminarUsuarioAsync(id);
+        }
+
+        public async Task<DTOSUsuario?> ObtenerPorId(int id)
+        {
+            var u = await _repo.ObtenerPorIdAsync(id);
+            if (u == null) return null;
+
+            return new DTOSUsuario
+            {
+                IdUsuario = u.IdUsuario,
+                IdRol = u.IdRol,
+                Nombres = u.Nombres,
+                Apellidos = u.Apellidos,
+                Correo = u.Correo,
+                Telefono = u.Telefono,
+                Activo = u.Activo,
+                FechaCreacion = u.FechaCreacion
+            };
+        }
+
+        public async Task<DTOSUsuario?> ValidarLogin(string correo, string password)
+        {
+            var hash = GenerarHash(password);
+            var u = await _repo.ValidarCredencialesAsync(correo, hash);
+            if (u == null) return null;
+
+            return new DTOSUsuario
+            {
+                IdUsuario = u.IdUsuario,
+                IdRol = u.IdRol,
+                Nombres = u.Nombres,
+                Apellidos = u.Apellidos,
+                Correo = u.Correo,
+                Telefono = u.Telefono,
+                Activo = u.Activo,
+                FechaCreacion = u.FechaCreacion
+            };
         }
 
         private static string GenerarHash(string password)

@@ -1,4 +1,4 @@
-﻿using Aplicacion.Interface;
+using Aplicacion.Interface;
 using Dominio.Entidades;
 using Estructura.database;
 using Microsoft.Data.SqlClient;
@@ -72,7 +72,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@Telefono", (object?)usuario.Telefono ?? DBNull.Value));
                 cmd.Parameters.Add(new SqlParameter("@Activo", usuario.Activo));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
@@ -97,7 +97,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@PasswordHash", (object?)usuario.Contraseña ?? DBNull.Value));
                 cmd.Parameters.Add(new SqlParameter("@Telefono", (object?)usuario.Telefono ?? DBNull.Value));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
@@ -115,12 +115,47 @@ namespace Estructura.Repositorio
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter("@IdUsuario", Id));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
+        }
+
+        public async Task<Usuario?> ValidarCredencialesAsync(string correo, string passwordHash)
+        {
+            using var con = _Data.GetConnection();
+            await con.OpenAsync();
+            using var cmd = new SqlCommand(@"
+                SELECT IdUsuario, IdRol, Nombres, Apellidos, Correo, Telefono, Activo, FechaCreacion
+                FROM Usuarios
+                WHERE Correo = @Correo AND PasswordHash = @PasswordHash AND Activo = 1", con);
+            cmd.Parameters.Add(new SqlParameter("@Correo", correo));
+            cmd.Parameters.Add(new SqlParameter("@PasswordHash", passwordHash));
+
+            using var dr = await cmd.ExecuteReaderAsync();
+            if (await dr.ReadAsync())
+            {
+                return new Usuario
+                {
+                    IdUsuario = Convert.ToInt32(dr["IdUsuario"]),
+                    IdRol = Convert.ToInt32(dr["IdRol"]),
+                    Nombres = dr["Nombres"].ToString()!,
+                    Apellidos = dr["Apellidos"].ToString()!,
+                    Correo = dr["Correo"].ToString()!,
+                    Telefono = dr["Telefono"] == DBNull.Value ? null : dr["Telefono"].ToString(),
+                    Activo = Convert.ToBoolean(dr["Activo"]),
+                    FechaCreacion = Convert.ToDateTime(dr["FechaCreacion"])
+                };
+            }
+            return null;
+        }
+
+        public async Task<Usuario?> ObtenerPorIdAsync(int id)
+        {
+            var lista = await ListarUsuarioAsync();
+            return lista.FirstOrDefault(u => u.IdUsuario == id);
         }
     }
 }

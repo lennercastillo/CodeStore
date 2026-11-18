@@ -37,7 +37,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@Direccion", (object?)proveedor.Direccion ?? DBNull.Value));
                 cmd.Parameters.Add(new SqlParameter("@Activo", proveedor.Activo));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
@@ -55,7 +55,7 @@ namespace Estructura.Repositorio
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter("@IdProveedor", Id));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
@@ -116,7 +116,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@Direccion", (object?)proveedor.Direccion ?? DBNull.Value));
                 cmd.Parameters.Add(new SqlParameter("@Activo", proveedor.Activo));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {

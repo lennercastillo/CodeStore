@@ -98,5 +98,11 @@ namespace Aplicacion.Services
         {
             await _repo.EliminarProductoAsync(id);
         }
+
+        public async Task<DTOSProductos?> ObtenerPorId(int id)
+        {
+            var lista = await ListarProducto();
+            return lista.FirstOrDefault(p => p.IdProducto == id);
+        }
     }
 }

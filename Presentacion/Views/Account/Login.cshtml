@@ -1,0 +1,135 @@
+@model Presentacion.Models.LoginViewModel
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Iniciar Sesión";
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Iniciar Sesión - CodeStore</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tabler Core CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@tabler/core@1.0.0-beta20/dist/css/tabler.min.css" />
+    <!-- Tabler Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@tabler/icons-webfont@latest/tabler-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="d-flex flex-column bg-light">
+    <div class="page page-center">
+        <div class="container container-tight py-4">
+            <!-- Brand Header -->
+            <div class="text-center mb-4">
+                <a href="#" class="navbar-brand navbar-brand-autodark d-inline-flex align-items-center text-decoration-none">
+                    <span class="avatar avatar-md bg-primary text-white me-2 shadow-sm">
+                        <i class="ti ti-device-laptop fs-1"></i>
+                    </span>
+                    <span class="fs-1 fw-bold tracking-tight text-dark">Code<span class="text-primary">Store</span></span>
+                </a>
+                <div class="text-secondary small mt-1">Sistema de Gestión Comercial e Informática</div>
+            </div>
+
+            <!-- Login Card -->
+            <div class="card card-md border-0 shadow">
+                <div class="card-body">
+                    <h2 class="h2 text-center mb-4 text-dark fw-bold">Acceso al Sistema</h2>
+
+                    <form asp-action="Login" method="post" autocomplete="off">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="ReturnUrl" />
+
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger alert-dismissible" role="alert">
+                                <div class="d-flex">
+                                    <div>
+                                        <i class="ti ti-alert-circle fs-3 me-2"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-secondary">
+                                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                            {
+                                                <div>@error.ErrorMessage</div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label asp-for="Correo" class="form-label required">Correo Electrónico</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="ti ti-mail"></i></span>
+                                <input asp-for="Correo" type="email" class="form-control" placeholder="tu-correo@codestore.com" autofocus required />
+                            </div>
+                            <span asp-validation-for="Correo" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Contraseña" class="form-label required">Contraseña</label>
+                            <div class="input-group input-group-flat">
+                                <span class="input-group-text"><i class="ti ti-lock"></i></span>
+                                <input asp-for="Contraseña" type="password" id="passwordInput" class="form-control" placeholder="••••••••" required />
+                                <span class="input-group-text">
+                                    <a href="#" class="link-secondary cursor-pointer" id="togglePassword" title="Mostrar contraseña">
+                                        <i class="ti ti-eye" id="eyeIcon"></i>
+                                    </a>
+                                </span>
+                            </div>
+                            <span asp-validation-for="Contraseña" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-check cursor-pointer">
+                                <input asp-for="Recordarme" class="form-check-input" type="checkbox" />
+                                <span class="form-check-label">Recordar mi sesión en este equipo</span>
+                            </label>
+                        </div>
+
+                        <div class="form-footer">
+                            <button type="submit" class="btn btn-primary w-100 py-2 fs-3 fw-semibold">
+                                <i class="ti ti-login me-2"></i> Iniciar Sesión
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="text-center text-secondary mt-4 small">
+                &copy; @DateTime.Now.Year CodeStore - Acceso Seguro
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@@tabler/core@1.0.0-beta20/dist/js/tabler.min.js"></script>
+    <script>
+        document.getElementById('togglePassword')?.addEventListener('click', function (e) {
+            e.preventDefault();
+            const input = document.getElementById('passwordInput');
+            const icon = document.getElementById('eyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('ti-eye');
+                icon.classList.add('ti-eye-off');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('ti-eye-off');
+                icon.classList.add('ti-eye');
+            }
+        });
+    </script>
+</body>
+</html>
+

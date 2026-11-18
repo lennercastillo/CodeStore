@@ -1,4 +1,4 @@
-﻿using Dominio.Entidades;
+using Dominio.Entidades;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,5 +13,7 @@ namespace Aplicacion.Interface
         Task NuevoUsuarioAsync(Usuario usuario);
         Task EditarUsuarioAsync(Usuario usuario);
         Task EliminarUsuarioAsync(int Id);
+        Task<Usuario?> ValidarCredencialesAsync(string correo, string passwordHash);
+        Task<Usuario?> ObtenerPorIdAsync(int id);
     }
 }

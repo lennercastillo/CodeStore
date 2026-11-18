@@ -1,0 +1,213 @@
+@model Aplicacion.DTOs.VentaDetalleCompletoDTO
+
+@{
+    ViewData["Title"] = $"Factura #{Model.Venta.NumeroFactura}";
+    var venta = Model.Venta;
+    var cliente = Model.Cliente;
+}
+
+<div class="page-header d-print-none mb-4">
+    <div class="row g-2 align-items-center">
+        <div class="col">
+            <div class="page-pretitle">Ventas / Facturación</div>
+            <h2 class="page-title text-dark">
+                <i class="ti ti-file-invoice me-2 text-primary"></i>Factura: @venta.NumeroFactura
+            </h2>
+        </div>
+        <div class="col-auto ms-auto d-print-none">
+            <div class="btn-list">
+                <button type="button" class="btn btn-outline-primary" onclick="window.print();">
+                    <i class="ti ti-printer me-1"></i> Imprimir Factura
+                </button>
+                <a asp-action="Crear" class="btn btn-primary">
+                    <i class="ti ti-cash me-1"></i> Nueva Venta
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm card-lg">
+    <div class="card-body p-4 p-md-5">
+        <!-- Encabezado de la Factura -->
+        <div class="row align-items-center mb-4">
+            <div class="col-sm-6">
+                <div class="d-flex align-items-center mb-2">
+                    <span class="avatar avatar-md bg-primary text-white me-2">
+                        <i class="ti ti-device-laptop fs-1"></i>
+                    </span>
+                    <span class="fs-1 fw-bold tracking-tight text-dark">Code<span class="text-primary">Store</span></span>
+                </div>
+                <div class="text-secondary small">Venta de Equipos Tecnológicos, Laptops y Taller Especializado</div>
+                <div class="text-secondary small">RUC: J0310000293847 | Managua, Nicaragua</div>
+            </div>
+            <div class="col-sm-6 text-sm-end mt-3 mt-sm-0">
+                <div class="text-uppercase tracking-wide text-secondary fw-bold small">Comprobante de Venta</div>
+                <h2 class="h1 text-dark fw-bold font-monospace mb-1">@venta.NumeroFactura</h2>
+                <div class="text-secondary small">Fecha: @venta.FechaVenta.ToString("dd/MM/yyyy hh:mm tt")</div>
+                <div>
+                    <span class="badge @(venta.Estado == "Completada" ? "bg-success-lt" : "bg-danger-lt") fs-5 mt-1">
+                        @venta.Estado
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hr my-3"></div>
+
+        <!-- Información del Cliente y Vendedor -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h4 class="text-uppercase text-secondary fw-bold small tracking-wide mb-2">Datos del Cliente</h4>
+                <div class="fw-bold text-dark fs-3">@(cliente != null ? $"{cliente.Nombres} {cliente.Apellidos}" : "Consumidor Final")</div>
+                @if (cliente != null)
+                {
+                    <div class="text-secondary small">Identificación: <span class="font-monospace fw-semibold">@cliente.NumeroIdentificacion</span></div>
+                    <div class="text-secondary small">Teléfono: @(cliente.Telefono ?? "N/D")</div>
+                    <div class="text-secondary small">Dirección: @(cliente.Direccion ?? "N/D")</div>
+                }
+            </div>
+            <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                <h4 class="text-uppercase text-secondary fw-bold small tracking-wide mb-2">Condiciones de Venta</h4>
+                <div class="text-secondary small">Modalidad: <span class="badge @(venta.TipoVenta == "Contado" ? "bg-azure-lt" : "bg-purple-lt")">@venta.TipoVenta</span></div>
+                <div class="text-secondary small mt-1">Método de Pago: <strong class="text-dark">@venta.MetodoPago</strong></div>
+            </div>
+        </div>
+
+        <!-- Tabla de Productos Vendidos -->
+        <div class="table-responsive mb-4">
+            <table class="table table-vcenter">
+                <thead class="table-light">
+                    <tr>
+                        <th class="w-1">#</th>
+                        <th>Producto / Descripción</th>
+                        <th class="text-center">Garantía Hasta</th>
+                        <th class="text-center" style="width: 80px;">Cant.</th>
+                        <th class="text-end" style="width: 140px;">Precio Unit.</th>
+                        <th class="text-end" style="width: 140px;">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ int idx = 1; }
+                    @foreach (var item in Model.Detalles)
+                    {
+                        var prod = item.Producto;
+                        var d = item.Detalle;
+                        <tr>
+                            <td class="text-secondary">@(idx++)</td>
+                            <td>
+                                <div class="fw-semibold text-dark">@(prod?.Nombre ?? $"Producto #{d.IdProducto}")</div>
+                                <div class="text-secondary small">
+                                    <span class="badge bg-dark-lt font-monospace me-1">@(prod?.CodigoSKU ?? "")</span>
+                                    @(prod != null ? $"{prod.Marca} {prod.Modelo}" : "")
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                @if (d.FechaFinGarantia.HasValue)
+                                {
+                                    <span class="badge bg-teal-lt">
+                                        <i class="ti ti-shield-check me-1"></i>@d.FechaFinGarantia.Value.ToString("dd/MM/yyyy")
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-secondary small">Sin garantía</span>
+                                }
+                            </td>
+                            <td class="text-center fw-bold">@d.Cantidad</td>
+                            <td class="text-end">C$ @d.PrecioUnitario.ToString("N2")</td>
+                            <td class="text-end fw-bold text-dark">C$ @d.Subtotal.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Totales de la Factura -->
+        <div class="row justify-content-end">
+            <div class="col-md-5">
+                <div class="table-responsive">
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <td class="text-secondary">Subtotal:</td>
+                            <td class="text-end fw-semibold">C$ @venta.Subtotal.ToString("N2")</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary">IVA (15%):</td>
+                            <td class="text-end fw-semibold">C$ @venta.Impuesto.ToString("N2")</td>
+                        </tr>
+                        <tr class="border-top">
+                            <td class="fs-2 fw-bold text-dark">Total Facturado:</td>
+                            <td class="text-end fs-1 fw-bold text-success">C$ @venta.TotalVenta.ToString("N2")</td>
+                        </tr>
+                        @if (venta.TipoVenta == "Contado")
+                        {
+                            <tr>
+                                <td class="text-secondary">Monto Recibido:</td>
+                                <td class="text-end fw-semibold">C$ @venta.MontoRecibido.ToString("N2")</td>
+                            </tr>
+                            <tr>
+                                <td class="text-secondary">Cambio / Vuelto:</td>
+                                <td class="text-end fw-bold text-primary">C$ @venta.Vuelto.ToString("N2")</td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Si la venta es a Crédito, mostrar desglose de financiamiento -->
+        @if (Model.Credito != null)
+        {
+            <div class="hr my-4"></div>
+            <div class="p-3 rounded bg-purple-lt mb-3">
+                <h4 class="fw-bold text-purple mb-2"><i class="ti ti-credit-card me-2"></i>Condiciones del Financiamiento</h4>
+                <div class="row g-2 text-dark small">
+                    <div class="col-sm-3"><strong>Prima Pagada:</strong> C$ @Model.Credito.PrimaInicial.ToString("N2")</div>
+                    <div class="col-sm-3"><strong>Monto Financiado:</strong> C$ @Model.Credito.MontoFinanciado.ToString("N2")</div>
+                    <div class="col-sm-3"><strong>Interés:</strong> @Model.Credito.PorcentajeInteres% (C$ @Model.Credito.MontoInteresesPactados.ToString("N2"))</div>
+                    <div class="col-sm-3"><strong>Saldo Total:</strong> C$ @Model.Credito.MontoTotalCredito.ToString("N2")</div>
+                </div>
+            </div>
+
+            @if (Model.Cuotas.Any())
+            {
+                <h5 class="fw-bold text-dark mb-2">Calendario de Cuotas (@Model.Credito.FrecuenciaPago)</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center w-1">Cuota #</th>
+                                <th>Fecha Vencimiento</th>
+                                <th class="text-end">Monto Cuota</th>
+                                <th class="text-end">Abonado</th>
+                                <th class="text-center">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model.Cuotas)
+                            {
+                                <tr>
+                                    <td class="text-center fw-bold">@c.NumeroCuota</td>
+                                    <td>@c.FechaVencimiento.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-end fw-semibold">C$ @c.MontoCuota.ToString("N2")</td>
+                                    <td class="text-end">C$ @c.MontoAbonado.ToString("N2")</td>
+                                    <td class="text-center">
+                                        <span class="badge @(c.Estado == "Pagada" ? "bg-success-lt" : "bg-warning-lt")">@c.Estado</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        }
+
+        <!-- Notas al pie -->
+        <div class="mt-5 text-center text-secondary small">
+            <div>¡Gracias por su compra en <strong>CodeStore</strong>!</div>
+            <div>Para hacer efectiva la garantía de equipos, conserve esta factura en buen estado y los sellos de seguridad intactos.</div>
+        </div>
+    </div>
+</div>
+

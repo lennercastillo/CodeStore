@@ -46,7 +46,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@FechaAnulacion", (object?)venta.FechaAnulacion ?? DBNull.Value));
                 cmd.Parameters.Add(new SqlParameter("@MotivoAnulacion", (object?)venta.MotivoAnulacion ?? DBNull.Value));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
@@ -64,7 +64,7 @@ namespace Estructura.Repositorio
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter("@IdVenta", Id));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
@@ -142,11 +142,257 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@FechaAnulacion", (object?)venta.FechaAnulacion ?? DBNull.Value));
                 cmd.Parameters.Add(new SqlParameter("@MotivoAnulacion", (object?)venta.MotivoAnulacion ?? DBNull.Value));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<Venta?> ObtenerPorIdAsync(int id)
+        {
+            var lista = await ListarVentaAsync();
+            return lista.FirstOrDefault(v => v.IdVenta == id);
+        }
+
+        public async Task<(bool Success, string Message, int IdVenta, string NumeroFactura)> RegistrarVentaTransaccionalAsync(
+            Venta venta,
+            List<DetalleVenta> detalles,
+            List<DetalleVentaSerie> series,
+            Credito? credito,
+            List<CuotaCredito>? cuotas)
+        {
+            using var con = _cone.GetConnection();
+            await con.OpenAsync();
+            using var tran = con.BeginTransaction();
+
+            try
+            {
+                // 1. Validar Stock y bloquear filas con UPDLOCK
+                foreach (var item in detalles)
+                {
+                    using var checkCmd = new SqlCommand(@"
+                        SELECT Nombre, StockActual, Activo, UltimoCostoCompra, MesesGarantia, RequiereSerie
+                        FROM Productos WITH (UPDLOCK)
+                        WHERE IdProducto = @IdProducto", con, tran);
+                    checkCmd.Parameters.Add(new SqlParameter("@IdProducto", item.IdProducto));
+
+                    using var rdr = await checkCmd.ExecuteReaderAsync();
+                    if (!await rdr.ReadAsync())
+                    {
+                        await tran.RollbackAsync();
+                        return (false, $"El producto con ID #{item.IdProducto} no existe.", 0, string.Empty);
+                    }
+
+                    var nombreProd = rdr["Nombre"].ToString();
+                    var stockActual = Convert.ToInt32(rdr["StockActual"]);
+                    var activo = Convert.ToBoolean(rdr["Activo"]);
+                    var ultimoCosto = Convert.ToDecimal(rdr["UltimoCostoCompra"]);
+                    var mesesGarantia = Convert.ToInt32(rdr["MesesGarantia"]);
+
+                    if (!activo)
+                    {
+                        await tran.RollbackAsync();
+                        return (false, $"El producto \"{nombreProd}\" se encuentra inactivo.", 0, string.Empty);
+                    }
+
+                    if (stockActual < item.Cantidad)
+                    {
+                        await tran.RollbackAsync();
+                        return (false, $"Stock insuficiente para \"{nombreProd}\". Disponible: {stockActual}, solicitado: {item.Cantidad}.", 0, string.Empty);
+                    }
+
+                    item.CostoUnitarioHistorico = ultimoCosto;
+                    item.MesesGarantiaHistorico = mesesGarantia;
+                    if (mesesGarantia > 0)
+                    {
+                        item.FechaFinGarantia = DateTime.Today.AddMonths(mesesGarantia);
+                    }
+
+                    rdr.Close();
+                }
+
+                // 2. Generar Número de Factura consecutivo si viene vacío
+                if (string.IsNullOrWhiteSpace(venta.NumeroFactura))
+                {
+                    using var countCmd = new SqlCommand("SELECT COUNT(1) + 1 FROM Ventas", con, tran);
+                    var count = Convert.ToInt32(await countCmd.ExecuteScalarAsync());
+                    venta.NumeroFactura = $"FAC-{DateTime.Now:yyyyMMdd}-{count:D4}";
+                }
+
+                // 3. Insertar Cabecera de Venta
+                int idVentaGenerado;
+                using (var insertVentaCmd = new SqlCommand(@"
+                    INSERT INTO Ventas (
+                        NumeroFactura, IdCliente, IdUsuarioVendedor, FechaVenta, TipoVenta, MetodoPago,
+                        PorcentajeImpuesto, Subtotal, Impuesto, TotalVenta, MontoRecibido, Vuelto, Estado
+                    ) VALUES (
+                        @NumeroFactura, @IdCliente, @IdUsuarioVendedor, @FechaVenta, @TipoVenta, @MetodoPago,
+                        @PorcentajeImpuesto, @Subtotal, @Impuesto, @TotalVenta, @MontoRecibido, @Vuelto, @Estado
+                    );
+                    SELECT CAST(SCOPE_IDENTITY() AS INT);", con, tran))
+                {
+                    insertVentaCmd.Parameters.Add(new SqlParameter("@NumeroFactura", venta.NumeroFactura));
+                    insertVentaCmd.Parameters.Add(new SqlParameter("@IdCliente", venta.IdCliente));
+                    insertVentaCmd.Parameters.Add(new SqlParameter("@IdUsuarioVendedor", venta.IdUsuarioVendedor));
+                    insertVentaCmd.Parameters.Add(new SqlParameter("@FechaVenta", venta.FechaVenta == default ? DateTime.Now : venta.FechaVenta));
+                    insertVentaCmd.Parameters.Add(new SqlParameter("@TipoVenta", venta.TipoVenta));
+                    insertVentaCmd.Parameters.Add(new SqlParameter("@MetodoPago", venta.MetodoPago));
+                    insertVentaCmd.Parameters.Add(new SqlParameter("@PorcentajeImpuesto", venta.PorcentajeImpuesto));
+                    insertVentaCmd.Parameters.Add(new SqlParameter("@Subtotal", venta.Subtotal));
+                    insertVentaCmd.Parameters.Add(new SqlParameter("@Impuesto", venta.Impuesto));
+                    insertVentaCmd.Parameters.Add(new SqlParameter("@TotalVenta", venta.TotalVenta));
+                    insertVentaCmd.Parameters.Add(new SqlParameter("@MontoRecibido", venta.MontoRecibido));
+                    insertVentaCmd.Parameters.Add(new SqlParameter("@Vuelto", venta.Vuelto));
+                    insertVentaCmd.Parameters.Add(new SqlParameter("@Estado", string.IsNullOrWhiteSpace(venta.Estado) ? "Completada" : venta.Estado));
+
+                    idVentaGenerado = (int)(await insertVentaCmd.ExecuteScalarAsync())!;
+                }
+
+                // 4. Insertar Detalle, Kardex y descontar Stock
+                foreach (var item in detalles)
+                {
+                    item.IdVenta = idVentaGenerado;
+                    int idDetalleGenerado;
+
+                    using (var insertDetalleCmd = new SqlCommand(@"
+                        INSERT INTO DetalleVentas (
+                            IdVenta, IdProducto, Cantidad, PrecioUnitario, CostoUnitarioHistorico,
+                            MesesGarantiaHistorico, FechaFinGarantia
+                        ) VALUES (
+                            @IdVenta, @IdProducto, @Cantidad, @PrecioUnitario, @CostoUnitarioHistorico,
+                            @MesesGarantiaHistorico, @FechaFinGarantia
+                        );
+                        SELECT CAST(SCOPE_IDENTITY() AS INT);", con, tran))
+                    {
+                        insertDetalleCmd.Parameters.Add(new SqlParameter("@IdVenta", item.IdVenta));
+                        insertDetalleCmd.Parameters.Add(new SqlParameter("@IdProducto", item.IdProducto));
+                        insertDetalleCmd.Parameters.Add(new SqlParameter("@Cantidad", item.Cantidad));
+                        insertDetalleCmd.Parameters.Add(new SqlParameter("@PrecioUnitario", item.PrecioUnitario));
+                        insertDetalleCmd.Parameters.Add(new SqlParameter("@CostoUnitarioHistorico", item.CostoUnitarioHistorico));
+                        insertDetalleCmd.Parameters.Add(new SqlParameter("@MesesGarantiaHistorico", item.MesesGarantiaHistorico));
+                        insertDetalleCmd.Parameters.Add(new SqlParameter("@FechaFinGarantia", (object?)item.FechaFinGarantia ?? DBNull.Value));
+
+                        idDetalleGenerado = (int)(await insertDetalleCmd.ExecuteScalarAsync())!;
+                    }
+
+                    // Series si aplican
+                    var seriesProducto = series.Where(s => s.IdDetalleVenta == item.IdProducto || s.IdDetalleVenta == 0).ToList();
+                    foreach (var s in seriesProducto)
+                    {
+                        using var insertSerieCmd = new SqlCommand(@"
+                            INSERT INTO DetalleVentaSeries (IdDetalleVenta, NumeroSerie, EstadoSerie, FechaRegistro)
+                            VALUES (@IdDetalleVenta, @NumeroSerie, @EstadoSerie, GETDATE())", con, tran);
+                        insertSerieCmd.Parameters.Add(new SqlParameter("@IdDetalleVenta", idDetalleGenerado));
+                        insertSerieCmd.Parameters.Add(new SqlParameter("@NumeroSerie", s.NumeroSerie));
+                        insertSerieCmd.Parameters.Add(new SqlParameter("@EstadoSerie", string.IsNullOrWhiteSpace(s.EstadoSerie) ? "Vendida" : s.EstadoSerie));
+                        await insertSerieCmd.ExecuteNonQueryAsync();
+                    }
+
+                    // Obtener Stock anterior para Kardex
+                    int stockAnterior = 0;
+                    using (var stockCmd = new SqlCommand("SELECT StockActual FROM Productos WHERE IdProducto = @IdProducto", con, tran))
+                    {
+                        stockCmd.Parameters.Add(new SqlParameter("@IdProducto", item.IdProducto));
+                        stockAnterior = Convert.ToInt32(await stockCmd.ExecuteScalarAsync());
+                    }
+
+                    int stockNuevo = stockAnterior - item.Cantidad;
+
+                    // Descontar Stock
+                    using (var updateStockCmd = new SqlCommand(@"
+                        UPDATE Productos
+                        SET StockActual = StockActual - @Cantidad
+                        WHERE IdProducto = @IdProducto", con, tran))
+                    {
+                        updateStockCmd.Parameters.Add(new SqlParameter("@Cantidad", item.Cantidad));
+                        updateStockCmd.Parameters.Add(new SqlParameter("@IdProducto", item.IdProducto));
+                        await updateStockCmd.ExecuteNonQueryAsync();
+                    }
+
+                    // Registrar en Kardex
+                    using (var insertKardexCmd = new SqlCommand(@"
+                        INSERT INTO Kardex (
+                            IdProducto, FechaMovimiento, TipoMovimiento, Cantidad, StockAnterior, StockNuevo,
+                            CostoUnitario, DocumentoOrigen, IdReferenciaOrigen, Justificacion, IdUsuarioResponsable
+                        ) VALUES (
+                            @IdProducto, GETDATE(), 'Salida por Venta', @Cantidad, @StockAnterior, @StockNuevo,
+                            @CostoUnitario, @DocumentoOrigen, @IdReferenciaOrigen, 'Venta POS confirmada', @IdUsuarioResponsable
+                        )", con, tran))
+                    {
+                        insertKardexCmd.Parameters.Add(new SqlParameter("@IdProducto", item.IdProducto));
+                        insertKardexCmd.Parameters.Add(new SqlParameter("@Cantidad", item.Cantidad));
+                        insertKardexCmd.Parameters.Add(new SqlParameter("@StockAnterior", stockAnterior));
+                        insertKardexCmd.Parameters.Add(new SqlParameter("@StockNuevo", stockNuevo));
+                        insertKardexCmd.Parameters.Add(new SqlParameter("@CostoUnitario", item.CostoUnitarioHistorico));
+                        insertKardexCmd.Parameters.Add(new SqlParameter("@DocumentoOrigen", venta.NumeroFactura));
+                        insertKardexCmd.Parameters.Add(new SqlParameter("@IdReferenciaOrigen", idVentaGenerado));
+                        insertKardexCmd.Parameters.Add(new SqlParameter("@IdUsuarioResponsable", venta.IdUsuarioVendedor));
+                        await insertKardexCmd.ExecuteNonQueryAsync();
+                    }
+                }
+
+                // 5. Crédito si aplica
+                if (credito != null)
+                {
+                    credito.IdVenta = idVentaGenerado;
+                    int idCreditoGenerado;
+
+                    using (var insertCreditoCmd = new SqlCommand(@"
+                        INSERT INTO Creditos (
+                            IdVenta, MontoVentaTotal, PrimaInicial, MontoFinanciado, FrecuenciaPago,
+                            CantidadCuotas, PorcentajeInteres, MontoInteresesPactados, MontoTotalCredito,
+                            SaldoPendiente, Estado, FechaRegistro
+                        ) VALUES (
+                            @IdVenta, @MontoVentaTotal, @PrimaInicial, @MontoFinanciado, @FrecuenciaPago,
+                            @CantidadCuotas, @PorcentajeInteres, @MontoInteresesPactados, @MontoTotalCredito,
+                            @SaldoPendiente, 'Activo', GETDATE()
+                        );
+                        SELECT CAST(SCOPE_IDENTITY() AS INT);", con, tran))
+                    {
+                        insertCreditoCmd.Parameters.Add(new SqlParameter("@IdVenta", credito.IdVenta));
+                        insertCreditoCmd.Parameters.Add(new SqlParameter("@MontoVentaTotal", credito.MontoVentaTotal));
+                        insertCreditoCmd.Parameters.Add(new SqlParameter("@PrimaInicial", credito.PrimaInicial));
+                        insertCreditoCmd.Parameters.Add(new SqlParameter("@MontoFinanciado", credito.MontoFinanciado));
+                        insertCreditoCmd.Parameters.Add(new SqlParameter("@FrecuenciaPago", credito.FrecuenciaPago));
+                        insertCreditoCmd.Parameters.Add(new SqlParameter("@CantidadCuotas", credito.CantidadCuotas));
+                        insertCreditoCmd.Parameters.Add(new SqlParameter("@PorcentajeInteres", credito.PorcentajeInteres));
+                        insertCreditoCmd.Parameters.Add(new SqlParameter("@MontoInteresesPactados", credito.MontoInteresesPactados));
+                        insertCreditoCmd.Parameters.Add(new SqlParameter("@MontoTotalCredito", credito.MontoTotalCredito));
+                        insertCreditoCmd.Parameters.Add(new SqlParameter("@SaldoPendiente", credito.SaldoPendiente));
+
+                        idCreditoGenerado = (int)(await insertCreditoCmd.ExecuteScalarAsync())!;
+                    }
+
+                    if (cuotas != null)
+                    {
+                        foreach (var cuota in cuotas)
+                        {
+                            using var insertCuotaCmd = new SqlCommand(@"
+                                INSERT INTO CuotasCredito (
+                                    IdCredito, NumeroCuota, FechaVencimiento, MontoCuota,
+                                    RecargoMora, MontoAbonado, Estado
+                                ) VALUES (
+                                    @IdCredito, @NumeroCuota, @FechaVencimiento, @MontoCuota,
+                                    0, 0, 'Pendiente'
+                                )", con, tran);
+                            insertCuotaCmd.Parameters.Add(new SqlParameter("@IdCredito", idCreditoGenerado));
+                            insertCuotaCmd.Parameters.Add(new SqlParameter("@NumeroCuota", cuota.NumeroCuota));
+                            insertCuotaCmd.Parameters.Add(new SqlParameter("@FechaVencimiento", cuota.FechaVencimiento));
+                            insertCuotaCmd.Parameters.Add(new SqlParameter("@MontoCuota", cuota.MontoCuota));
+                            await insertCuotaCmd.ExecuteNonQueryAsync();
+                        }
+                    }
+                }
+
+                await tran.CommitAsync();
+                return (true, "Venta completada exitosamente.", idVentaGenerado, venta.NumeroFactura);
+            }
+            catch (Exception ex)
+            {
+                await tran.RollbackAsync();
+                return (false, $"Error al procesar la venta: {ex.Message}", 0, string.Empty);
             }
         }
     }

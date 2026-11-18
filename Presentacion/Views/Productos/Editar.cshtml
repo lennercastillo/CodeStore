@@ -1,0 +1,200 @@
+@model Aplicacion.DTOs.DTOSProductos
+
+@{
+    ViewData["Title"] = $"Editar Producto - {Model.Nombre}";
+    var proveedores = ViewBag.Proveedores as IEnumerable<Aplicacion.DTOs.DTOProveedor> ?? Enumerable.Empty<Aplicacion.DTOs.DTOProveedor>();
+}
+
+<!-- Page Header -->
+<div class="page-header d-print-none mb-4">
+    <div class="row g-2 align-items-center">
+        <div class="col">
+            <div class="page-pretitle">Catálogos / Productos</div>
+            <h2 class="page-title text-dark">
+                <i class="ti ti-pencil me-2 text-primary"></i>Editar Producto: @Model.Nombre
+            </h2>
+        </div>
+        <div class="col-auto ms-auto d-print-none">
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="ti ti-arrow-left me-1"></i> Volver al Catálogo
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+        <form asp-action="Editar" method="post" class="card border-0 shadow-sm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="IdProducto" />
+            <input type="hidden" asp-for="FechaRegistro" />
+
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h3 class="card-title text-dark fw-bold m-0">
+                    <i class="ti ti-info-circle me-2 text-primary"></i>Modificar Información del Producto
+                </h3>
+                <span class="badge bg-dark-lt font-monospace fs-5">SKU: @Model.CodigoSKU</span>
+            </div>
+
+            <div class="card-body">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-4" role="alert"></div>
+
+                <!-- Sección 1: Identificación y Clasificación -->
+                <h4 class="text-secondary fw-semibold text-uppercase fs-6 tracking-wide mb-3">1. Identificación y Clasificación</h4>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label asp-for="CodigoSKU" class="form-label required"></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="ti ti-barcode"></i></span>
+                            <input asp-for="CodigoSKU" class="form-control" />
+                        </div>
+                        <span asp-validation-for="CodigoSKU" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-8">
+                        <label asp-for="Nombre" class="form-label required"></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="ti ti-box"></i></span>
+                            <input asp-for="Nombre" class="form-control" />
+                        </div>
+                        <span asp-validation-for="Nombre" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Marca" class="form-label required"></label>
+                        <input asp-for="Marca" class="form-control" />
+                        <span asp-validation-for="Marca" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Modelo" class="form-label required"></label>
+                        <input asp-for="Modelo" class="form-control" />
+                        <span asp-validation-for="Modelo" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="TipoEquipo" class="form-label required"></label>
+                        <select asp-for="TipoEquipo" class="form-select">
+                            <option value="Laptop">Laptop / Portátil</option>
+                            <option value="PC Escritorio">PC de Escritorio</option>
+                            <option value="Monitor">Monitor / Pantalla</option>
+                            <option value="Impresora">Impresora / Multifuncional</option>
+                            <option value="Accesorio">Accesorio / Periférico</option>
+                            <option value="Componente">Componente / Repuesto</option>
+                            <option value="Almacenamiento">Disco / Almacenamiento</option>
+                            <option value="Redes">Redes y Conectividad</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                        <span asp-validation-for="TipoEquipo" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <!-- Sección 2: Precios y Costos -->
+                <h4 class="text-secondary fw-semibold text-uppercase fs-6 tracking-wide mb-3">2. Precios y Costos</h4>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label asp-for="PrecioVenta" class="form-label required"></label>
+                        <div class="input-group">
+                            <span class="input-group-text">C$</span>
+                            <input asp-for="PrecioVenta" type="number" step="0.01" class="form-control" />
+                        </div>
+                        <span asp-validation-for="PrecioVenta" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="UltimoCostoCompra" class="form-label"></label>
+                        <div class="input-group">
+                            <span class="input-group-text">C$</span>
+                            <input asp-for="UltimoCostoCompra" type="number" step="0.01" class="form-control" />
+                        </div>
+                        <span asp-validation-for="UltimoCostoCompra" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="CostoPromedio" class="form-label"></label>
+                        <div class="input-group">
+                            <span class="input-group-text">C$</span>
+                            <input asp-for="CostoPromedio" type="number" step="0.01" class="form-control" />
+                        </div>
+                        <span asp-validation-for="CostoPromedio" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <!-- Sección 3: Inventario, Proveedor y Garantía -->
+                <h4 class="text-secondary fw-semibold text-uppercase fs-6 tracking-wide mb-3">3. Inventario, Proveedor y Garantía</h4>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <label asp-for="StockActual" class="form-label"></label>
+                        <input asp-for="StockActual" type="number" class="form-control" />
+                        <span asp-validation-for="StockActual" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label asp-for="StockMinimo" class="form-label"></label>
+                        <input asp-for="StockMinimo" type="number" class="form-control" />
+                        <span asp-validation-for="StockMinimo" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label asp-for="MesesGarantia" class="form-label"></label>
+                        <div class="input-group">
+                            <input asp-for="MesesGarantia" type="number" class="form-control" />
+                            <span class="input-group-text">meses</span>
+                        </div>
+                        <span asp-validation-for="MesesGarantia" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label asp-for="IdProveedorPreferido" class="form-label"></label>
+                        <select asp-for="IdProveedorPreferido" class="form-select">
+                            <option value="">-- Sin asignar --</option>
+                            @foreach (var prov in proveedores)
+                            {
+                                <option value="@prov.IdProveedor" selected="@(prov.IdProveedor == Model.IdProveedorPreferido)">@prov.RazonSocial</option>
+                            }
+                        </select>
+                        <span asp-validation-for="IdProveedorPreferido" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <!-- Sección 4: Configuración Adicional y Descripción -->
+                <h4 class="text-secondary fw-semibold text-uppercase fs-6 tracking-wide mb-3">4. Opciones y Descripción</h4>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-12">
+                        <label asp-for="Descripcion" class="form-label"></label>
+                        <textarea asp-for="Descripcion" rows="3" class="form-control"></textarea>
+                        <span asp-validation-for="Descripcion" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-check form-switch cursor-pointer">
+                            <input asp-for="RequiereSerie" class="form-check-input" type="checkbox" />
+                            <span class="form-check-label fw-medium">Requiere Registro de Número de Serie</span>
+                        </label>
+                        <div class="text-secondary small ms-5">Indica si cada unidad vendida o recibida debe llevar un serial rastreable para servicio y garantías.</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-check form-switch cursor-pointer">
+                            <input asp-for="Activo" class="form-check-input" type="checkbox" />
+                            <span class="form-check-label fw-medium">Producto Activo para Venta</span>
+                        </label>
+                        <div class="text-secondary small ms-5">Los productos inactivos no aparecerán en el módulo de ventas ni cotizaciones.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer bg-light py-3 d-flex justify-content-between align-items-center">
+                <a asp-action="Index" class="btn btn-link link-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary d-inline-flex align-items-center">
+                    <i class="ti ti-device-floppy me-2 fs-3"></i> Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

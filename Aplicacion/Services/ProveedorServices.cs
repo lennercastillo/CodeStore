@@ -74,5 +74,11 @@ namespace Aplicacion.Services
         {
             await _repo.EliminarProveedorAsync(id);
         }
+
+        public async Task<DTOProveedor?> ObtenerPorId(int id)
+        {
+            var lista = await ListarProveedor();
+            return lista.FirstOrDefault(p => p.IdProveedor == id);
+        }
     }
 }

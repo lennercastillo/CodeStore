@@ -1,0 +1,297 @@
+@model IEnumerable<Aplicacion.DTOs.DTOSProductos>
+
+@{
+    ViewData["Title"] = "Catálogo de Productos";
+    var totalProductos = Model.Count();
+    var stockBajo = Model.Count(p => p.StockActual <= p.StockMinimo);
+    var valorInventario = Model.Sum(p => p.StockActual * p.PrecioVenta);
+    var productosActivos = Model.Count(p => p.Activo);
+}
+
+<!-- Page Header -->
+<div class="page-header d-print-none mb-4">
+    <div class="row g-2 align-items-center">
+        <div class="col">
+            <div class="page-pretitle">Catálogos</div>
+            <h2 class="page-title text-dark">
+                <i class="ti ti-box me-2 text-primary"></i>Catálogo de Productos
+            </h2>
+            <div class="text-secondary mt-1">Gestión integral de inventario, equipos tecnológicos, precios y repuestos</div>
+        </div>
+        <div class="col-auto ms-auto d-print-none">
+            <div class="btn-list">
+                <a asp-action="Crear" class="btn btn-primary d-inline-flex align-items-center">
+                    <i class="ti ti-plus me-1 fs-3"></i> Nuevo Producto
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- KPI Summary Widgets -->
+<div class="row row-cards mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-sm border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <span class="bg-primary-lt avatar avatar-md">
+                            <i class="ti ti-box fs-2"></i>
+                        </span>
+                    </div>
+                    <div class="col">
+                        <div class="text-secondary small fw-medium">Total Productos</div>
+                        <div class="fs-2 fw-bold text-dark">@totalProductos</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-sm border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <span class="bg-success-lt avatar avatar-md">
+                            <i class="ti ti-check fs-2"></i>
+                        </span>
+                    </div>
+                    <div class="col">
+                        <div class="text-secondary small fw-medium">Productos Activos</div>
+                        <div class="fs-2 fw-bold text-success">@productosActivos</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-sm border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <span class="bg-danger-lt avatar avatar-md">
+                            <i class="ti ti-alert-triangle fs-2"></i>
+                        </span>
+                    </div>
+                    <div class="col">
+                        <div class="text-secondary small fw-medium">Stock Bajo / Crítico</div>
+                        <div class="fs-2 fw-bold text-danger">@stockBajo</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-sm border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <span class="bg-azure-lt avatar avatar-md">
+                            <i class="ti ti-currency-dollar fs-2"></i>
+                        </span>
+                    </div>
+                    <div class="col">
+                        <div class="text-secondary small fw-medium">Valor Estimado Venta</div>
+                        <div class="fs-2 fw-bold text-azure">C$ @valorInventario.ToString("N2")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Table Card -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+        <h3 class="card-title fw-bold text-dark m-0">
+            <i class="ti ti-list me-2 text-primary"></i>Listado de Equipos y Repuestos
+        </h3>
+        <span class="badge bg-blue-lt">@totalProductos registrados</span>
+    </div>
+
+    <div class="card-body p-3">
+        <div class="table-responsive">
+            <table id="tablaProductos" class="table table-vcenter table-hover card-table">
+                <thead>
+                    <tr>
+                        <th class="w-1">SKU</th>
+                        <th>Producto / Equipo</th>
+                        <th>Tipo</th>
+                        <th class="text-end">Precio Venta</th>
+                        <th class="text-center">Stock</th>
+                        <th class="text-center">Garantía</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center w-1">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var esStockCritico = item.StockActual <= item.StockMinimo;
+                        <tr>
+                            <td>
+                                <span class="badge bg-dark-lt font-monospace fs-5">@item.CodigoSKU</span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="avatar avatar-sm me-2 bg-azure-lt">
+                                        <i class="ti ti-device-laptop fs-3"></i>
+                                    </span>
+                                    <div>
+                                        <div class="fw-semibold text-dark">@item.Nombre</div>
+                                        <div class="text-secondary small">
+                                            <span class="badge bg-secondary-lt me-1">@item.Marca</span> @item.Modelo
+                                            @if (item.RequiereSerie)
+                                            {
+                                                <span class="badge bg-purple-lt ms-1" title="Requiere registro de número de serie">
+                                                    <i class="ti ti-barcode me-1"></i>Serie
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-indigo-lt">@item.TipoEquipo</span>
+                            </td>
+                            <td class="text-end fw-bold text-success fs-4">
+                                C$ @item.PrecioVenta.ToString("N2")
+                            </td>
+                            <td class="text-center">
+                                @if (esStockCritico)
+                                {
+                                    <span class="badge bg-danger text-white py-1 px-2" title="Mínimo requerido: @item.StockMinimo">
+                                        <i class="ti ti-alert-circle me-1"></i>@item.StockActual / @item.StockMinimo
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success-lt py-1 px-2">
+                                        <i class="ti ti-check me-1"></i>@item.StockActual uds
+                                    </span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                @if (item.MesesGarantia > 0)
+                                {
+                                    <span class="badge bg-teal-lt">@item.MesesGarantia meses</span>
+                                }
+                                else
+                                {
+                                    <span class="text-secondary small">Sin garantía</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                @if (item.Activo)
+                                {
+                                    <span class="badge bg-success-lt">Activo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger-lt">Inactivo</span>
+                                }
+                            </td>
+                            <td class="text-center text-nowrap">
+                                <div class="btn-group">
+                                    <a asp-action="Editar" asp-route-id="@item.IdProducto" class="btn btn-sm btn-outline-primary" title="Editar">
+                                        <i class="ti ti-pencil"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar" data-id="@item.IdProducto" data-nombre="@item.Nombre" title="Eliminar">
+                                        <i class="ti ti-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Inicializar DataTables con estilo Tabler / Bootstrap 5
+            $('#tablaProductos').DataTable({
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                },
+                order: [[1, 'asc']],
+                pageLength: 10,
+                responsive: true
+            });
+
+            // Mensajes SweetAlert2 de TempData
+            @if (TempData["Success"] != null)
+            {
+                <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Operación Exitosa!',
+                    text: '@Html.Raw(TempData["Success"])',
+                    timer: 3500,
+                    showConfirmButton: false
+                });
+                </text>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Atención',
+                    text: '@Html.Raw(TempData["Error"])'
+                });
+                </text>
+            }
+
+            // Confirmación de eliminación con SweetAlert2
+            $(document).on('click', '.btn-eliminar', function () {
+                const id = $(this).data('id');
+                const nombre = $(this).data('nombre');
+
+                Swal.fire({
+                    title: '¿Eliminar producto?',
+                    text: `¿Estás seguro de que deseas eliminar "${nombre}"? Esta acción no se puede deshacer.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d63939',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: '<i class="ti ti-trash me-1"></i> Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.post('@Url.Action("Eliminar", "Productos")', { id: id }, function (res) {
+                            if (res.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Eliminado',
+                                    text: res.message,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'No se pudo eliminar',
+                                    text: res.message
+                                });
+                            }
+                        }).fail(function () {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Ocurrió un error en la solicitud de eliminación.'
+                            });
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}
+

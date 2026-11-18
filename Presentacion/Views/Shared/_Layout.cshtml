@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8" />
@@ -228,15 +228,25 @@
                                 <i class="ti ti-user fs-2"></i>
                             </span>
                             <div class="d-none d-xl-block ps-2">
-                                <div class="fw-semibold">Administrador</div>
-                                <div class="mt-1 small text-secondary">CodeStore Admin</div>
+                                <div class="fw-semibold">@(User.Identity?.IsAuthenticated == true ? User.Identity.Name : "Administrador")</div>
+                                <div class="mt-1 small text-secondary">@(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "CodeStore Admin")</div>
                             </div>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                            <a class="dropdown-item" href="#"><i class="ti ti-user-circle me-2"></i> Mi Perfil</a>
-                            <a class="dropdown-item" href="#"><i class="ti ti-settings me-2"></i> Configuración</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item text-danger" href="#"><i class="ti ti-logout me-2"></i> Cerrar Sesión</a>
+                            @if (User.Identity?.IsAuthenticated == true)
+                            {
+                                <span class="dropdown-header">Conectado como @User.Identity.Name</span>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">
+                                    <i class="ti ti-logout me-2"></i> Cerrar Sesión
+                                </a>
+                            }
+                            else
+                            {
+                                <a class="dropdown-item text-primary" asp-controller="Account" asp-action="Login">
+                                    <i class="ti ti-login me-2"></i> Iniciar Sesión
+                                </a>
+                            }
                         </div>
                     </div>
                 </div>

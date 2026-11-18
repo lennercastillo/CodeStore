@@ -98,5 +98,124 @@ namespace Aplicacion.Services
         {
             await _repo.EliminarVentaAsync(id);
         }
+
+        public async Task<Venta?> ObtenerPorId(int id)
+        {
+            return await _repo.ObtenerPorIdAsync(id);
+        }
+
+        public async Task<(bool Success, string Message, int IdVenta, string NumeroFactura)> RegistrarVentaCompleta(VentaRegistroDTO dto, int idUsuario)
+        {
+            if (dto.Items == null || !dto.Items.Any())
+                return (false, "La venta debe contener al menos un producto.", 0, string.Empty);
+
+            if (dto.IdCliente <= 0)
+                return (false, "Debe seleccionar un cliente válido.", 0, string.Empty);
+
+            // Validar y calcular montos
+            decimal subtotal = dto.Items.Sum(i => i.Cantidad * i.PrecioUnitario);
+            decimal impuesto = subtotal * (dto.PorcentajeImpuesto / 100m);
+            decimal total = subtotal + impuesto;
+            decimal vuelto = dto.TipoVenta == "Contado" ? Math.Max(0, dto.MontoRecibido - total) : 0;
+
+            if (dto.TipoVenta == "Contado" && dto.MontoRecibido < total)
+            {
+                return (false, $"El monto recibido (C$ {dto.MontoRecibido:N2}) es menor al total de la venta (C$ {total:N2}).", 0, string.Empty);
+            }
+
+            var venta = new Venta
+            {
+                NumeroFactura = dto.NumeroFactura ?? string.Empty,
+                IdCliente = dto.IdCliente,
+                IdUsuarioVendedor = idUsuario,
+                FechaVenta = DateTime.Now,
+                TipoVenta = dto.TipoVenta,
+                MetodoPago = dto.MetodoPago,
+                PorcentajeImpuesto = dto.PorcentajeImpuesto,
+                Subtotal = subtotal,
+                Impuesto = impuesto,
+                TotalVenta = total,
+                MontoRecibido = dto.MontoRecibido,
+                Vuelto = vuelto,
+                Estado = "Completada"
+            };
+
+            var detalles = dto.Items.Select(i => new DetalleVenta
+            {
+                IdProducto = i.IdProducto,
+                Cantidad = i.Cantidad,
+                PrecioUnitario = i.PrecioUnitario,
+                Subtotal = i.Cantidad * i.PrecioUnitario
+            }).ToList();
+
+            var series = new List<DetalleVentaSerie>();
+            foreach (var item in dto.Items)
+            {
+                if (item.RequiereSerie && item.Series != null)
+                {
+                    foreach (var s in item.Series.Where(ser => !string.IsNullOrWhiteSpace(ser)))
+                    {
+                        series.Add(new DetalleVentaSerie
+                        {
+                            IdDetalleVenta = item.IdProducto,
+                            NumeroSerie = s.Trim(),
+                            EstadoSerie = "Vendida",
+                            FechaRegistro = DateTime.Now
+                        });
+                    }
+                }
+            }
+
+            Credito? credito = null;
+            List<CuotaCredito>? cuotas = null;
+
+            if (dto.TipoVenta == "Credito")
+            {
+                decimal financiado = Math.Max(0, total - dto.PrimaInicial);
+                decimal interes = financiado * (dto.PorcentajeInteres / 100m);
+                decimal totalCredito = financiado + interes;
+
+                credito = new Credito
+                {
+                    MontoVentaTotal = total,
+                    PrimaInicial = dto.PrimaInicial,
+                    MontoFinanciado = financiado,
+                    FrecuenciaPago = dto.FrecuenciaPago,
+                    CantidadCuotas = dto.CantidadCuotas,
+                    PorcentajeInteres = dto.PorcentajeInteres,
+                    MontoInteresesPactados = interes,
+                    MontoTotalCredito = totalCredito,
+                    SaldoPendiente = totalCredito,
+                    Estado = "Activo",
+                    FechaRegistro = DateTime.Now
+                };
+
+                cuotas = new List<CuotaCredito>();
+                decimal valorCuota = dto.CantidadCuotas > 0 ? Math.Round(totalCredito / dto.CantidadCuotas, 2) : totalCredito;
+                DateTime fechaVence = DateTime.Today;
+
+                for (int c = 1; c <= dto.CantidadCuotas; c++)
+                {
+                    switch (dto.FrecuenciaPago)
+                    {
+                        case "Semanal": fechaVence = fechaVence.AddDays(7); break;
+                        case "Quincenal": fechaVence = fechaVence.AddDays(15); break;
+                        default: fechaVence = fechaVence.AddMonths(1); break;
+                    }
+
+                    cuotas.Add(new CuotaCredito
+                    {
+                        NumeroCuota = c,
+                        FechaVencimiento = fechaVence,
+                        MontoCuota = valorCuota,
+                        RecargoMora = 0,
+                        MontoAbonado = 0,
+                        Estado = "Pendiente"
+                    });
+                }
+            }
+
+            return await _repo.RegistrarVentaTransaccionalAsync(venta, detalles, series, credito, cuotas);
+        }
     }
 }

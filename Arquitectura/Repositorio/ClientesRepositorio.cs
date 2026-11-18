@@ -1,4 +1,4 @@
-﻿using Aplicacion.Interface;
+using Aplicacion.Interface;
 using Dominio.Entidades;
 using Estructura.database;
 using Microsoft.Data.SqlClient;
@@ -37,7 +37,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@Direccion", cliente.Direccion));
                 cmd.Parameters.Add(new SqlParameter("@Activo", cliente.Activo));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
 
             }
             catch (Exception ex)
@@ -56,7 +56,7 @@ namespace Estructura.Repositorio
                 using var cmd = new SqlCommand("EliminarCliente", con);
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter("@IdCliente", Id));
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
 
             }
             catch (Exception ex)
@@ -69,12 +69,12 @@ namespace Estructura.Repositorio
         public async Task<IEnumerable<Clientes>> ListarClienteAsync()
         {
             var lis = new List<Clientes>();
-            using var com = _cone.GetConnection();
-            await com.OpenAsync();
+            using var con = _cone.GetConnection();
+            await con.OpenAsync();
 
             try
             {
-                using var cmd = new SqlCommand("ListarClientes", com);
+                using var cmd = new SqlCommand("ListarClientes", con);
                 cmd.CommandType = CommandType.StoredProcedure;
                 using var Dr = await cmd.ExecuteReaderAsync();
 
@@ -118,7 +118,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@Direccion", cliente.Direccion));
                 cmd.Parameters.Add(new SqlParameter("@Activo", cliente.Activo));
 
-                await cmd.ExecuteReaderAsync();
+                await cmd.ExecuteNonQueryAsync();
 
             }
             catch (Exception ex)
