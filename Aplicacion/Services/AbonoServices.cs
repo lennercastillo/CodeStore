@@ -99,5 +99,13 @@ namespace Aplicacion.Services
         {
             return await _repo.RegistrarAbonoTransaccionalAsync(idCuota, montoAbono, metodoPago, observaciones, idUsuario);
         }
+
+        public async Task<(bool Success, string Message)> AnularAbono(int idAbono, int idUsuarioAnulacion, string motivo)
+        {
+            if (string.IsNullOrWhiteSpace(motivo))
+                return (false, "Debe especificar el motivo de anulación.");
+
+            return await _repo.AnularAbonoTransaccionalAsync(idAbono, idUsuarioAnulacion, motivo.Trim());
+        }
     }
 }

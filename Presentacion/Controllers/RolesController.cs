@@ -6,7 +6,7 @@ using Presentacion.Helpers;
 
 namespace Presentacion.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Administrador")]
     public class RolesController : Controller
     {
         private readonly rolesServices _rolesService;

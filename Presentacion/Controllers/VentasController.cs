@@ -7,7 +7,7 @@ using System.Security.Claims;
 
 namespace Presentacion.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Administrador,Vendedor")]
     public class VentasController : Controller
     {
         private readonly VentaServices _ventaService;
@@ -126,6 +126,7 @@ namespace Presentacion.Controllers
 
                 var productos = await _productosService.ListarProducto();
                 var dictProductos = productos.ToDictionary(p => p.IdProducto, p => p);
+                var todasSeries = await _serieService.ListarDetalleVentaSerie();
 
                 var dtoCompleto = new VentaDetalleCompletoDTO
                 {
@@ -144,13 +145,16 @@ namespace Presentacion.Controllers
                         TotalVenta = venta.TotalVenta,
                         MontoRecibido = venta.MontoRecibido,
                         Vuelto = venta.Vuelto,
-                        Estado = venta.Estado
+                        Estado = venta.Estado,
+                        FechaAnulacion = venta.FechaAnulacion,
+                        MotivoAnulacion = venta.MotivoAnulacion
                     },
                     Cliente = cliente,
                     Detalles = detallesVenta.Select(d => new ItemDetalleCompletoDTO
                     {
                         Detalle = d,
-                        Producto = dictProductos.ContainsKey(d.IdProducto) ? dictProductos[d.IdProducto] : null
+                        Producto = dictProductos.ContainsKey(d.IdProducto) ? dictProductos[d.IdProducto] : null,
+                        Series = todasSeries.Where(s => s.IdDetalleVenta == d.IdDetalleVenta).Select(s => s.NumeroSerie).ToList()
                     }).ToList()
                 };
 
@@ -177,6 +181,7 @@ namespace Presentacion.Controllers
 
         // POST: /Ventas/Anular
         [HttpPost]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Anular(int id, string motivo)
         {
             int idUsuario = 1;

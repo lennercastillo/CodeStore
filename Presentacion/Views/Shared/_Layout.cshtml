@@ -69,111 +69,129 @@
                                 <a class="dropdown-item" asp-controller="Clientes" asp-action="Index">
                                     <i class="ti ti-users me-2"></i> Clientes
                                 </a>
-                                <a class="dropdown-item" asp-controller="Proveedores" asp-action="Index">
-                                    <i class="ti ti-truck me-2"></i> Proveedores
-                                </a>
+                                @if (User.IsInRole("Administrador"))
+                                {
+                                    <a class="dropdown-item" asp-controller="Proveedores" asp-action="Index">
+                                        <i class="ti ti-truck me-2"></i> Proveedores
+                                    </a>
+                                }
                             </div>
                         </li>
 
-                        <!-- Ventas & Facturación -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#navbar-ventas" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-shopping-cart fs-2"></i>
-                                </span>
-                                <span class="nav-link-title">Ventas</span>
-                            </a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" asp-controller="Ventas" asp-action="Crear">
-                                    <i class="ti ti-cash me-2"></i> Nueva Venta (POS)
+                        @if (User.IsInRole("Administrador") || User.IsInRole("Vendedor"))
+                        {
+                            <!-- Ventas & Facturación -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#navbar-ventas" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <i class="ti ti-shopping-cart fs-2"></i>
+                                    </span>
+                                    <span class="nav-link-title">Ventas</span>
                                 </a>
-                                <a class="dropdown-item" asp-controller="Ventas" asp-action="Index">
-                                    <i class="ti ti-receipt me-2"></i> Historial de Ventas
-                                </a>
-                            </div>
-                        </li>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item" asp-controller="Ventas" asp-action="Crear">
+                                        <i class="ti ti-cash me-2"></i> Nueva Venta (POS)
+                                    </a>
+                                    <a class="dropdown-item" asp-controller="Ventas" asp-action="Index">
+                                        <i class="ti ti-receipt me-2"></i> Historial de Ventas
+                                    </a>
+                                </div>
+                            </li>
+                        }
 
-                        <!-- Compras & Abastecimiento -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#navbar-compras" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-truck-delivery fs-2"></i>
-                                </span>
-                                <span class="nav-link-title">Compras</span>
-                            </a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" asp-controller="Compras" asp-action="Crear">
-                                    <i class="ti ti-plus me-2"></i> Registrar Compra
+                        @if (User.IsInRole("Administrador"))
+                        {
+                            <!-- Compras & Abastecimiento -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#navbar-compras" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <i class="ti ti-truck-delivery fs-2"></i>
+                                    </span>
+                                    <span class="nav-link-title">Compras</span>
                                 </a>
-                                <a class="dropdown-item" asp-controller="Compras" asp-action="Index">
-                                    <i class="ti ti-file-invoice me-2"></i> Historial de Compras
-                                </a>
-                            </div>
-                        </li>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item" asp-controller="Compras" asp-action="Crear">
+                                        <i class="ti ti-plus me-2"></i> Registrar Compra
+                                    </a>
+                                    <a class="dropdown-item" asp-controller="Compras" asp-action="Index">
+                                        <i class="ti ti-file-invoice me-2"></i> Historial de Compras
+                                    </a>
+                                </div>
+                            </li>
 
-                        <!-- Inventario & Kardex -->
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Kardex" asp-action="Index">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-clipboard-list fs-2"></i>
-                                </span>
-                                <span class="nav-link-title">Kardex / Stock</span>
-                            </a>
-                        </li>
+                            <!-- Inventario & Kardex -->
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Kardex" asp-action="Index">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <i class="ti ti-clipboard-list fs-2"></i>
+                                    </span>
+                                    <span class="nav-link-title">Kardex / Stock</span>
+                                </a>
+                            </li>
+                        }
 
-                        <!-- Créditos & Cobranza -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#navbar-creditos" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-credit-card fs-2"></i>
-                                </span>
-                                <span class="nav-link-title">Créditos</span>
-                            </a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" asp-controller="Creditos" asp-action="Index">
-                                    <i class="ti ti-list-details me-2"></i> Créditos Activos
+                        @if (User.IsInRole("Administrador") || User.IsInRole("Vendedor"))
+                        {
+                            <!-- Créditos & Cobranza -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#navbar-creditos" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <i class="ti ti-credit-card fs-2"></i>
+                                    </span>
+                                    <span class="nav-link-title">Créditos</span>
                                 </a>
-                                <a class="dropdown-item" asp-controller="Abonos" asp-action="Index">
-                                    <i class="ti ti-coin me-2"></i> Pagos y Abonos
-                                </a>
-                            </div>
-                        </li>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item" asp-controller="Creditos" asp-action="Index">
+                                        <i class="ti ti-list-details me-2"></i> Créditos Activos
+                                    </a>
+                                    <a class="dropdown-item" asp-controller="Abonos" asp-action="Index">
+                                        <i class="ti ti-coin me-2"></i> Pagos y Abonos
+                                    </a>
+                                </div>
+                            </li>
+                        }
 
-                        <!-- Taller Técnico & Garantías -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#navbar-taller" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-tools fs-2"></i>
-                                </span>
-                                <span class="nav-link-title">Taller & Garantías</span>
-                            </a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" asp-controller="OrdenReparacion" asp-action="Index">
-                                    <i class="ti ti-cpu me-2"></i> Órdenes de Reparación
+                        @if (User.IsInRole("Administrador") || User.IsInRole("Tecnico"))
+                        {
+                            <!-- Taller Técnico & Garantías -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#navbar-taller" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <i class="ti ti-tools fs-2"></i>
+                                    </span>
+                                    <span class="nav-link-title">Taller & Garantías</span>
                                 </a>
-                                <a class="dropdown-item" asp-controller="ReclamoGarantia" asp-action="Index">
-                                    <i class="ti ti-shield-check me-2"></i> Reclamos de Garantía
-                                </a>
-                            </div>
-                        </li>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item" asp-controller="OrdenReparacion" asp-action="Index">
+                                        <i class="ti ti-cpu me-2"></i> Órdenes de Reparación
+                                    </a>
+                                    <a class="dropdown-item" asp-controller="ReclamoGarantia" asp-action="Index">
+                                        <i class="ti ti-shield-check me-2"></i> Reclamos de Garantía
+                                    </a>
+                                </div>
+                            </li>
+                        }
 
-                        <!-- Administración y Seguridad -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#navbar-seguridad" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-lock-access fs-2"></i>
-                                </span>
-                                <span class="nav-link-title">Seguridad</span>
-                            </a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" asp-controller="Usuarios" asp-action="Index">
-                                    <i class="ti ti-user-check me-2"></i> Usuarios
+                        @if (User.IsInRole("Administrador"))
+                        {
+                            <!-- Administración y Seguridad -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#navbar-seguridad" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <i class="ti ti-lock-access fs-2"></i>
+                                    </span>
+                                    <span class="nav-link-title">Seguridad</span>
                                 </a>
-                                <a class="dropdown-item" asp-controller="Roles" asp-action="Index">
-                                    <i class="ti ti-shield-lock me-2"></i> Roles y Permisos
-                                </a>
-                            </div>
-                        </li>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item" asp-controller="Usuarios" asp-action="Index">
+                                        <i class="ti ti-user-check me-2"></i> Usuarios
+                                    </a>
+                                    <a class="dropdown-item" asp-controller="Roles" asp-action="Index">
+                                        <i class="ti ti-shield-lock me-2"></i> Roles y Permisos
+                                    </a>
+                                </div>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
@@ -182,45 +200,7 @@
         <!-- Top Header Bar -->
         <header class="navbar navbar-expand-md d-none d-lg-flex d-print-none sticky-top bg-white border-bottom shadow-sm">
             <div class="container-xl">
-                <!-- Search input -->
-                <div class="my-2 my-md-0 flex-grow-1 flex-md-grow-0 order-first order-md-last">
-                    <form action="./" method="get" autocomplete="off" novalidate>
-                        <div class="input-icon">
-                            <span class="input-icon-addon">
-                                <i class="ti ti-search"></i>
-                            </span>
-                            <input type="text" class="form-control" placeholder="Buscar productos, clientes, facturas..." aria-label="Buscar en CodeStore">
-                        </div>
-                    </form>
-                </div>
-
                 <div class="navbar-nav flex-row order-md-last ms-auto align-items-center">
-                    <!-- Notifications -->
-                    <div class="nav-item dropdown d-none d-md-flex me-3">
-                        <a href="#" class="nav-link px-0" data-bs-toggle="dropdown" tabindex="-1" aria-label="Notificaciones">
-                            <i class="ti ti-bell fs-2"></i>
-                            <span class="badge bg-red badge-blink"></span>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-end dropdown-menu-card">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h3 class="card-title">Notificaciones recientes</h3>
-                                </div>
-                                <div class="list-group list-group-flush list-group-hoverable">
-                                    <div class="list-group-item">
-                                        <div class="row align-items-center">
-                                            <div class="col-auto"><span class="status-dot status-dot-animated bg-red d-block"></span></div>
-                                            <div class="col text-truncate">
-                                                <a href="#" class="text-body d-block">Alerta de Stock Bajo</a>
-                                                <div class="d-block text-secondary text-truncate mt-n1">Varios productos están por debajo del mínimo.</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- User Profile Dropdown -->
                     <div class="nav-item dropdown">
                         <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" aria-label="Menú de usuario">

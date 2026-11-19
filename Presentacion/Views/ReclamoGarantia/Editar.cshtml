@@ -27,6 +27,7 @@
             <input type="hidden" asp-for="IdDetalleVenta" />
             <input type="hidden" asp-for="IdSerieVendida" />
             <input type="hidden" asp-for="FechaReclamo" />
+            <input type="hidden" asp-for="FechaResolucion" />
 
             <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
                 <h3 class="card-title text-dark fw-bold m-0">Resolución de Garantía</h3>
@@ -34,6 +35,10 @@
             </div>
 
             <div class="card-body">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger mb-3">@TempData["Error"]</div>
+                }
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
 
                 <div class="row g-3">

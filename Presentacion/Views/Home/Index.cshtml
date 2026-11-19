@@ -18,12 +18,18 @@
         <!-- Quick Action Buttons -->
         <div class="col-auto ms-auto d-print-none">
             <div class="btn-list">
-                <a asp-controller="Ventas" asp-action="Crear" class="btn btn-primary d-none d-sm-inline-block">
-                    <i class="ti ti-shopping-cart-plus me-1"></i> Nueva Venta
-                </a>
-                <a asp-controller="OrdenReparacion" asp-action="Crear" class="btn btn-outline-primary d-none d-sm-inline-block">
-                    <i class="ti ti-tools me-1"></i> Ingreso a Taller
-                </a>
+                @if (User.IsInRole("Administrador") || User.IsInRole("Vendedor"))
+                {
+                    <a asp-controller="Ventas" asp-action="Crear" class="btn btn-primary d-none d-sm-inline-block">
+                        <i class="ti ti-shopping-cart-plus me-1"></i> Nueva Venta
+                    </a>
+                }
+                @if (User.IsInRole("Administrador") || User.IsInRole("Tecnico"))
+                {
+                    <a asp-controller="OrdenReparacion" asp-action="Crear" class="btn btn-outline-primary d-none d-sm-inline-block">
+                        <i class="ti ti-tools me-1"></i> Ingreso a Taller
+                    </a>
+                }
             </div>
         </div>
     </div>
@@ -178,7 +184,10 @@
                 <h3 class="card-title fw-bold text-dark m-0">
                     <i class="ti ti-alert-triangle me-2 text-danger"></i>Alertas de Stock Bajo
                 </h3>
-                <a asp-controller="Compras" asp-action="Crear" class="btn btn-sm btn-outline-danger">Abastecer</a>
+                @if (User.IsInRole("Administrador"))
+                {
+                    <a asp-controller="Compras" asp-action="Crear" class="btn btn-sm btn-outline-danger">Abastecer</a>
+                }
             </div>
             <div class="table-responsive">
                 <table class="table table-vcenter card-table table-hover">
@@ -209,6 +218,65 @@
                                     </td>
                                     <td class="text-center"><span class="badge bg-danger text-white">@p.StockActual</span></td>
                                     <td class="text-center text-secondary">@p.StockMinimo</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Órdenes de Reparación Recientes -->
+<div class="row row-cards mt-3">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+                <h3 class="card-title fw-bold text-dark m-0">
+                    <i class="ti ti-tools me-2 text-warning"></i>Órdenes de Taller Recientes
+                </h3>
+                @if (User.IsInRole("Administrador") || User.IsInRole("Tecnico"))
+                {
+                    <a asp-controller="OrdenReparacion" asp-action="Index" class="btn btn-sm btn-outline-primary">Ver Taller</a>
+                }
+            </div>
+            <div class="table-responsive">
+                <table class="table table-vcenter card-table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Orden</th>
+                            <th>Cliente</th>
+                            <th>Equipo</th>
+                            <th>Ingreso</th>
+                            <th class="text-center">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.OrdenesRecientes.Any())
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-secondary">No hay órdenes de reparación registradas.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var o in Model.OrdenesRecientes)
+                            {
+                                var cli = Model.ClientesNombres.ContainsKey(o.IdCliente) ? Model.ClientesNombres[o.IdCliente] : $"Cliente #{o.IdCliente}";
+                                <tr>
+                                    <td><span class="badge bg-dark-lt font-monospace">@o.NumeroOrden</span></td>
+                                    <td class="fw-medium">@cli</td>
+                                    <td>
+                                        <div class="fw-semibold text-dark">@o.DescripcionEquipo</div>
+                                        <div class="text-secondary small">@o.Marca @o.Modelo</div>
+                                    </td>
+                                    <td class="text-secondary small">@o.FechaIngreso.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-center">
+                                        <span class="badge @(o.EstadoEquipo == "Entregado" ? "bg-success-lt" : o.EstadoEquipo == "Reparado" ? "bg-azure-lt" : o.EstadoEquipo == "Sin Solucion" ? "bg-danger-lt" : "bg-warning-lt")">
+                                            @o.EstadoEquipo
+                                        </span>
+                                    </td>
                                 </tr>
                             }
                         }

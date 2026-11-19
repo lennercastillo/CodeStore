@@ -19,5 +19,6 @@ namespace Aplicacion.Interface
             string metodoPago,
             string? observaciones,
             int idUsuarioRegistro);
+        Task<(bool Success, string Message)> AnularAbonoTransaccionalAsync(int idAbono, int idUsuarioAnulacion, string motivo);
     }
 }

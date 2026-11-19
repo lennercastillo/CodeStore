@@ -122,10 +122,10 @@ namespace Aplicacion.Services
                 return (false, "Todos los productos deben tener cantidad mayor a 0 y precio no negativo.", 0, string.Empty);
 
             // Validar y calcular montos
-            decimal subtotal = dto.Items.Sum(i => i.Cantidad * i.PrecioUnitario);
-            decimal impuesto = subtotal * (dto.PorcentajeImpuesto / 100m);
-            decimal total = subtotal + impuesto;
-            decimal vuelto = dto.TipoVenta == "Contado" ? Math.Max(0, dto.MontoRecibido - total) : 0;
+            decimal subtotal = Math.Round(dto.Items.Sum(i => i.Cantidad * i.PrecioUnitario), 2);
+            decimal impuesto = Math.Round(subtotal * (dto.PorcentajeImpuesto / 100m), 2);
+            decimal total = Math.Round(subtotal + impuesto, 2);
+            decimal vuelto = dto.TipoVenta == "Contado" ? Math.Round(Math.Max(0, dto.MontoRecibido - total), 2) : 0;
 
             if (dto.TipoVenta == "Contado" && dto.MontoRecibido < total)
             {
@@ -142,6 +142,39 @@ namespace Aplicacion.Services
                     return (false, "La cantidad de cuotas debe ser mayor a cero.", 0, string.Empty);
                 if (dto.PorcentajeInteres < 0)
                     return (false, "El porcentaje de interés no puede ser negativo.", 0, string.Empty);
+            }
+
+            var series = new List<DetalleVentaSerie>();
+            var seriesRegistradas = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var item in dto.Items)
+            {
+                if (item.RequiereSerie)
+                {
+                    var seriesValidas = (item.Series ?? new List<string>())
+                        .Where(ser => !string.IsNullOrWhiteSpace(ser))
+                        .Select(ser => ser.Trim())
+                        .ToList();
+
+                    if (seriesValidas.Count != item.Cantidad)
+                    {
+                        string nombreProducto = string.IsNullOrWhiteSpace(item.Nombre) ? $"#{item.IdProducto}" : item.Nombre;
+                        return (false, $"El producto \"{nombreProducto}\" requiere {item.Cantidad} número(s) de serie.", 0, string.Empty);
+                    }
+
+                    foreach (var s in seriesValidas)
+                    {
+                        if (!seriesRegistradas.Add(s))
+                            return (false, $"El número de serie \"{s}\" está repetido en la venta.", 0, string.Empty);
+
+                        series.Add(new DetalleVentaSerie
+                        {
+                            IdDetalleVenta = item.IdProducto,
+                            NumeroSerie = s,
+                            EstadoSerie = "Vendido",
+                            FechaRegistro = DateTime.Now
+                        });
+                    }
+                }
             }
 
             var venta = new Venta
@@ -166,35 +199,17 @@ namespace Aplicacion.Services
                 IdProducto = i.IdProducto,
                 Cantidad = i.Cantidad,
                 PrecioUnitario = i.PrecioUnitario,
-                Subtotal = i.Cantidad * i.PrecioUnitario
+                Subtotal = Math.Round(i.Cantidad * i.PrecioUnitario, 2)
             }).ToList();
-
-            var series = new List<DetalleVentaSerie>();
-            foreach (var item in dto.Items)
-            {
-                if (item.RequiereSerie && item.Series != null)
-                {
-                    foreach (var s in item.Series.Where(ser => !string.IsNullOrWhiteSpace(ser)))
-                    {
-                        series.Add(new DetalleVentaSerie
-                        {
-                            IdDetalleVenta = item.IdProducto,
-                            NumeroSerie = s.Trim(),
-                            EstadoSerie = "Vendido",
-                            FechaRegistro = DateTime.Now
-                        });
-                    }
-                }
-            }
 
             Credito? credito = null;
             List<CuotaCredito>? cuotas = null;
 
             if (dto.TipoVenta == "Credito")
             {
-                decimal financiado = Math.Max(0, total - dto.PrimaInicial);
-                decimal interes = financiado * (dto.PorcentajeInteres / 100m);
-                decimal totalCredito = financiado + interes;
+                decimal financiado = Math.Round(Math.Max(0, total - dto.PrimaInicial), 2);
+                decimal interes = Math.Round(financiado * (dto.PorcentajeInteres / 100m), 2);
+                decimal totalCredito = Math.Round(financiado + interes, 2);
 
                 credito = new Credito
                 {
@@ -212,7 +227,7 @@ namespace Aplicacion.Services
                 };
 
                 cuotas = new List<CuotaCredito>();
-                decimal valorCuota = dto.CantidadCuotas > 0 ? Math.Round(totalCredito / dto.CantidadCuotas, 2) : totalCredito;
+                decimal valorCuotaBase = Math.Round(totalCredito / dto.CantidadCuotas, 2);
                 DateTime fechaVence = DateTime.Today;
 
                 for (int c = 1; c <= dto.CantidadCuotas; c++)
@@ -224,11 +239,15 @@ namespace Aplicacion.Services
                         default: fechaVence = fechaVence.AddMonths(1); break;
                     }
 
+                    decimal montoCuota = (c == dto.CantidadCuotas)
+                        ? Math.Round(totalCredito - (valorCuotaBase * (dto.CantidadCuotas - 1)), 2)
+                        : valorCuotaBase;
+
                     cuotas.Add(new CuotaCredito
                     {
                         NumeroCuota = c,
                         FechaVencimiento = fechaVence,
-                        MontoCuota = valorCuota,
+                        MontoCuota = montoCuota,
                         RecargoMora = 0,
                         MontoAbonado = 0,
                         Estado = "Pendiente"

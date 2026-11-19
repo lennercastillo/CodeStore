@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Nuevo Reclamo de Garantía";
     var detalles = ViewBag.DetallesVenta as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    var series = ViewBag.Series as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
     var tecnicos = ViewBag.Tecnicos as List<Aplicacion.DTOs.DTOSUsuario> ?? new List<Aplicacion.DTOs.DTOSUsuario>();
 }
 
@@ -55,7 +56,7 @@
 
                     <div class="col-md-12">
                         <label asp-for="IdDetalleVenta" class="form-label required">Producto Vendido (Factura)</label>
-                        <select asp-for="IdDetalleVenta" class="form-select">
+                        <select asp-for="IdDetalleVenta" id="selectDetalleVenta" class="form-select">
                             <option value="">-- Seleccione el ítem de factura --</option>
                             @foreach (var d in detalles)
                             {
@@ -63,6 +64,17 @@
                             }
                         </select>
                         <span asp-validation-for="IdDetalleVenta" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label asp-for="IdSerieVendida" class="form-label">Número de Serie (Opcional)</label>
+                        <select asp-for="IdSerieVendida" id="selectSerieVendida" class="form-select">
+                            <option value="">-- Sin serie específica --</option>
+                            @foreach (var s in series)
+                            {
+                                <option value="@s.IdSerieVendida" data-detalle="@s.IdDetalleVenta">@s.NumeroSerie</option>
+                            }
+                        </select>
                     </div>
 
                     <div class="col-md-12">
@@ -105,5 +117,24 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function filtrarSeries() {
+            const idDetalle = $('#selectDetalleVenta').val();
+            const selSerie = $('#selectSerieVendida');
+            selSerie.find('option[data-detalle]').each(function () {
+                const coincide = idDetalle && String($(this).data('detalle')) === String(idDetalle);
+                $(this).toggle(Boolean(coincide));
+            });
+            const opcionActual = selSerie.find('option:selected');
+            if (opcionActual.data('detalle') && String(opcionActual.data('detalle')) !== String(idDetalle)) {
+                selSerie.val('');
+            }
+        }
+
+        $(document).ready(function () {
+            $('#selectDetalleVenta').on('change', filtrarSeries);
+            filtrarSeries();
+        });
+    </script>
 }
 

@@ -7,21 +7,24 @@ using System.Security.Claims;
 
 namespace Presentacion.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Administrador,Tecnico")]
     public class OrdenReparacionController : Controller
     {
         private readonly OrdenReparacionServices _ordenService;
         private readonly Clientes_Services _clientesService;
         private readonly UsuarioServices _usuarioService;
+        private readonly ReclamoGarantiaServices _reclamoService;
 
         public OrdenReparacionController(
             OrdenReparacionServices ordenService,
             Clientes_Services clientesService,
-            UsuarioServices usuarioService)
+            UsuarioServices usuarioService,
+            ReclamoGarantiaServices reclamoService)
         {
             _ordenService = ordenService;
             _clientesService = clientesService;
             _usuarioService = usuarioService;
+            _reclamoService = reclamoService;
         }
 
         // GET: /OrdenReparacion
@@ -134,6 +137,7 @@ namespace Presentacion.Controllers
 
         // POST: /OrdenReparacion/Eliminar/5
         [HttpPost]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Eliminar(int id)
         {
             try
@@ -151,8 +155,10 @@ namespace Presentacion.Controllers
         {
             var clientes = await _clientesService.ListaClientes();
             var usuarios = await _usuarioService.ListaRoles();
+            var garantias = await _reclamoService.ListarReclamoGarantia();
             ViewBag.Clientes = clientes.Where(c => c.Activo).ToList();
             ViewBag.Tecnicos = usuarios.Where(u => u.Activo).ToList();
+            ViewBag.Garantias = garantias.OrderByDescending(g => g.FechaReclamo).ToList();
         }
 
         private int ObtenerUsuarioActual()

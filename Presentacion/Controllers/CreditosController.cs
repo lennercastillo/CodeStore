@@ -6,7 +6,7 @@ using Presentacion.Helpers;
 
 namespace Presentacion.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Administrador,Vendedor")]
     public class CreditosController : Controller
     {
         private readonly CreditoServices _creditoService;
@@ -79,6 +79,15 @@ namespace Presentacion.Controllers
                 TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "cargar el detalle del crédito");
                 return RedirectToAction(nameof(Index));
             }
+        }
+
+        // POST: /Creditos/AplicarMora
+        [HttpPost]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> AplicarMora(int idCuota, decimal recargoMora)
+        {
+            var res = await _cuotaService.AplicarMora(idCuota, recargoMora);
+            return Json(new { success = res.Success, message = res.Message });
         }
     }
 }

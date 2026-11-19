@@ -127,5 +127,25 @@ namespace Estructura.Repositorio
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<(bool Success, string Message)> AplicarMoraAsync(int idCuota, decimal recargoMora)
+        {
+            try
+            {
+                using var con = _cone.GetConnection();
+                await con.OpenAsync();
+                using var cmd = new SqlCommand("AplicarMoraCuota", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(new SqlParameter("@IdCuota", idCuota));
+                cmd.Parameters.Add(new SqlParameter("@RecargoMora", recargoMora));
+
+                await cmd.ExecuteNonQueryAsync();
+                return (true, $"Recargo por mora actualizado a C$ {recargoMora:N2}.");
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
     }
 }

@@ -127,10 +127,8 @@ namespace Estructura.Repositorio
         {
             using var con = _Data.GetConnection();
             await con.OpenAsync();
-            using var cmd = new SqlCommand(@"
-                SELECT IdUsuario, IdRol, Nombres, Apellidos, Correo, Telefono, Activo, FechaCreacion
-                FROM Usuarios
-                WHERE Correo = @Correo AND PasswordHash = @PasswordHash AND Activo = 1", con);
+            using var cmd = new SqlCommand("ValidarUsuarioLogin", con);
+            cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.Add(new SqlParameter("@Correo", correo));
             cmd.Parameters.Add(new SqlParameter("@PasswordHash", passwordHash));
 

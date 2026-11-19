@@ -19,11 +19,14 @@
             <div class="text-secondary mt-1">Gestión integral de inventario, equipos tecnológicos, precios y repuestos</div>
         </div>
         <div class="col-auto ms-auto d-print-none">
-            <div class="btn-list">
-                <a asp-action="Crear" class="btn btn-primary d-inline-flex align-items-center">
-                    <i class="ti ti-plus me-1 fs-3"></i> Nuevo Producto
-                </a>
-            </div>
+            @if (User.IsInRole("Administrador"))
+            {
+                <div class="btn-list">
+                    <a asp-action="Crear" class="btn btn-primary d-inline-flex align-items-center">
+                        <i class="ti ti-plus me-1 fs-3"></i> Nuevo Producto
+                    </a>
+                </div>
+            }
         </div>
     </div>
 </div>
@@ -192,14 +195,21 @@
                                 }
                             </td>
                             <td class="text-center text-nowrap">
-                                <div class="btn-group">
-                                    <a asp-action="Editar" asp-route-id="@item.IdProducto" class="btn btn-sm btn-outline-primary" title="Editar">
-                                        <i class="ti ti-pencil"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar" data-id="@item.IdProducto" data-nombre="@item.Nombre" title="Eliminar">
-                                        <i class="ti ti-trash"></i>
-                                    </button>
-                                </div>
+                                @if (User.IsInRole("Administrador"))
+                                {
+                                    <div class="btn-group">
+                                        <a asp-action="Editar" asp-route-id="@item.IdProducto" class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="ti ti-pencil"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar" data-id="@item.IdProducto" data-nombre="@item.Nombre" title="Eliminar">
+                                            <i class="ti ti-trash"></i>
+                                        </button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-secondary small">Solo lectura</span>
+                                }
                             </td>
                         </tr>
                     }

@@ -101,6 +101,15 @@
                                     <span class="badge bg-dark-lt font-monospace me-1">@(prod?.CodigoSKU ?? "")</span>
                                     @(prod != null ? $"{prod.Marca} {prod.Modelo}" : "")
                                 </div>
+                                @if (item.Series.Any())
+                                {
+                                    <div class="mt-1">
+                                        @foreach (var ser in item.Series)
+                                        {
+                                            <span class="badge bg-purple-lt font-monospace me-1">S/N: @ser</span>
+                                        }
+                                    </div>
+                                }
                             </td>
                             <td class="text-center">
                                 @if (d.FechaFinGarantia.HasValue)
@@ -201,6 +210,13 @@
                     </table>
                 </div>
             }
+        }
+
+        @if (venta.Estado == "Anulada" && !string.IsNullOrEmpty(venta.MotivoAnulacion))
+        {
+            <div class="alert alert-danger mt-4 mb-0">
+                <strong>Factura Anulada:</strong> @venta.MotivoAnulacion
+            </div>
         }
 
         <!-- Notas al pie -->

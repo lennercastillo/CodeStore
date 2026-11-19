@@ -7,7 +7,7 @@ using System.Security.Claims;
 
 namespace Presentacion.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Administrador")]
     public class ComprasController : Controller
     {
         private readonly CompraServices _compraService;

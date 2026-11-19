@@ -717,7 +717,7 @@ GO
 
 
 CREATE OR ALTER PROCEDURE InsertarCompra
-    @NumeroDocumento VARCHAR(50),
+    @NumeroDocumento VARCHAR(50) = NULL,
     @IdProveedor INT,
     @IdUsuarioRegistro INT,
     @FechaCompra DATETIME = NULL,
@@ -733,6 +733,12 @@ AS
 BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
+        IF @NumeroDocumento IS NULL OR LTRIM(RTRIM(@NumeroDocumento)) = ''
+        BEGIN
+            SET @NumeroDocumento = 'COM-' + CONVERT(VARCHAR(8), GETDATE(), 112) + '-' +
+                RIGHT('0000' + CAST((SELECT COUNT(1) + 1 FROM Compras) AS VARCHAR(10)), 4);
+        END
+
         INSERT INTO Compras (NumeroDocumento, IdProveedor, IdUsuarioRegistro, IdUsuarioRecepcion, FechaCompra,
                              FechaRecepcion, TotalCompra, Estado, Observaciones, IdUsuarioAnulacion,
                              FechaAnulacion, MotivoAnulacion)
@@ -740,7 +746,7 @@ BEGIN
                 ISNULL(@FechaCompra, GETDATE()), @FechaRecepcion, @TotalCompra, @Estado, @Observaciones,
                 @IdUsuarioAnulacion, @FechaAnulacion, @MotivoAnulacion);
 
-        SELECT SCOPE_IDENTITY() AS IdCompra;
+        SELECT CAST(SCOPE_IDENTITY() AS INT) AS IdCompra, @NumeroDocumento AS NumeroDocumento;
     END TRY
     BEGIN CATCH
         THROW;
@@ -891,7 +897,7 @@ GO
  
 
 CREATE OR ALTER PROCEDURE InsertarVenta
-    @NumeroFactura VARCHAR(30),
+    @NumeroFactura VARCHAR(30) = NULL,
     @IdCliente INT,
     @IdUsuarioVendedor INT,
     @TipoVenta VARCHAR(20),
@@ -911,6 +917,12 @@ AS
 BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
+        IF @NumeroFactura IS NULL OR LTRIM(RTRIM(@NumeroFactura)) = ''
+        BEGIN
+            SET @NumeroFactura = 'FAC-' + CONVERT(VARCHAR(8), GETDATE(), 112) + '-' +
+                RIGHT('0000' + CAST((SELECT COUNT(1) + 1 FROM Ventas) AS VARCHAR(10)), 4);
+        END
+
         INSERT INTO Ventas (NumeroFactura, IdCliente, IdUsuarioVendedor, FechaVenta, TipoVenta, MetodoPago,
                             PorcentajeImpuesto, Subtotal, Impuesto, TotalVenta, MontoRecibido, Vuelto, Estado,
                             IdUsuarioAutorizaAnulacion, FechaAnulacion, MotivoAnulacion)
@@ -918,7 +930,7 @@ BEGIN
                 @MetodoPago, @PorcentajeImpuesto, @Subtotal, @Impuesto, @TotalVenta, @MontoRecibido, @Vuelto,
                 @Estado, @IdUsuarioAutorizaAnulacion, @FechaAnulacion, @MotivoAnulacion);
 
-        SELECT SCOPE_IDENTITY() AS IdVenta;
+        SELECT CAST(SCOPE_IDENTITY() AS INT) AS IdVenta, @NumeroFactura AS NumeroFactura;
     END TRY
     BEGIN CATCH
         IF ERROR_NUMBER() IN (2601, 2627) THROW 50002, 'Ya existe una venta con ese número de factura.', 1;
@@ -1589,7 +1601,7 @@ CREATE OR ALTER PROCEDURE ActualizarReclamoGarantia
     @NumeroReclamo VARCHAR(30),
     @IdDetalleVenta INT,
     @IdUsuarioTecnico INT,
-    @FechaReclamo DATETIME,
+    @FechaReclamo DATETIME = NULL,
     @MotivoFalla VARCHAR(500),
     @EstadoRevision VARCHAR(30),
     @IdSerieVendida INT = NULL,
@@ -1602,7 +1614,7 @@ BEGIN
     BEGIN TRY
         UPDATE ReclamosGarantia
         SET NumeroReclamo = @NumeroReclamo, IdDetalleVenta = @IdDetalleVenta, IdSerieVendida = @IdSerieVendida,
-            IdUsuarioTecnico = @IdUsuarioTecnico, FechaReclamo = @FechaReclamo, MotivoFalla = @MotivoFalla,
+            IdUsuarioTecnico = @IdUsuarioTecnico, FechaReclamo = ISNULL(@FechaReclamo, FechaReclamo), MotivoFalla = @MotivoFalla,
             EstadoRevision = @EstadoRevision, AccionTomada = @AccionTomada,
             DescripcionResolucion = @DescripcionResolucion, FechaResolucion = @FechaResolucion
         WHERE IdGarantia = @IdGarantia;
@@ -1696,7 +1708,7 @@ CREATE OR ALTER PROCEDURE ActualizarOrdenReparacion
     @NumeroSerie VARCHAR(100),
     @EstadoEquipo VARCHAR(30),
     @CostoReparacion DECIMAL(18,2),
-    @FechaIngreso DATETIME,
+    @FechaIngreso DATETIME = NULL,
     @IdGarantia INT = NULL,
     @DiagnosticoTecnico VARCHAR(500) = NULL,
     @FechaFinalizacion DATETIME = NULL,
@@ -1710,7 +1722,7 @@ BEGIN
         SET NumeroOrden = @NumeroOrden, IdGarantia = @IdGarantia, IdCliente = @IdCliente,
             IdUsuarioTecnico = @IdUsuarioTecnico, DescripcionEquipo = @DescripcionEquipo, Marca = @Marca,
             Modelo = @Modelo, NumeroSerie = @NumeroSerie, DiagnosticoTecnico = @DiagnosticoTecnico,
-            EstadoEquipo = @EstadoEquipo, CostoReparacion = @CostoReparacion, FechaIngreso = @FechaIngreso,
+            EstadoEquipo = @EstadoEquipo, CostoReparacion = @CostoReparacion, FechaIngreso = ISNULL(@FechaIngreso, FechaIngreso),
             FechaFinalizacion = @FechaFinalizacion, FechaEntrega = @FechaEntrega, Observaciones = @Observaciones
         WHERE IdOrdenReparacion = @IdOrdenReparacion;
 
@@ -1750,6 +1762,814 @@ BEGIN
     WHERE @IdOrdenReparacion IS NULL OR IdOrdenReparacion = @IdOrdenReparacion
     ORDER BY IdOrdenReparacion;
 END;
+GO
+
+
+-- =========================================================
+-- PROCEDIMIENTOS OPERATIVOS Y TRANSACCIONALES
+-- =========================================================
+CREATE OR ALTER PROCEDURE ValidarUsuarioLogin
+    @Correo VARCHAR(120),
+    @PasswordHash VARCHAR(256)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT IdUsuario, IdRol, Nombres, Apellidos, Correo, Telefono, Activo, FechaCreacion
+    FROM Usuarios
+    WHERE Correo = @Correo AND PasswordHash = @PasswordHash AND Activo = 1;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE RegistrarAjusteInventario
+    @IdProducto INT,
+    @TipoMovimiento VARCHAR(40),
+    @Cantidad INT,
+    @Justificacion VARCHAR(255),
+    @IdUsuario INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @TranPropia BIT = 0;
+    BEGIN TRY
+        IF @Cantidad <= 0
+            THROW 50019, 'La cantidad debe ser mayor a cero.', 1;
+
+        IF @TipoMovimiento NOT IN ('Ajuste de Entrada', 'Ajuste de Salida', 'Baja de Inventario', 'Salida por Reemplazo Garantia')
+            THROW 50020, 'Tipo de movimiento no permitido para ajuste manual.', 1;
+
+        IF @@TRANCOUNT = 0
+        BEGIN
+            BEGIN TRANSACTION;
+            SET @TranPropia = 1;
+        END
+
+        DECLARE @NombreProd VARCHAR(150), @StockAnterior INT, @UltimoCosto DECIMAL(18,2);
+
+        SELECT @NombreProd = Nombre, @StockAnterior = StockActual, @UltimoCosto = UltimoCostoCompra
+        FROM Productos WITH (UPDLOCK)
+        WHERE IdProducto = @IdProducto;
+
+        IF @NombreProd IS NULL
+            THROW 50003, 'El producto seleccionado no existe.', 1;
+
+        DECLARE @EsEntrada BIT = CASE WHEN @TipoMovimiento = 'Ajuste de Entrada' THEN 1 ELSE 0 END;
+
+        IF @EsEntrada = 0 AND @StockAnterior < @Cantidad
+        BEGIN
+            DECLARE @MsgStock NVARCHAR(255) = N'Stock insuficiente en "' + @NombreProd + N'". Disponible: ' +
+                CAST(@StockAnterior AS NVARCHAR(20)) + N', solicitado: ' + CAST(@Cantidad AS NVARCHAR(20)) + N'.';
+            THROW 50004, @MsgStock, 1;
+        END
+
+        DECLARE @StockNuevo INT = CASE WHEN @EsEntrada = 1 THEN @StockAnterior + @Cantidad ELSE @StockAnterior - @Cantidad END;
+        DECLARE @PrefijoDoc VARCHAR(4) = CASE WHEN @TipoMovimiento = 'Salida por Reemplazo Garantia' THEN 'GAR-' ELSE 'AJU-' END;
+        DECLARE @DocumentoOrigen VARCHAR(50) = @PrefijoDoc + CONVERT(VARCHAR(8), GETDATE(), 112) + REPLACE(CONVERT(VARCHAR(5), GETDATE(), 108), ':', '');
+
+        INSERT INTO Kardex (
+            IdProducto, FechaMovimiento, TipoMovimiento, Cantidad, StockAnterior, StockNuevo,
+            CostoUnitario, DocumentoOrigen, Justificacion, IdUsuarioResponsable
+        )
+        VALUES (
+            @IdProducto, GETDATE(), @TipoMovimiento, @Cantidad, @StockAnterior, @StockNuevo,
+            @UltimoCosto, @DocumentoOrigen, @Justificacion, @IdUsuario
+        );
+
+        UPDATE Productos
+        SET StockActual = @StockNuevo
+        WHERE IdProducto = @IdProducto;
+
+        IF @TranPropia = 1 COMMIT TRANSACTION;
+
+        SELECT @NombreProd AS NombreProducto, @StockNuevo AS StockNuevo;
+    END TRY
+    BEGIN CATCH
+        IF @TranPropia = 1 AND @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+GO
+
+CREATE OR ALTER PROCEDURE ConfirmarRecepcionCompra
+    @IdCompra INT,
+    @IdUsuarioRecepcion INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @TranPropia BIT = 0;
+    BEGIN TRY
+        IF @@TRANCOUNT = 0
+        BEGIN
+            BEGIN TRANSACTION;
+            SET @TranPropia = 1;
+        END
+
+        DECLARE @EstadoActual VARCHAR(20), @NumeroDoc VARCHAR(50);
+        SELECT @EstadoActual = Estado, @NumeroDoc = NumeroDocumento
+        FROM Compras WITH (UPDLOCK)
+        WHERE IdCompra = @IdCompra;
+
+        IF @EstadoActual IS NULL
+            THROW 50001, 'La compra especificada no existe.', 1;
+
+        IF @EstadoActual <> 'Pendiente'
+            THROW 50002, 'Solo se pueden recepcionar compras en estado Pendiente.', 1;
+
+        DECLARE @IdProducto INT, @Cantidad INT, @CostoUnitario DECIMAL(18,2);
+        DECLARE @StockAnterior INT, @CostoPromedioAnterior DECIMAL(18,2);
+        DECLARE @StockNuevo INT, @NuevoCostoPromedio DECIMAL(18,2);
+
+        DECLARE curDetalleCompra CURSOR LOCAL FAST_FORWARD FOR
+            SELECT IdProducto, Cantidad, CostoUnitario
+            FROM DetalleCompras
+            WHERE IdCompra = @IdCompra;
+
+        OPEN curDetalleCompra;
+        FETCH NEXT FROM curDetalleCompra INTO @IdProducto, @Cantidad, @CostoUnitario;
+
+        WHILE @@FETCH_STATUS = 0
+        BEGIN
+            SET @StockAnterior = NULL;
+            SELECT @StockAnterior = StockActual, @CostoPromedioAnterior = CostoPromedio
+            FROM Productos WITH (UPDLOCK)
+            WHERE IdProducto = @IdProducto;
+
+            IF @StockAnterior IS NULL
+            BEGIN
+                CLOSE curDetalleCompra;
+                DEALLOCATE curDetalleCompra;
+                DECLARE @MsgProdCompra NVARCHAR(255) = N'El producto #' + CAST(@IdProducto AS NVARCHAR(20)) + N' no existe.';
+                THROW 50003, @MsgProdCompra, 1;
+            END
+
+            SET @StockNuevo = @StockAnterior + @Cantidad;
+            SET @NuevoCostoPromedio = CASE
+                WHEN @StockNuevo > 0 THEN ROUND(((@StockAnterior * @CostoPromedioAnterior) + (@Cantidad * @CostoUnitario)) / @StockNuevo, 2)
+                ELSE @CostoUnitario
+            END;
+
+            INSERT INTO Kardex (
+                IdProducto, FechaMovimiento, TipoMovimiento, Cantidad, StockAnterior, StockNuevo,
+                CostoUnitario, DocumentoOrigen, IdReferenciaOrigen, Justificacion, IdUsuarioResponsable
+            )
+            VALUES (
+                @IdProducto, GETDATE(), 'Entrada por Compra', @Cantidad, @StockAnterior, @StockNuevo,
+                @CostoUnitario, @NumeroDoc, @IdCompra, 'Recepción de compra confirmada', @IdUsuarioRecepcion
+            );
+
+            UPDATE Productos
+            SET StockActual = @StockNuevo,
+                UltimoCostoCompra = @CostoUnitario,
+                CostoPromedio = @NuevoCostoPromedio
+            WHERE IdProducto = @IdProducto;
+
+            FETCH NEXT FROM curDetalleCompra INTO @IdProducto, @Cantidad, @CostoUnitario;
+        END
+
+        CLOSE curDetalleCompra;
+        DEALLOCATE curDetalleCompra;
+
+        UPDATE Compras
+        SET Estado = 'Recibida',
+            IdUsuarioRecepcion = @IdUsuarioRecepcion,
+            FechaRecepcion = GETDATE()
+        WHERE IdCompra = @IdCompra;
+
+        IF @TranPropia = 1 COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @TranPropia = 1 AND @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+GO
+
+CREATE OR ALTER PROCEDURE AnularCompra
+    @IdCompra INT,
+    @IdUsuarioAnulacion INT,
+    @MotivoAnulacion VARCHAR(255)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @TranPropia BIT = 0;
+    BEGIN TRY
+        IF @@TRANCOUNT = 0
+        BEGIN
+            BEGIN TRANSACTION;
+            SET @TranPropia = 1;
+        END
+
+        DECLARE @EstadoActual VARCHAR(20), @NumeroDoc VARCHAR(50);
+        SELECT @EstadoActual = Estado, @NumeroDoc = NumeroDocumento
+        FROM Compras WITH (UPDLOCK)
+        WHERE IdCompra = @IdCompra;
+
+        IF @EstadoActual IS NULL
+            THROW 50001, 'La compra especificada no existe.', 1;
+
+        IF @EstadoActual = 'Anulada'
+            THROW 50003, 'La compra ya se encuentra anulada.', 1;
+
+        IF @EstadoActual = 'Recibida'
+        BEGIN
+            DECLARE @IdProducto INT, @Cantidad INT, @CostoUnitario DECIMAL(18,2);
+            DECLARE @NombreProd VARCHAR(150), @StockActual INT, @StockNuevo INT;
+
+            DECLARE curAnularCompra CURSOR LOCAL FAST_FORWARD FOR
+                SELECT IdProducto, Cantidad, CostoUnitario
+                FROM DetalleCompras
+                WHERE IdCompra = @IdCompra;
+
+            OPEN curAnularCompra;
+            FETCH NEXT FROM curAnularCompra INTO @IdProducto, @Cantidad, @CostoUnitario;
+
+            WHILE @@FETCH_STATUS = 0
+            BEGIN
+                SET @NombreProd = NULL;
+                SELECT @NombreProd = Nombre, @StockActual = StockActual
+                FROM Productos WITH (UPDLOCK)
+                WHERE IdProducto = @IdProducto;
+
+                IF @NombreProd IS NULL
+                BEGIN
+                    CLOSE curAnularCompra;
+                    DEALLOCATE curAnularCompra;
+                    DECLARE @MsgNoProdComp NVARCHAR(255) = N'Producto #' + CAST(@IdProducto AS NVARCHAR(20)) + N' no encontrado.';
+                    THROW 50003, @MsgNoProdComp, 1;
+                END
+
+                IF @StockActual < @Cantidad
+                BEGIN
+                    CLOSE curAnularCompra;
+                    DEALLOCATE curAnularCompra;
+                    DECLARE @MsgRevComp NVARCHAR(255) = N'No hay stock suficiente para revertir "' + @NombreProd + N'". Stock actual: ' +
+                        CAST(@StockActual AS NVARCHAR(20)) + N', requerido: ' + CAST(@Cantidad AS NVARCHAR(20)) + N'.';
+                    THROW 50004, @MsgRevComp, 1;
+                END
+
+                SET @StockNuevo = @StockActual - @Cantidad;
+
+                INSERT INTO Kardex (
+                    IdProducto, FechaMovimiento, TipoMovimiento, Cantidad, StockAnterior, StockNuevo,
+                    CostoUnitario, DocumentoOrigen, IdReferenciaOrigen, Justificacion, IdUsuarioResponsable
+                )
+                VALUES (
+                    @IdProducto, GETDATE(), 'Reversion por Anulacion Compra', @Cantidad, @StockActual, @StockNuevo,
+                    @CostoUnitario, @NumeroDoc, @IdCompra, @MotivoAnulacion, @IdUsuarioAnulacion
+                );
+
+                UPDATE Productos
+                SET StockActual = @StockNuevo
+                WHERE IdProducto = @IdProducto;
+
+                FETCH NEXT FROM curAnularCompra INTO @IdProducto, @Cantidad, @CostoUnitario;
+            END
+
+            CLOSE curAnularCompra;
+            DEALLOCATE curAnularCompra;
+        END
+
+        UPDATE Compras
+        SET Estado = 'Anulada',
+            IdUsuarioAnulacion = @IdUsuarioAnulacion,
+            FechaAnulacion = GETDATE(),
+            MotivoAnulacion = @MotivoAnulacion
+        WHERE IdCompra = @IdCompra;
+
+        IF @TranPropia = 1 COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @TranPropia = 1 AND @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+GO
+
+CREATE OR ALTER PROCEDURE ConfirmarVenta
+    @IdVenta INT,
+    @IdUsuarioVendedor INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @TranPropia BIT = 0;
+    BEGIN TRY
+        IF @@TRANCOUNT = 0
+        BEGIN
+            BEGIN TRANSACTION;
+            SET @TranPropia = 1;
+        END
+
+        DECLARE @EstadoVenta VARCHAR(20), @NumeroFactura VARCHAR(30);
+        SELECT @EstadoVenta = Estado, @NumeroFactura = NumeroFactura
+        FROM Ventas WITH (UPDLOCK)
+        WHERE IdVenta = @IdVenta;
+
+        IF @EstadoVenta IS NULL
+            THROW 50005, 'La venta no existe.', 1;
+
+        IF @EstadoVenta <> 'Pendiente'
+            THROW 50006, 'Solo se pueden confirmar ventas en estado Pendiente.', 1;
+
+        IF NOT EXISTS (SELECT 1 FROM DetalleVentas WHERE IdVenta = @IdVenta)
+            THROW 50007, 'La venta no tiene productos agregados.', 1;
+
+        DECLARE @IdDetalleVenta INT, @IdProducto INT, @Cantidad INT;
+        DECLARE @NombreProd VARCHAR(150), @StockActual INT, @Activo BIT, @UltimoCosto DECIMAL(18,2), @MesesGarantia INT;
+        DECLARE @StockNuevo INT;
+
+        DECLARE curDetalleVenta CURSOR LOCAL FAST_FORWARD FOR
+            SELECT IdDetalleVenta, IdProducto, Cantidad
+            FROM DetalleVentas
+            WHERE IdVenta = @IdVenta;
+
+        OPEN curDetalleVenta;
+        FETCH NEXT FROM curDetalleVenta INTO @IdDetalleVenta, @IdProducto, @Cantidad;
+
+        WHILE @@FETCH_STATUS = 0
+        BEGIN
+            SET @NombreProd = NULL;
+            SELECT @NombreProd = Nombre, @StockActual = StockActual, @Activo = Activo,
+                   @UltimoCosto = UltimoCostoCompra, @MesesGarantia = MesesGarantia
+            FROM Productos WITH (UPDLOCK)
+            WHERE IdProducto = @IdProducto;
+
+            IF @NombreProd IS NULL
+            BEGIN
+                CLOSE curDetalleVenta;
+                DEALLOCATE curDetalleVenta;
+                DECLARE @MsgProdNoExiste NVARCHAR(255) = N'El producto con ID #' + CAST(@IdProducto AS NVARCHAR(20)) + N' no existe.';
+                THROW 50003, @MsgProdNoExiste, 1;
+            END
+
+            IF @Activo = 0
+            BEGIN
+                CLOSE curDetalleVenta;
+                DEALLOCATE curDetalleVenta;
+                DECLARE @MsgProdInactivo NVARCHAR(255) = N'El producto "' + @NombreProd + N'" se encuentra inactivo.';
+                THROW 50008, @MsgProdInactivo, 1;
+            END
+
+            IF @StockActual < @Cantidad
+            BEGIN
+                CLOSE curDetalleVenta;
+                DEALLOCATE curDetalleVenta;
+                DECLARE @MsgStockVenta NVARCHAR(255) = N'Stock insuficiente para "' + @NombreProd + N'". Disponible: ' +
+                    CAST(@StockActual AS NVARCHAR(20)) + N', solicitado: ' + CAST(@Cantidad AS NVARCHAR(20)) + N'.';
+                THROW 50008, @MsgStockVenta, 1;
+            END
+
+            SET @StockNuevo = @StockActual - @Cantidad;
+
+            UPDATE DetalleVentas
+            SET CostoUnitarioHistorico = @UltimoCosto,
+                MesesGarantiaHistorico = @MesesGarantia,
+                FechaFinGarantia = CASE WHEN @MesesGarantia > 0 THEN DATEADD(MONTH, @MesesGarantia, CAST(GETDATE() AS DATE)) ELSE NULL END
+            WHERE IdDetalleVenta = @IdDetalleVenta;
+
+            INSERT INTO Kardex (
+                IdProducto, FechaMovimiento, TipoMovimiento, Cantidad, StockAnterior, StockNuevo,
+                CostoUnitario, DocumentoOrigen, IdReferenciaOrigen, Justificacion, IdUsuarioResponsable
+            )
+            VALUES (
+                @IdProducto, GETDATE(), 'Salida por Venta', @Cantidad, @StockActual, @StockNuevo,
+                @UltimoCosto, @NumeroFactura, @IdVenta, 'Venta POS confirmada', @IdUsuarioVendedor
+            );
+
+            UPDATE Productos
+            SET StockActual = @StockNuevo
+            WHERE IdProducto = @IdProducto;
+
+            FETCH NEXT FROM curDetalleVenta INTO @IdDetalleVenta, @IdProducto, @Cantidad;
+        END
+
+        CLOSE curDetalleVenta;
+        DEALLOCATE curDetalleVenta;
+
+        UPDATE Ventas
+        SET Estado = 'Completada'
+        WHERE IdVenta = @IdVenta;
+
+        IF @TranPropia = 1 COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @TranPropia = 1 AND @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+GO
+
+CREATE OR ALTER PROCEDURE AnularVenta
+    @IdVenta INT,
+    @IdUsuarioAutoriza INT,
+    @MotivoAnulacion VARCHAR(255)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @TranPropia BIT = 0;
+    BEGIN TRY
+        IF @@TRANCOUNT = 0
+        BEGIN
+            BEGIN TRANSACTION;
+            SET @TranPropia = 1;
+        END
+
+        DECLARE @EstadoVenta VARCHAR(20), @NumeroFactura VARCHAR(30);
+        SELECT @EstadoVenta = Estado, @NumeroFactura = NumeroFactura
+        FROM Ventas WITH (UPDLOCK)
+        WHERE IdVenta = @IdVenta;
+
+        IF @EstadoVenta IS NULL
+            THROW 50005, 'La venta especificada no existe.', 1;
+
+        IF @EstadoVenta = 'Anulada'
+            THROW 50010, 'La venta ya se encuentra anulada.', 1;
+
+        IF EXISTS (
+            SELECT 1
+            FROM Abonos a
+            INNER JOIN CuotasCredito c ON a.IdCuota = c.IdCuota
+            INNER JOIN Creditos cr ON c.IdCredito = cr.IdCredito
+            WHERE cr.IdVenta = @IdVenta AND a.Estado = 'Activo'
+        )
+        BEGIN
+            THROW 50018, 'No se puede anular esta venta porque su crédito tiene abonos activos. Anule primero los abonos.', 1;
+        END
+
+        IF @EstadoVenta = 'Completada'
+        BEGIN
+            DECLARE @IdProducto INT, @Cantidad INT, @Costo DECIMAL(18,2);
+            DECLARE @StockAnterior INT, @StockNuevo INT;
+
+            DECLARE curAnularVenta CURSOR LOCAL FAST_FORWARD FOR
+                SELECT IdProducto, Cantidad, CostoUnitarioHistorico
+                FROM DetalleVentas
+                WHERE IdVenta = @IdVenta;
+
+            OPEN curAnularVenta;
+            FETCH NEXT FROM curAnularVenta INTO @IdProducto, @Cantidad, @Costo;
+
+            WHILE @@FETCH_STATUS = 0
+            BEGIN
+                SELECT @StockAnterior = StockActual
+                FROM Productos WITH (UPDLOCK)
+                WHERE IdProducto = @IdProducto;
+
+                SET @StockNuevo = @StockAnterior + @Cantidad;
+
+                INSERT INTO Kardex (
+                    IdProducto, FechaMovimiento, TipoMovimiento, Cantidad, StockAnterior, StockNuevo,
+                    CostoUnitario, DocumentoOrigen, IdReferenciaOrigen, Justificacion, IdUsuarioResponsable
+                )
+                VALUES (
+                    @IdProducto, GETDATE(), 'Reversion por Anulacion Venta', @Cantidad, @StockAnterior, @StockNuevo,
+                    @Costo, @NumeroFactura, @IdVenta, @MotivoAnulacion, @IdUsuarioAutoriza
+                );
+
+                UPDATE Productos
+                SET StockActual = @StockNuevo
+                WHERE IdProducto = @IdProducto;
+
+                FETCH NEXT FROM curAnularVenta INTO @IdProducto, @Cantidad, @Costo;
+            END
+
+            CLOSE curAnularVenta;
+            DEALLOCATE curAnularVenta;
+        END
+
+        UPDATE DetalleVentaSeries
+        SET EstadoSerie = 'Devuelto por Anulacion'
+        WHERE IdDetalleVenta IN (SELECT IdDetalleVenta FROM DetalleVentas WHERE IdVenta = @IdVenta);
+
+        UPDATE CuotasCredito
+        SET Estado = 'Anulada'
+        WHERE IdCredito IN (SELECT IdCredito FROM Creditos WHERE IdVenta = @IdVenta);
+
+        UPDATE Creditos
+        SET Estado = 'Anulado', SaldoPendiente = 0
+        WHERE IdVenta = @IdVenta;
+
+        UPDATE Ventas
+        SET Estado = 'Anulada',
+            IdUsuarioAutorizaAnulacion = @IdUsuarioAutoriza,
+            FechaAnulacion = GETDATE(),
+            MotivoAnulacion = @MotivoAnulacion
+        WHERE IdVenta = @IdVenta;
+
+        IF @TranPropia = 1 COMMIT TRANSACTION;
+
+        SELECT @NumeroFactura AS NumeroFactura;
+    END TRY
+    BEGIN CATCH
+        IF @TranPropia = 1 AND @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+GO
+
+CREATE OR ALTER PROCEDURE RegistrarAbono
+    @IdCuota INT,
+    @MontoAbono DECIMAL(18,2),
+    @MetodoPago VARCHAR(30),
+    @Observaciones VARCHAR(255) = NULL,
+    @IdUsuarioRegistro INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @TranPropia BIT = 0;
+    BEGIN TRY
+        IF @MontoAbono <= 0
+            THROW 50021, 'El monto del abono debe ser mayor a cero.', 1;
+
+        IF @@TRANCOUNT = 0
+        BEGIN
+            BEGIN TRANSACTION;
+            SET @TranPropia = 1;
+        END
+
+        DECLARE @IdCredito INT, @MontoCuota DECIMAL(18,2), @RecargoMora DECIMAL(18,2), @MoraAbonada DECIMAL(18,2);
+        DECLARE @MontoAbonadoActual DECIMAL(18,2), @SaldoCuota DECIMAL(18,2), @EstadoCuota VARCHAR(20);
+
+        SELECT
+            @IdCredito = IdCredito,
+            @MontoCuota = MontoCuota,
+            @RecargoMora = RecargoMora,
+            @MoraAbonada = MoraAbonada,
+            @MontoAbonadoActual = MontoAbonado,
+            @SaldoCuota = SaldoCuota,
+            @EstadoCuota = Estado
+        FROM CuotasCredito WITH (UPDLOCK)
+        WHERE IdCuota = @IdCuota;
+
+        IF @IdCredito IS NULL
+            THROW 50003, 'La cuota seleccionada no existe.', 1;
+
+        IF @EstadoCuota IN ('Pagada', 'Anulada')
+        BEGIN
+            DECLARE @MsgCuotaEstado NVARCHAR(255) = N'La cuota ya se encuentra en estado ' + @EstadoCuota + N'.';
+            THROW 50011, @MsgCuotaEstado, 1;
+        END
+
+        IF @MontoAbono > @SaldoCuota
+            THROW 50012, 'El monto del abono supera el saldo pendiente de la cuota.', 1;
+
+        DECLARE @MoraPendiente DECIMAL(18,2) = CASE WHEN (@RecargoMora - @MoraAbonada) > 0 THEN (@RecargoMora - @MoraAbonada) ELSE 0 END;
+        DECLARE @AplicadoMora DECIMAL(18,2) = CASE WHEN @MontoAbono < @MoraPendiente THEN @MontoAbono ELSE @MoraPendiente END;
+        DECLARE @AplicadoCapital DECIMAL(18,2) = @MontoAbono - @AplicadoMora;
+
+        DECLARE @NumeroRecibo VARCHAR(30) = 'REC-' + CONVERT(VARCHAR(8), GETDATE(), 112) + '-' +
+            RIGHT('0000' + CAST((SELECT COUNT(1) + 1 FROM Abonos) AS VARCHAR(10)), 4);
+
+        INSERT INTO Abonos (
+            NumeroRecibo, IdCuota, IdUsuarioRegistro, FechaAbono, MontoAbono,
+            MontoAplicadoMora, MontoAplicadoCapital, MetodoPago, Observaciones, Estado
+        )
+        VALUES (
+            @NumeroRecibo, @IdCuota, @IdUsuarioRegistro, GETDATE(), @MontoAbono,
+            @AplicadoMora, @AplicadoCapital, @MetodoPago, @Observaciones, 'Activo'
+        );
+
+        DECLARE @IdAbono INT = CAST(SCOPE_IDENTITY() AS INT);
+        DECLARE @NuevoTotalAbonado DECIMAL(18,2) = @MontoAbonadoActual + @MontoAbono;
+        DECLARE @NuevoEstadoCuota VARCHAR(20) = CASE WHEN @NuevoTotalAbonado >= (@MontoCuota + @RecargoMora) THEN 'Pagada' ELSE 'Parcial' END;
+
+        UPDATE CuotasCredito
+        SET MoraAbonada = MoraAbonada + @AplicadoMora,
+            CapitalInteresAbonado = CapitalInteresAbonado + @AplicadoCapital,
+            Estado = @NuevoEstadoCuota
+        WHERE IdCuota = @IdCuota;
+
+        UPDATE Creditos
+        SET SaldoPendiente = CASE WHEN (SaldoPendiente - @AplicadoCapital) <= 0 THEN 0 ELSE SaldoPendiente - @AplicadoCapital END,
+            Estado = CASE WHEN (SaldoPendiente - @AplicadoCapital) <= 0 THEN 'Pagado' ELSE Estado END
+        WHERE IdCredito = @IdCredito;
+
+        IF @TranPropia = 1 COMMIT TRANSACTION;
+
+        SELECT @IdAbono AS IdAbono, @NumeroRecibo AS NumeroRecibo;
+    END TRY
+    BEGIN CATCH
+        IF @TranPropia = 1 AND @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+GO
+
+CREATE OR ALTER PROCEDURE AnularAbono
+    @IdAbono INT,
+    @IdUsuarioAnulacion INT,
+    @MotivoAnulacion VARCHAR(255)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @TranPropia BIT = 0;
+    BEGIN TRY
+        IF @@TRANCOUNT = 0
+        BEGIN
+            BEGIN TRANSACTION;
+            SET @TranPropia = 1;
+        END
+
+        DECLARE @IdCuota INT, @IdCredito INT, @NumeroRecibo VARCHAR(30);
+        DECLARE @MontoAplicadoMora DECIMAL(18,2), @MontoAplicadoCapital DECIMAL(18,2);
+        DECLARE @EstadoAbono VARCHAR(20);
+
+        SELECT
+            @IdCuota = IdCuota,
+            @NumeroRecibo = NumeroRecibo,
+            @MontoAplicadoMora = MontoAplicadoMora,
+            @MontoAplicadoCapital = MontoAplicadoCapital,
+            @EstadoAbono = Estado
+        FROM Abonos WITH (UPDLOCK)
+        WHERE IdAbono = @IdAbono;
+
+        IF @IdCuota IS NULL
+            THROW 50013, 'El abono especificado no existe.', 1;
+
+        IF @EstadoAbono <> 'Activo'
+            THROW 50014, 'El abono ya se encuentra anulado.', 1;
+
+        DECLARE @MoraAbonadaActual DECIMAL(18,2), @CapitalAbonadoActual DECIMAL(18,2);
+        DECLARE @FechaVencimiento DATE;
+
+        SELECT
+            @IdCredito = IdCredito,
+            @MoraAbonadaActual = MoraAbonada,
+            @CapitalAbonadoActual = CapitalInteresAbonado,
+            @FechaVencimiento = FechaVencimiento
+        FROM CuotasCredito WITH (UPDLOCK)
+        WHERE IdCuota = @IdCuota;
+
+        DECLARE @NuevaMoraAbonada DECIMAL(18,2) = CASE WHEN @MoraAbonadaActual - @MontoAplicadoMora < 0 THEN 0 ELSE @MoraAbonadaActual - @MontoAplicadoMora END;
+        DECLARE @NuevoCapitalAbonado DECIMAL(18,2) = CASE WHEN @CapitalAbonadoActual - @MontoAplicadoCapital < 0 THEN 0 ELSE @CapitalAbonadoActual - @MontoAplicadoCapital END;
+        DECLARE @NuevoEstadoCuota VARCHAR(20) = CASE
+            WHEN (@NuevaMoraAbonada + @NuevoCapitalAbonado) <= 0 AND @FechaVencimiento < CAST(GETDATE() AS DATE) THEN 'Vencida'
+            WHEN (@NuevaMoraAbonada + @NuevoCapitalAbonado) <= 0 THEN 'Pendiente'
+            ELSE 'Parcial'
+        END;
+
+        UPDATE Abonos
+        SET Estado = 'Anulado',
+            IdUsuarioAnulacion = @IdUsuarioAnulacion,
+            FechaAnulacion = GETDATE(),
+            MotivoAnulacion = @MotivoAnulacion
+        WHERE IdAbono = @IdAbono;
+
+        UPDATE CuotasCredito
+        SET MoraAbonada = @NuevaMoraAbonada,
+            CapitalInteresAbonado = @NuevoCapitalAbonado,
+            Estado = @NuevoEstadoCuota
+        WHERE IdCuota = @IdCuota;
+
+        UPDATE Creditos
+        SET SaldoPendiente = CASE
+                WHEN (SaldoPendiente + @MontoAplicadoCapital) > MontoTotalCredito THEN MontoTotalCredito
+                ELSE SaldoPendiente + @MontoAplicadoCapital
+            END,
+            Estado = CASE WHEN Estado = 'Pagado' THEN 'Activo' ELSE Estado END
+        WHERE IdCredito = @IdCredito;
+
+        IF @TranPropia = 1 COMMIT TRANSACTION;
+
+        SELECT @NumeroRecibo AS NumeroRecibo;
+    END TRY
+    BEGIN CATCH
+        IF @TranPropia = 1 AND @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+GO
+
+CREATE OR ALTER PROCEDURE AplicarMoraCuota
+    @IdCuota INT,
+    @RecargoMora DECIMAL(18,2)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @TranPropia BIT = 0;
+    BEGIN TRY
+        IF @RecargoMora < 0
+            THROW 50015, 'El recargo por mora no puede ser negativo.', 1;
+
+        IF @@TRANCOUNT = 0
+        BEGIN
+            BEGIN TRANSACTION;
+            SET @TranPropia = 1;
+        END
+
+        DECLARE @IdCredito INT, @EstadoCuota VARCHAR(20), @MoraAbonada DECIMAL(18,2), @FechaVencimiento DATE;
+
+        SELECT
+            @IdCredito = IdCredito,
+            @EstadoCuota = Estado,
+            @MoraAbonada = MoraAbonada,
+            @FechaVencimiento = FechaVencimiento
+        FROM CuotasCredito WITH (UPDLOCK)
+        WHERE IdCuota = @IdCuota;
+
+        IF @IdCredito IS NULL
+            THROW 50003, 'La cuota no existe.', 1;
+
+        IF @EstadoCuota IN ('Pagada', 'Anulada')
+            THROW 50016, 'No se puede aplicar mora a una cuota pagada o anulada.', 1;
+
+        IF @RecargoMora < @MoraAbonada
+            THROW 50017, 'El recargo por mora no puede ser menor a la mora ya abonada.', 1;
+
+        UPDATE CuotasCredito
+        SET RecargoMora = @RecargoMora,
+            Estado = CASE
+                WHEN Estado = 'Pendiente' AND @FechaVencimiento < CAST(GETDATE() AS DATE) THEN 'Vencida'
+                ELSE Estado
+            END
+        WHERE IdCuota = @IdCuota;
+
+        IF @RecargoMora > 0
+        BEGIN
+            UPDATE Creditos
+            SET Estado = 'EnMora'
+            WHERE IdCredito = @IdCredito AND Estado = 'Activo';
+        END
+
+        IF @TranPropia = 1 COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @TranPropia = 1 AND @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+GO
+
+
+-- =========================================================
+-- ÍNDICES Y VISTAS DE CONSULTA
+-- =========================================================
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Productos_Stock' AND object_id = OBJECT_ID('Productos'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Productos_Stock ON Productos(StockActual, StockMinimo) INCLUDE (CodigoSKU, Nombre, PrecioVenta);
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Ventas_Fecha_Estado' AND object_id = OBJECT_ID('Ventas'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Ventas_Fecha_Estado ON Ventas(FechaVenta, Estado) INCLUDE (NumeroFactura, IdCliente, TotalVenta);
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Kardex_Producto_Fecha' AND object_id = OBJECT_ID('Kardex'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Kardex_Producto_Fecha ON Kardex(IdProducto, FechaMovimiento DESC);
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Cuotas_Credito_Estado' AND object_id = OBJECT_ID('CuotasCredito'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Cuotas_Credito_Estado ON CuotasCredito(IdCredito, Estado, FechaVencimiento);
+END
+GO
+
+CREATE OR ALTER VIEW vw_ProductosStockBajo AS
+SELECT
+    p.IdProducto,
+    p.CodigoSKU,
+    p.Nombre,
+    p.Marca,
+    p.Modelo,
+    p.TipoEquipo,
+    p.StockActual,
+    p.StockMinimo,
+    (p.StockMinimo - p.StockActual) AS CantidadFaltanteMinima,
+    p.UltimoCostoCompra,
+    pr.RazonSocial AS ProveedorPreferido,
+    pr.Telefono AS TelefonoProveedor
+FROM Productos p
+LEFT JOIN Proveedores pr ON p.IdProveedorPreferido = pr.IdProveedor
+WHERE p.Activo = 1
+  AND p.StockActual <= p.StockMinimo;
+GO
+
+CREATE OR ALTER VIEW vw_EstadoCuentaCreditos AS
+SELECT
+    cr.IdCredito,
+    v.NumeroFactura,
+    c.NumeroIdentificacion,
+    c.Nombres + ' ' + c.Apellidos AS NombreCliente,
+    c.Telefono,
+    cr.MontoVentaTotal,
+    cr.PrimaInicial,
+    cr.MontoTotalCredito,
+    cr.SaldoPendiente,
+    cr.FrecuenciaPago,
+    cr.Estado AS EstadoCredito,
+    COUNT(cu.IdCuota) AS TotalCuotas,
+    SUM(CASE WHEN cu.Estado = 'Pagada' THEN 1 ELSE 0 END) AS CuotasPagadas,
+    MIN(CASE WHEN cu.Estado IN ('Pendiente', 'Parcial', 'Vencida') THEN cu.FechaVencimiento END) AS ProximoVencimiento
+FROM Creditos cr
+INNER JOIN Ventas v ON cr.IdVenta = v.IdVenta
+INNER JOIN Clientes c ON v.IdCliente = c.IdCliente
+LEFT JOIN CuotasCredito cu ON cr.IdCredito = cu.IdCredito
+GROUP BY
+    cr.IdCredito, v.NumeroFactura, c.NumeroIdentificacion, c.Nombres, c.Apellidos,
+    c.Telefono, cr.MontoVentaTotal, cr.PrimaInicial, cr.MontoTotalCredito,
+    cr.SaldoPendiente, cr.FrecuenciaPago, cr.Estado;
 GO
 
 

@@ -53,6 +53,8 @@
                             <option value="Efectivo" selected>Efectivo</option>
                             <option value="Tarjeta">Tarjeta Débito/Crédito</option>
                             <option value="Transferencia">Transferencia Bancaria</option>
+                            <option value="Mixto">Mixto</option>
+                            <option value="Credito">Crédito</option>
                         </select>
                     </div>
                 </div>
@@ -269,7 +271,9 @@
                 } else {
                     $('#seccionContado').removeClass('d-none');
                     $('#seccionCredito').addClass('d-none');
-                    $('#selectMetodoPago').val('Efectivo');
+                    if ($('#selectMetodoPago').val() === 'Credito') {
+                        $('#selectMetodoPago').val('Efectivo');
+                    }
                 }
                 recalcularTotales();
             });
@@ -346,12 +350,26 @@
 
             carrito.forEach((item, index) => {
                 const subtotal = item.cantidad * item.precioUnitario;
+                let seriesHtml = '';
+                if (item.requiereSerie) {
+                    while (item.series.length < item.cantidad) item.series.push('');
+                    if (item.series.length > item.cantidad) item.series = item.series.slice(0, item.cantidad);
+
+                    seriesHtml = '<div class="mt-2">';
+                    for (let s = 0; s < item.cantidad; s++) {
+                        const valEsc = (item.series[s] || '').replace(/"/g, '&quot;');
+                        seriesHtml += `<input type="text" class="form-control form-control-sm mt-1 font-monospace input-serie" data-index="${index}" data-sidx="${s}" placeholder="N° Serie #${s + 1}" value="${valEsc}" />`;
+                    }
+                    seriesHtml += '</div>';
+                }
+
                 tbody.append(`
                     <tr>
                         <td>
                             <div class="fw-semibold text-dark">${item.nombre}</div>
                             <div class="text-secondary small font-monospace">${item.codigoSKU}</div>
                             ${item.requiereSerie ? '<span class="badge bg-purple-lt small mt-1"><i class="ti ti-barcode me-1"></i>Requiere Serie</span>' : ''}
+                            ${seriesHtml}
                         </td>
                         <td class="text-end fw-medium">C$ ${item.precioUnitario.toFixed(2)}</td>
                         <td class="text-center">
@@ -369,6 +387,12 @@
                         </td>
                     </tr>
                 `);
+            });
+
+            $('.input-serie').on('input', function () {
+                const idx = $(this).data('index');
+                const sidx = $(this).data('sidx');
+                carrito[idx].series[sidx] = $(this).val();
             });
 
             // Delegar eventos de cantidad
@@ -461,7 +485,13 @@
             const total = subtotal + impuesto;
 
             const tipoVenta = $('#selectTipoVenta').val();
+            const metodoPago = $('#selectMetodoPago').val();
             const recibido = parseFloat($('#inputMontoRecibido').val()) || 0;
+
+            if (tipoVenta === 'Contado' && metodoPago === 'Credito') {
+                Swal.fire({ icon: 'warning', title: 'Método Inválido', text: 'Una venta al Contado no puede tener método de pago Crédito.' });
+                return;
+            }
 
             if (tipoVenta === 'Contado' && recibido < total) {
                 Swal.fire({
@@ -472,19 +502,56 @@
                 return;
             }
 
+            if (tipoVenta === 'Credito') {
+                const prima = parseFloat($('#inputPrima').val()) || 0;
+                const cuotas = parseInt($('#inputCuotas').val()) || 0;
+                if (prima < 0) {
+                    Swal.fire({ icon: 'warning', title: 'Prima Inválida', text: 'La prima inicial no puede ser negativa.' });
+                    return;
+                }
+                if (prima >= total) {
+                    Swal.fire({ icon: 'warning', title: 'Prima Mayor al Total', text: 'La prima inicial no puede ser mayor o igual al total; regístrela como venta al Contado.' });
+                    return;
+                }
+                if (cuotas < 1) {
+                    Swal.fire({ icon: 'warning', title: 'Cuotas Inválidas', text: 'La cantidad de cuotas debe ser al menos 1.' });
+                    return;
+                }
+            }
+
+            const seriesVistas = new Set();
+            for (const item of carrito) {
+                if (item.requiereSerie) {
+                    const limpias = (item.series || []).map(s => (s || '').trim()).filter(s => s.length > 0);
+                    if (limpias.length !== item.cantidad) {
+                        Swal.fire({ icon: 'warning', title: 'Series Requeridas', text: `Debe ingresar los ${item.cantidad} número(s) de serie para "${item.nombre}".` });
+                        return;
+                    }
+                    for (const ser of limpias) {
+                        const key = ser.toUpperCase();
+                        if (seriesVistas.has(key)) {
+                            Swal.fire({ icon: 'warning', title: 'Serie Duplicada', text: `El número de serie "${ser}" está repetido.` });
+                            return;
+                        }
+                        seriesVistas.add(key);
+                    }
+                }
+            }
+
             const payload = {
                 idCliente: idCliente,
                 tipoVenta: tipoVenta,
-                metodoPago: $('#selectMetodoPago').val(),
+                metodoPago: metodoPago,
                 porcentajeImpuesto: 15.00,
                 montoRecibido: tipoVenta === 'Contado' ? recibido : 0,
                 observaciones: $('#inputObservaciones').val(),
                 items: carrito.map(i => ({
                     idProducto: i.idProducto,
+                    nombre: i.nombre,
                     cantidad: i.cantidad,
                     precioUnitario: i.precioUnitario,
                     requiereSerie: i.requiereSerie,
-                    series: i.series
+                    series: (i.series || []).map(s => (s || '').trim()).filter(s => s.length > 0)
                 })),
                 primaInicial: parseFloat($('#inputPrima').val()) || 0,
                 cantidadCuotas: parseInt($('#inputCuotas').val()) || 1,

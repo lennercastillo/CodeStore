@@ -175,7 +175,7 @@
                                     <a asp-action="Detalle" asp-route-id="@item.IdVenta" class="btn btn-sm btn-outline-primary" title="Ver Factura Completa">
                                         <i class="ti ti-file-invoice me-1"></i> Ver
                                     </a>
-                                    @if (item.Estado != "Anulada")
+                                    @if (item.Estado != "Anulada" && User.IsInRole("Administrador"))
                                     {
                                         <button type="button" class="btn btn-sm btn-outline-danger btn-anular-venta" data-id="@item.IdVenta" data-fac="@item.NumeroFactura" title="Anular Factura">
                                             <i class="ti ti-ban"></i>

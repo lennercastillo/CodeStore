@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Pagos y Abonos";
     var totalRecaudado = Model.Where(a => a.Estado == "Activo").Sum(a => a.MontoAbono);
+    var infoCuotas = ViewBag.InfoCuotas as Dictionary<int, string> ?? new Dictionary<int, string>();
 }
 
 <div class="page-header d-print-none mb-4">
@@ -49,13 +50,14 @@
                 <tbody>
                     @foreach (var item in Model)
                     {
+                        var infoCuota = infoCuotas.ContainsKey(item.IdCuota) ? infoCuotas[item.IdCuota] : $"Cuota #{item.IdCuota}";
                         <tr>
                             <td><span class="badge bg-dark-lt font-monospace">@item.NumeroRecibo</span></td>
                             <td>
                                 <div class="text-dark fw-medium">@item.FechaAbono.ToString("dd/MM/yyyy")</div>
                                 <div class="text-secondary small">@item.FechaAbono.ToString("hh:mm tt")</div>
                             </td>
-                            <td><span class="badge bg-azure-lt">Cuota #@item.IdCuota</span></td>
+                            <td><span class="text-dark small fw-medium">@infoCuota</span></td>
                             <td>@item.MetodoPago</td>
                             <td class="text-end text-danger">C$ @item.MontoAplicadoMora.ToString("N2")</td>
                             <td class="text-end text-dark">C$ @item.MontoAplicadoCapital.ToString("N2")</td>
@@ -63,10 +65,18 @@
                             <td class="text-center">
                                 <span class="badge @(item.Estado == "Activo" ? "bg-success-lt" : "bg-danger-lt")">@item.Estado</span>
                             </td>
-                            <td class="text-center">
-                                <a asp-action="Recibo" asp-route-id="@item.IdAbono" class="btn btn-sm btn-outline-primary">
-                                    <i class="ti ti-printer"></i>
-                                </a>
+                            <td class="text-center text-nowrap">
+                                <div class="btn-group">
+                                    <a asp-action="Recibo" asp-route-id="@item.IdAbono" class="btn btn-sm btn-outline-primary" title="Ver Recibo">
+                                        <i class="ti ti-printer"></i>
+                                    </a>
+                                    @if (item.Estado == "Activo" && User.IsInRole("Administrador"))
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-danger btn-anular-abono" data-id="@item.IdAbono" data-rec="@item.NumeroRecibo" title="Anular Abono">
+                                            <i class="ti ti-ban"></i>
+                                        </button>
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }
@@ -94,6 +104,36 @@
             {
                 <text>Swal.fire({ icon: 'error', title: 'Atención', text: '@Html.Raw(TempData["Error"])' });</text>
             }
+
+            $(document).on('click', '.btn-anular-abono', function () {
+                const id = $(this).data('id');
+                const rec = $(this).data('rec');
+
+                Swal.fire({
+                    title: `Anular Recibo ${rec}`,
+                    input: 'text',
+                    inputLabel: 'Motivo de anulación',
+                    inputPlaceholder: 'Ej: Error en monto o pago revertido',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d63939',
+                    confirmButtonText: 'Confirmar Anulación',
+                    cancelButtonText: 'Cancelar',
+                    inputValidator: (v) => {
+                        if (!v || !v.trim()) return 'Debe ingresar el motivo de la anulación.';
+                    }
+                }).then((r) => {
+                    if (r.isConfirmed) {
+                        $.post('@Url.Action("Anular", "Abonos")', { id: id, motivo: r.value }, function (res) {
+                            if (res.success) {
+                                Swal.fire({ icon: 'success', title: 'Anulado', text: res.message, timer: 2500, showConfirmButton: false }).then(() => location.reload());
+                            } else {
+                                Swal.fire({ icon: 'error', title: 'Error', text: res.message });
+                            }
+                        });
+                    }
+                });
+            });
         });
     </script>
 }

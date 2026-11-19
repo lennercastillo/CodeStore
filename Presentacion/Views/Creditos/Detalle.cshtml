@@ -98,12 +98,25 @@
                                     @c.Estado
                                 </span>
                             </td>
-                            <td class="text-center">
+                            <td class="text-center text-nowrap">
                                 @if (c.Estado != "Pagada" && c.Estado != "Anulada")
                                 {
-                                    <a asp-controller="Abonos" asp-action="Crear" asp-route-idCuota="@c.IdCuota" class="btn btn-sm btn-success">
-                                        <i class="ti ti-coin me-1"></i> Abonar
-                                    </a>
+                                    <div class="btn-group">
+                                        <a asp-controller="Abonos" asp-action="Crear" asp-route-idCuota="@c.IdCuota" class="btn btn-sm btn-success">
+                                            <i class="ti ti-coin me-1"></i> Abonar
+                                        </a>
+                                        @if (User.IsInRole("Administrador"))
+                                        {
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-warning btn-aplicar-mora"
+                                                    data-id="@c.IdCuota"
+                                                    data-num="@c.NumeroCuota"
+                                                    data-mora="@c.RecargoMora.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                                    title="Aplicar / Editar Mora">
+                                                <i class="ti ti-alert-circle"></i>
+                                            </button>
+                                        }
+                                    </div>
                                 }
                             </td>
                         </tr>
@@ -113,4 +126,44 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.btn-aplicar-mora').on('click', function () {
+                const id = $(this).data('id');
+                const num = $(this).data('num');
+                const moraActual = $(this).data('mora');
+
+                Swal.fire({
+                    title: `Recargo por Mora - Cuota #${num}`,
+                    input: 'number',
+                    inputLabel: 'Monto de mora (C$)',
+                    inputValue: moraActual,
+                    inputAttributes: { min: '0', step: '0.01' },
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#f59f00',
+                    confirmButtonText: 'Guardar Mora',
+                    cancelButtonText: 'Cancelar',
+                    inputValidator: (v) => {
+                        if (v === '' || parseFloat(v) < 0 || isNaN(parseFloat(v))) {
+                            return 'Ingrese un monto válido mayor o igual a cero.';
+                        }
+                    }
+                }).then((r) => {
+                    if (r.isConfirmed) {
+                        $.post('@Url.Action("AplicarMora", "Creditos")', { idCuota: id, recargoMora: r.value }, function (res) {
+                            if (res.success) {
+                                Swal.fire({ icon: 'success', title: 'Mora Actualizada', text: res.message, timer: 2000, showConfirmButton: false }).then(() => location.reload());
+                            } else {
+                                Swal.fire({ icon: 'error', title: 'No se pudo aplicar', text: res.message });
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}
 

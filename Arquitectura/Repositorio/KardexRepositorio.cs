@@ -142,80 +142,33 @@ namespace Estructura.Repositorio
             string justificacion,
             int idUsuario)
         {
-            if (cantidad <= 0)
-                return (false, "La cantidad debe ser mayor a cero.");
-
-            if (tipoMovimiento != "Ajuste de Entrada" && tipoMovimiento != "Ajuste de Salida" && tipoMovimiento != "Baja de Inventario")
-                return (false, "Tipo de movimiento no permitido para ajuste manual.");
-
-            using var con = _cone.GetConnection();
-            await con.OpenAsync();
-            using var tran = con.BeginTransaction();
-
             try
             {
-                int stockAnterior;
-                decimal ultimoCosto;
-                string nombreProd;
+                using var con = _cone.GetConnection();
+                await con.OpenAsync();
+                using var cmd = new SqlCommand("RegistrarAjusteInventario", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(new SqlParameter("@IdProducto", idProducto));
+                cmd.Parameters.Add(new SqlParameter("@TipoMovimiento", tipoMovimiento));
+                cmd.Parameters.Add(new SqlParameter("@Cantidad", cantidad));
+                cmd.Parameters.Add(new SqlParameter("@Justificacion", justificacion));
+                cmd.Parameters.Add(new SqlParameter("@IdUsuario", idUsuario));
 
-                using (var cmd = new SqlCommand("SELECT Nombre, StockActual, UltimoCostoCompra FROM Productos WITH (UPDLOCK) WHERE IdProducto = @IdProducto", con, tran))
+                string nombreProd = "Producto";
+                int stockNuevo = 0;
+
+                using var rdr = await cmd.ExecuteReaderAsync();
+                if (await rdr.ReadAsync())
                 {
-                    cmd.Parameters.Add(new SqlParameter("@IdProducto", idProducto));
-                    using var rdr = await cmd.ExecuteReaderAsync();
-                    if (!await rdr.ReadAsync())
-                    {
-                        await tran.RollbackAsync();
-                        return (false, "El producto seleccionado no existe.");
-                    }
-                    nombreProd = rdr["Nombre"].ToString()!;
-                    stockAnterior = Convert.ToInt32(rdr["StockActual"]);
-                    ultimoCosto = Convert.ToDecimal(rdr["UltimoCostoCompra"]);
+                    nombreProd = rdr["NombreProducto"].ToString()!;
+                    stockNuevo = Convert.ToInt32(rdr["StockNuevo"]);
                 }
 
-                bool esEntrada = tipoMovimiento == "Ajuste de Entrada";
-                if (!esEntrada && stockAnterior < cantidad)
-                {
-                    await tran.RollbackAsync();
-                    return (false, $"Stock insuficiente en \"{nombreProd}\". Disponible: {stockAnterior}, solicitado: {cantidad}.");
-                }
-
-                int stockNuevo = esEntrada ? stockAnterior + cantidad : stockAnterior - cantidad;
-
-                using (var karCmd = new SqlCommand(@"
-                    INSERT INTO Kardex (
-                        IdProducto, FechaMovimiento, TipoMovimiento, Cantidad, StockAnterior, StockNuevo,
-                        CostoUnitario, DocumentoOrigen, Justificacion, IdUsuarioResponsable
-                    ) VALUES (
-                        @IdProducto, GETDATE(), @TipoMovimiento, @Cantidad, @StockAnterior, @StockNuevo,
-                        @CostoUnitario, @DocumentoOrigen, @Justificacion, @IdUsuarioResponsable
-                    )", con, tran))
-                {
-                    karCmd.Parameters.Add(new SqlParameter("@IdProducto", idProducto));
-                    karCmd.Parameters.Add(new SqlParameter("@TipoMovimiento", tipoMovimiento));
-                    karCmd.Parameters.Add(new SqlParameter("@Cantidad", cantidad));
-                    karCmd.Parameters.Add(new SqlParameter("@StockAnterior", stockAnterior));
-                    karCmd.Parameters.Add(new SqlParameter("@StockNuevo", stockNuevo));
-                    karCmd.Parameters.Add(new SqlParameter("@CostoUnitario", ultimoCosto));
-                    karCmd.Parameters.Add(new SqlParameter("@DocumentoOrigen", $"AJU-{DateTime.Now:yyyyMMddHHmm}"));
-                    karCmd.Parameters.Add(new SqlParameter("@Justificacion", justificacion));
-                    karCmd.Parameters.Add(new SqlParameter("@IdUsuarioResponsable", idUsuario));
-                    await karCmd.ExecuteNonQueryAsync();
-                }
-
-                using (var updProd = new SqlCommand("UPDATE Productos SET StockActual = @StockNuevo WHERE IdProducto = @IdProducto", con, tran))
-                {
-                    updProd.Parameters.Add(new SqlParameter("@StockNuevo", stockNuevo));
-                    updProd.Parameters.Add(new SqlParameter("@IdProducto", idProducto));
-                    await updProd.ExecuteNonQueryAsync();
-                }
-
-                await tran.CommitAsync();
                 return (true, $"Ajuste aplicado en \"{nombreProd}\". Nuevo stock: {stockNuevo} unidades.");
             }
             catch (Exception ex)
             {
-                await tran.RollbackAsync();
-                return (false, $"Error al registrar ajuste: {ex.Message}");
+                return (false, ex.Message);
             }
         }
     }

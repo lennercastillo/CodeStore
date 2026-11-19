@@ -91,6 +91,13 @@
                         <span class="badge bg-blue-lt ms-2">@credito.Estado</span>
                     </div>
                 }
+
+                @if (Model.Estado == "Anulado")
+                {
+                    <div class="alert alert-danger mt-3 mb-0">
+                        <strong>Recibo Anulado:</strong> @(string.IsNullOrWhiteSpace(Model.MotivoAnulacion) ? "Este abono fue anulado." : Model.MotivoAnulacion)
+                    </div>
+                }
             </div>
         </div>
     </div>

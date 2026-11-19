@@ -7,27 +7,33 @@ using System.Security.Claims;
 
 namespace Presentacion.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Administrador,Tecnico")]
     public class ReclamoGarantiaController : Controller
     {
         private readonly ReclamoGarantiaServices _reclamoService;
         private readonly DetalleVentaServices _detalleVentaService;
+        private readonly DetalleVentaSerieServices _serieService;
         private readonly VentaServices _ventaService;
         private readonly ProductosServices _productosService;
         private readonly UsuarioServices _usuarioService;
+        private readonly KardexServices _kardexService;
 
         public ReclamoGarantiaController(
             ReclamoGarantiaServices reclamoService,
             DetalleVentaServices detalleVentaService,
+            DetalleVentaSerieServices serieService,
             VentaServices ventaService,
             ProductosServices productosService,
-            UsuarioServices usuarioService)
+            UsuarioServices usuarioService,
+            KardexServices kardexService)
         {
             _reclamoService = reclamoService;
             _detalleVentaService = detalleVentaService;
+            _serieService = serieService;
             _ventaService = ventaService;
             _productosService = productosService;
             _usuarioService = usuarioService;
+            _kardexService = kardexService;
         }
 
         // GET: /ReclamoGarantia
@@ -130,6 +136,38 @@ namespace Presentacion.Controllers
 
             try
             {
+                var reclamoAnterior = await _reclamoService.ObtenerPorId(model.IdGarantia);
+                if (reclamoAnterior == null)
+                {
+                    TempData["Error"] = "El reclamo solicitado no existe.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                bool aplicaReemplazoAhora = model.EstadoRevision == "Resuelto" && model.AccionTomada == "Reemplazo de Equipo";
+                bool yaTeniaReemplazo = reclamoAnterior.EstadoRevision == "Resuelto" && reclamoAnterior.AccionTomada == "Reemplazo de Equipo";
+
+                if (aplicaReemplazoAhora && !yaTeniaReemplazo)
+                {
+                    var detalles = await _detalleVentaService.ListarDetalleVenta();
+                    var detalle = detalles.FirstOrDefault(d => d.IdDetalleVenta == model.IdDetalleVenta);
+                    if (detalle != null)
+                    {
+                        var resKardex = await _kardexService.RegistrarAjuste(
+                            detalle.IdProducto,
+                            "Salida por Reemplazo Garantia",
+                            1,
+                            $"Reemplazo por garantía {model.NumeroReclamo}",
+                            ObtenerUsuarioActual());
+
+                        if (!resKardex.Success)
+                        {
+                            TempData["Error"] = resKardex.Message;
+                            await CargarCatalogos();
+                            return View(model);
+                        }
+                    }
+                }
+
                 if ((model.EstadoRevision == "Resuelto" || model.EstadoRevision == "Rechazado") && !model.FechaResolucion.HasValue)
                     model.FechaResolucion = DateTime.Now;
 
@@ -147,6 +185,7 @@ namespace Presentacion.Controllers
 
         // POST: /ReclamoGarantia/Eliminar/5
         [HttpPost]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Eliminar(int id)
         {
             try
@@ -184,6 +223,12 @@ namespace Presentacion.Controllers
 
             ViewBag.DetallesVenta = itemsGarantia;
             ViewBag.Tecnicos = usuarios.Where(u => u.Activo).ToList();
+
+            var series = await _serieService.ListarDetalleVentaSerie();
+            ViewBag.Series = series
+                .Where(s => s.EstadoSerie == "Vendido")
+                .Select(s => new { s.IdSerieVendida, s.IdDetalleVenta, s.NumeroSerie })
+                .ToList();
         }
 
         private int ObtenerUsuarioActual()

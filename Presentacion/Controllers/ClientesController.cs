@@ -104,6 +104,7 @@ namespace Presentacion.Controllers
 
         // POST: /Clientes/Eliminar/5
         [HttpPost]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Eliminar(int id)
         {
             try

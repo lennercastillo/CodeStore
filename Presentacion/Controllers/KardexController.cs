@@ -7,7 +7,7 @@ using System.Security.Claims;
 
 namespace Presentacion.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Administrador")]
     public class KardexController : Controller
     {
         private readonly KardexServices _kardexService;

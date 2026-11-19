@@ -154,9 +154,12 @@
                                     <a asp-action="Editar" asp-route-id="@item.IdCliente" class="btn btn-sm btn-outline-primary" title="Editar">
                                         <i class="ti ti-pencil"></i>
                                     </a>
-                                    <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-cliente" data-id="@item.IdCliente" data-nombre="@item.Nombres @item.Apellidos" title="Eliminar">
-                                        <i class="ti ti-trash"></i>
-                                    </button>
+                                    @if (User.IsInRole("Administrador"))
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-cliente" data-id="@item.IdCliente" data-nombre="@item.Nombres @item.Apellidos" title="Eliminar">
+                                            <i class="ti ti-trash"></i>
+                                        </button>
+                                    }
                                 </div>
                             </td>
                         </tr>

@@ -34,6 +34,7 @@ namespace Presentacion.Controllers
         }
 
         // GET: /Productos/Crear
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Crear()
         {
             try
@@ -62,6 +63,7 @@ namespace Presentacion.Controllers
 
         // POST: /Productos/Crear
         [HttpPost]
+        [Authorize(Roles = "Administrador")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Crear(DTOSProductos model)
         {
@@ -100,6 +102,7 @@ namespace Presentacion.Controllers
         }
 
         // GET: /Productos/Editar/5
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Editar(int id)
         {
             var producto = await _productosService.ObtenerPorId(id);
@@ -123,6 +126,7 @@ namespace Presentacion.Controllers
 
         // POST: /Productos/Editar/5
         [HttpPost]
+        [Authorize(Roles = "Administrador")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Editar(DTOSProductos model)
         {
@@ -162,6 +166,7 @@ namespace Presentacion.Controllers
 
         // POST: /Productos/Eliminar/5
         [HttpPost]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Eliminar(int id)
         {
             try

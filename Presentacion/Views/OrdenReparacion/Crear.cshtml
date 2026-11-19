@@ -4,6 +4,7 @@
     ViewData["Title"] = "Nueva Orden de Reparación";
     var clientes = ViewBag.Clientes as List<Aplicacion.DTOs.DTOsClientes> ?? new List<Aplicacion.DTOs.DTOsClientes>();
     var tecnicos = ViewBag.Tecnicos as List<Aplicacion.DTOs.DTOSUsuario> ?? new List<Aplicacion.DTOs.DTOSUsuario>();
+    var garantias = ViewBag.Garantias as List<Aplicacion.DTOs.DTOSReclamoGarantia> ?? new List<Aplicacion.DTOs.DTOSReclamoGarantia>();
 }
 
 <div class="page-header d-print-none mb-4">
@@ -30,6 +31,10 @@
             </div>
 
             <div class="card-body">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger mb-3">@TempData["Error"]</div>
+                }
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
 
                 <div class="row g-3">
@@ -105,6 +110,17 @@
                             <span class="input-group-text">C$</span>
                             <input asp-for="CostoReparacion" type="number" step="0.01" class="form-control" />
                         </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="IdGarantia" class="form-label">Reclamo de Garantía (Opcional)</label>
+                        <select asp-for="IdGarantia" class="form-select">
+                            <option value="">-- Sin garantía asociada --</option>
+                            @foreach (var g in garantias)
+                            {
+                                <option value="@g.IdGarantia">@g.NumeroReclamo (@g.EstadoRevision)</option>
+                            }
+                        </select>
                     </div>
 
                     <div class="col-md-12">

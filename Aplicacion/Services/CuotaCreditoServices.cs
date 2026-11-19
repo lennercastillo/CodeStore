@@ -80,5 +80,10 @@ namespace Aplicacion.Services
         {
             await _repo.EliminarCuotaCreditoAsync(id);
         }
+
+        public async Task<(bool Success, string Message)> AplicarMora(int idCuota, decimal recargoMora)
+        {
+            return await _repo.AplicarMoraAsync(idCuota, recargoMora);
+        }
     }
 }

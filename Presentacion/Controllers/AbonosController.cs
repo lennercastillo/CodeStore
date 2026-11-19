@@ -7,7 +7,7 @@ using System.Security.Claims;
 
 namespace Presentacion.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Administrador,Vendedor")]
     public class AbonosController : Controller
     {
         private readonly AbonoServices _abonoService;
@@ -36,6 +36,25 @@ namespace Presentacion.Controllers
             try
             {
                 var abonos = await _abonoService.ListarAbono();
+                var cuotas = await _cuotaService.ListarCuotaCredito();
+                var creditos = await _creditoService.ListarCredito();
+                var ventas = await _ventaService.ListarVenta();
+                var clientes = await _clientesService.ListaClientes();
+
+                var dictCreditos = creditos.ToDictionary(c => c.IdCredito, c => c);
+                var dictVentas = ventas.ToDictionary(v => v.IdVenta, v => v);
+                var dictClientes = clientes.ToDictionary(c => c.IdCliente, c => $"{c.Nombres} {c.Apellidos}");
+
+                ViewBag.InfoCuotas = cuotas.ToDictionary(
+                    c => c.IdCuota,
+                    c =>
+                    {
+                        var cred = dictCreditos.ContainsKey(c.IdCredito) ? dictCreditos[c.IdCredito] : null;
+                        var ven = (cred != null && dictVentas.ContainsKey(cred.IdVenta)) ? dictVentas[cred.IdVenta] : null;
+                        var cli = (ven != null && dictClientes.ContainsKey(ven.IdCliente)) ? dictClientes[ven.IdCliente] : "Cliente N/D";
+                        return $"{cli} | {ven?.NumeroFactura ?? "-"} | Cuota #{c.NumeroCuota}";
+                    });
+
                 return View(abonos.OrderByDescending(a => a.FechaAbono));
             }
             catch (Exception ex)
@@ -116,6 +135,20 @@ namespace Presentacion.Controllers
                 TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "cargar el recibo");
                 return RedirectToAction(nameof(Index));
             }
+        }
+
+        // POST: /Abonos/Anular
+        [HttpPost]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> Anular(int id, string motivo)
+        {
+            int idUsuario = 1;
+            var claimId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(claimId, out int parsed))
+                idUsuario = parsed;
+
+            var res = await _abonoService.AnularAbono(id, idUsuario, motivo);
+            return Json(new { success = res.Success, message = res.Message });
         }
 
         private async Task CargarCuotasPendientesViewBag()
