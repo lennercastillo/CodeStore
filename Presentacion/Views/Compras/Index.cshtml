@@ -4,9 +4,6 @@
     ViewData["Title"] = "Historial de Compras";
     var proveedoresDict = ViewBag.Proveedores as Dictionary<int, string> ?? new Dictionary<int, string>();
     var totalCompras = Model.Count();
-    var recibidas = Model.Count(c => c.Estado == "Recibida");
-    var pendientes = Model.Count(c => c.Estado == "Pendiente");
-    var montoTotal = Model.Where(c => c.Estado == "Recibida").Sum(c => c.TotalCompra);
 }
 
 <div class="page-header d-print-none mb-4">
@@ -16,68 +13,11 @@
             <h2 class="page-title text-dark">
                 <i class="ti ti-truck-delivery me-2 text-primary"></i>Historial de Compras
             </h2>
-            <div class="text-secondary mt-1">Control de órdenes de compra, recepciones de mercadería y costos de reposición</div>
         </div>
         <div class="col-auto ms-auto d-print-none">
             <a asp-action="Crear" class="btn btn-primary d-inline-flex align-items-center">
                 <i class="ti ti-plus me-1 fs-3"></i> Registrar Compra
             </a>
-        </div>
-    </div>
-</div>
-
-<!-- KPI Cards -->
-<div class="row row-cards mb-4">
-    <div class="col-sm-6 col-lg-3">
-        <div class="card card-sm border-0 shadow-sm">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-auto"><span class="bg-primary-lt avatar avatar-md"><i class="ti ti-file-invoice fs-2"></i></span></div>
-                    <div class="col">
-                        <div class="text-secondary small fw-medium">Total Compras</div>
-                        <div class="fs-2 fw-bold text-dark">@totalCompras</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-lg-3">
-        <div class="card card-sm border-0 shadow-sm">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-auto"><span class="bg-success-lt avatar avatar-md"><i class="ti ti-check fs-2"></i></span></div>
-                    <div class="col">
-                        <div class="text-secondary small fw-medium">Recibidas</div>
-                        <div class="fs-2 fw-bold text-success">@recibidas</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-lg-3">
-        <div class="card card-sm border-0 shadow-sm">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-auto"><span class="bg-warning-lt avatar avatar-md"><i class="ti ti-clock fs-2"></i></span></div>
-                    <div class="col">
-                        <div class="text-secondary small fw-medium">Pendientes</div>
-                        <div class="fs-2 fw-bold text-warning">@pendientes</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-lg-3">
-        <div class="card card-sm border-0 shadow-sm">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-auto"><span class="bg-azure-lt avatar avatar-md"><i class="ti ti-currency-dollar fs-2"></i></span></div>
-                    <div class="col">
-                        <div class="text-secondary small fw-medium">Inversión Recibida</div>
-                        <div class="fs-2 fw-bold text-azure">C$ @montoTotal.ToString("N2")</div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>

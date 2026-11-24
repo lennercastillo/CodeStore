@@ -1,0 +1,140 @@
+@{
+    Layout = null;
+    ViewData["Title"] = "Términos y Condiciones";
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>@ViewData["Title"] - CodeStore</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@tabler/core@1.0.0-beta20/dist/css/tabler.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@tabler/icons-webfont@latest/tabler-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="d-flex flex-column bg-light">
+    <div class="page">
+        <div class="page-wrapper">
+            <div class="page-body">
+                <div class="container-xl" style="max-width: 960px;">
+                    <div class="page-header d-print-none mb-4">
+                        <div class="row g-2 align-items-center">
+                            <div class="col">
+                                <div class="page-pretitle">Información Legal</div>
+                                <h2 class="page-title text-dark">
+                                    <i class="ti ti-file-text me-2 text-primary"></i>Términos y Condiciones de Uso del Software
+                                </h2>
+                            </div>
+                            <div class="col-auto ms-auto d-print-none">
+                                <div class="btn-list">
+                                    <button type="button" class="btn btn-outline-primary" onclick="window.print();">
+                                        <i class="ti ti-printer me-1"></i> Imprimir
+                                    </button>
+                                    @if (User.Identity?.IsAuthenticated == true)
+                                    {
+                                        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+                                            <i class="ti ti-arrow-left me-1"></i> Volver al Sistema
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a asp-controller="Account" asp-action="Login" class="btn btn-primary">
+                                            <i class="ti ti-login me-1"></i> Iniciar Sesión
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4 p-md-5">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div>
+                                    <span class="fs-2 fw-bold text-dark">Code<span class="text-primary">Store</span></span>
+                                    <div class="text-secondary small">Sistema de Gestión Comercial, Inventario, Créditos y Taller</div>
+                                </div>
+                                <span class="badge bg-blue-lt">Última actualización: @DateTime.Now.ToString("MM/yyyy")</span>
+                            </div>
+
+                            <div class="hr my-3"></div>
+
+                            <div class="mb-4">
+                                <h3 class="fw-bold text-dark">1. Objeto y Aceptación</h3>
+                                <p class="text-secondary mb-0">
+                                    Los presentes Términos y Condiciones regulan la adquisición, instalación y uso del software
+                                    <strong>CodeStore</strong> por parte del cliente o empresa adquirente. Al instalar, acceder o utilizar el sistema,
+                                    el cliente acepta íntegramente estas disposiciones.
+                                </p>
+                            </div>
+
+                            <div class="mb-4">
+                                <h3 class="fw-bold text-dark">2. Licencia de Uso y Propiedad Intelectual</h3>
+                                <p class="text-secondary mb-0">
+                                    Se otorga al cliente una licencia de uso no exclusiva e intransferible para operar el sistema en su negocio.
+                                    El código fuente, diseño, estructura de base de datos y marca <strong>CodeStore</strong> son propiedad de sus
+                                    desarrolladores. Queda prohibida la reventa, copia no autorizada, distribución o sublicenciamiento a terceros
+                                    sin autorización previa por escrito.
+                                </p>
+                            </div>
+
+                            <div class="mb-4">
+                                <h3 class="fw-bold text-dark">3. Responsabilidades del Cliente</h3>
+                                <ul class="text-secondary mb-0">
+                                    <li>Administrar adecuadamente los usuarios, contraseñas y roles de acceso (Administrador, Vendedor, Técnico).</li>
+                                    <li>Realizar copias de seguridad periódicas de la base de datos SQL Server para prevenir pérdida de información.</li>
+                                    <li>Verificar la exactitud de precios, impuestos, facturas, abonos y datos registrados en el sistema conforme a la normativa fiscal vigente.</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-4">
+                                <h3 class="fw-bold text-dark">4. Soporte Técnico y Actualizaciones</h3>
+                                <p class="text-secondary mb-0">
+                                    El soporte técnico cubre la corrección de errores propios del funcionamiento estándar del sistema según el
+                                    plan o acuerdo contratado. Las modificaciones a la medida, nuevos módulos o migraciones de servidor no
+                                    incluidas en el acuerdo inicial se cotizan por separado.
+                                </p>
+                            </div>
+
+                            <div class="mb-4">
+                                <h3 class="fw-bold text-dark">5. Limitación de Responsabilidad</h3>
+                                <p class="text-secondary mb-0">
+                                    <strong>CodeStore</strong> es una herramienta de apoyo operativo y administrativo. Los desarrolladores no serán
+                                    responsables por pérdidas de datos ocasionadas por fallas de hardware, cortes eléctricos, virus, uso indebido
+                                    de credenciales o ausencia de respaldos por parte del cliente, ni por incumplimientos contables o tributarios.
+                                </p>
+                            </div>
+
+                            <div class="mb-4">
+                                <h3 class="fw-bold text-dark">6. Confidencialidad y Datos Registrados</h3>
+                                <p class="text-secondary mb-0">
+                                    Toda la información comercial, de clientes, inventario, ventas y créditos ingresada en el sistema pertenece
+                                    exclusivamente al cliente adquirente. El proveedor del software no accede, divulga ni comercializa dichos datos,
+                                    salvo acceso autorizado expresamente por el cliente para labores de soporte técnico.
+                                </p>
+                            </div>
+
+                            <div>
+                                <h3 class="fw-bold text-dark">7. Vigencia</h3>
+                                <p class="text-secondary mb-0">
+                                    Estos términos entran en vigor desde la entrega o habilitación del sistema y podrán actualizarse en futuras
+                                    versiones de <strong>CodeStore</strong>, notificándose oportunamente al cliente.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@@tabler/core@1.0.0-beta20/dist/js/tabler.min.js"></script>
+</body>
+</html>

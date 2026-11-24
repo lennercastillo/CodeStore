@@ -72,6 +72,12 @@ namespace Presentacion.Controllers
             return View();
         }
 
+        [AllowAnonymous]
+        public IActionResult Terminos()
+        {
+            return View();
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

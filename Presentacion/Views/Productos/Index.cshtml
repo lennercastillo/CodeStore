@@ -3,9 +3,6 @@
 @{
     ViewData["Title"] = "Catálogo de Productos";
     var totalProductos = Model.Count();
-    var stockBajo = Model.Count(p => p.StockActual <= p.StockMinimo);
-    var valorInventario = Model.Sum(p => p.StockActual * p.PrecioVenta);
-    var productosActivos = Model.Count(p => p.Activo);
 }
 
 <!-- Page Header -->
@@ -16,7 +13,6 @@
             <h2 class="page-title text-dark">
                 <i class="ti ti-box me-2 text-primary"></i>Catálogo de Productos
             </h2>
-            <div class="text-secondary mt-1">Gestión integral de inventario, equipos tecnológicos, precios y repuestos</div>
         </div>
         <div class="col-auto ms-auto d-print-none">
             @if (User.IsInRole("Administrador"))
@@ -27,78 +23,6 @@
                     </a>
                 </div>
             }
-        </div>
-    </div>
-</div>
-
-<!-- KPI Summary Widgets -->
-<div class="row row-cards mb-4">
-    <div class="col-sm-6 col-lg-3">
-        <div class="card card-sm border-0 shadow-sm">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-auto">
-                        <span class="bg-primary-lt avatar avatar-md">
-                            <i class="ti ti-box fs-2"></i>
-                        </span>
-                    </div>
-                    <div class="col">
-                        <div class="text-secondary small fw-medium">Total Productos</div>
-                        <div class="fs-2 fw-bold text-dark">@totalProductos</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-lg-3">
-        <div class="card card-sm border-0 shadow-sm">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-auto">
-                        <span class="bg-success-lt avatar avatar-md">
-                            <i class="ti ti-check fs-2"></i>
-                        </span>
-                    </div>
-                    <div class="col">
-                        <div class="text-secondary small fw-medium">Productos Activos</div>
-                        <div class="fs-2 fw-bold text-success">@productosActivos</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-lg-3">
-        <div class="card card-sm border-0 shadow-sm">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-auto">
-                        <span class="bg-danger-lt avatar avatar-md">
-                            <i class="ti ti-alert-triangle fs-2"></i>
-                        </span>
-                    </div>
-                    <div class="col">
-                        <div class="text-secondary small fw-medium">Stock Bajo / Crítico</div>
-                        <div class="fs-2 fw-bold text-danger">@stockBajo</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-lg-3">
-        <div class="card card-sm border-0 shadow-sm">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-auto">
-                        <span class="bg-azure-lt avatar avatar-md">
-                            <i class="ti ti-currency-dollar fs-2"></i>
-                        </span>
-                    </div>
-                    <div class="col">
-                        <div class="text-secondary small fw-medium">Valor Estimado Venta</div>
-                        <div class="fs-2 fw-bold text-azure">C$ @valorInventario.ToString("N2")</div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>

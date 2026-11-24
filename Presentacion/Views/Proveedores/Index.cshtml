@@ -3,7 +3,6 @@
 @{
     ViewData["Title"] = "Directorio de Proveedores";
     var totalProveedores = Model.Count();
-    var activos = Model.Count(p => p.Activo);
 }
 
 <!-- Page Header -->
@@ -14,50 +13,11 @@
             <h2 class="page-title text-dark">
                 <i class="ti ti-truck me-2 text-primary"></i>Directorio de Proveedores
             </h2>
-            <div class="text-secondary mt-1">Gestión de distribuidores, marcas, RUC e información comercial de abastecimiento</div>
         </div>
         <div class="col-auto ms-auto d-print-none">
             <a asp-action="Crear" class="btn btn-primary d-inline-flex align-items-center">
                 <i class="ti ti-plus me-1 fs-3"></i> Nuevo Proveedor
             </a>
-        </div>
-    </div>
-</div>
-
-<!-- KPI Cards -->
-<div class="row row-cards mb-4">
-    <div class="col-sm-6 col-lg-6">
-        <div class="card card-sm border-0 shadow-sm">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-auto">
-                        <span class="bg-primary-lt avatar avatar-md">
-                            <i class="ti ti-truck fs-2"></i>
-                        </span>
-                    </div>
-                    <div class="col">
-                        <div class="text-secondary small fw-medium">Total Proveedores Registrados</div>
-                        <div class="fs-2 fw-bold text-dark">@totalProveedores</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-lg-6">
-        <div class="card card-sm border-0 shadow-sm">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-auto">
-                        <span class="bg-success-lt avatar avatar-md">
-                            <i class="ti ti-check fs-2"></i>
-                        </span>
-                    </div>
-                    <div class="col">
-                        <div class="text-secondary small fw-medium">Proveedores Activos</div>
-                        <div class="fs-2 fw-bold text-success">@activos</div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
