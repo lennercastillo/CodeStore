@@ -103,3 +103,14 @@
     </div>
 </div>
 
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            @if (TempData["Success"] != null)
+            {
+                <text>Swal.fire({ icon: 'success', title: '¡Abono Registrado!', text: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Success"])), timer: 3000, showConfirmButton: false });</text>
+            }
+        });
+    </script>
+}
+

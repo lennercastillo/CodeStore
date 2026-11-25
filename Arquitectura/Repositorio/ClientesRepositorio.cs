@@ -43,7 +43,7 @@ namespace Estructura.Repositorio
             catch (Exception ex)
             {
 
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -62,7 +62,7 @@ namespace Estructura.Repositorio
             catch (Exception ex)
             {
 
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -86,9 +86,9 @@ namespace Estructura.Repositorio
                         NumeroIdentificacion = Dr["NumeroIdentificacion"].ToString()!,
                         Nombres = Dr["Nombres"].ToString()!,
                         Apellidos = Dr["Apellidos"].ToString()!,
-                        Telefono = Dr["Telefono"].ToString(),
-                        Correo = Dr["Correo"].ToString(),
-                        Direccion = Dr["Direccion"].ToString(),
+                        Telefono = Dr["Telefono"] == DBNull.Value ? null : Dr["Telefono"].ToString(),
+                        Correo = Dr["Correo"] == DBNull.Value ? null : Dr["Correo"].ToString(),
+                        Direccion = Dr["Direccion"] == DBNull.Value ? null : Dr["Direccion"].ToString(),
                         Activo = Convert.ToBoolean(Dr["Activo"]),
                         FechaRegistro = Convert.ToDateTime(Dr["FechaRegistro"])
                     };
@@ -124,7 +124,7 @@ namespace Estructura.Repositorio
             catch (Exception ex)
             {
 
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
     }

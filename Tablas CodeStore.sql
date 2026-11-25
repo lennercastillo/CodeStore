@@ -735,8 +735,12 @@ BEGIN
     BEGIN TRY
         IF @NumeroDocumento IS NULL OR LTRIM(RTRIM(@NumeroDocumento)) = ''
         BEGIN
+            DECLARE @SiguienteCompra INT = ISNULL((SELECT MAX(IdCompra) FROM Compras WITH (UPDLOCK, HOLDLOCK)), 0) + 1;
             SET @NumeroDocumento = 'COM-' + CONVERT(VARCHAR(8), GETDATE(), 112) + '-' +
-                RIGHT('0000' + CAST((SELECT COUNT(1) + 1 FROM Compras) AS VARCHAR(10)), 4);
+                CASE WHEN @SiguienteCompra < 10000
+                     THEN RIGHT('0000' + CAST(@SiguienteCompra AS VARCHAR(10)), 4)
+                     ELSE CAST(@SiguienteCompra AS VARCHAR(10))
+                END;
         END
 
         INSERT INTO Compras (NumeroDocumento, IdProveedor, IdUsuarioRegistro, IdUsuarioRecepcion, FechaCompra,
@@ -919,8 +923,12 @@ BEGIN
     BEGIN TRY
         IF @NumeroFactura IS NULL OR LTRIM(RTRIM(@NumeroFactura)) = ''
         BEGIN
+            DECLARE @SiguienteVenta INT = ISNULL((SELECT MAX(IdVenta) FROM Ventas WITH (UPDLOCK, HOLDLOCK)), 0) + 1;
             SET @NumeroFactura = 'FAC-' + CONVERT(VARCHAR(8), GETDATE(), 112) + '-' +
-                RIGHT('0000' + CAST((SELECT COUNT(1) + 1 FROM Ventas) AS VARCHAR(10)), 4);
+                CASE WHEN @SiguienteVenta < 10000
+                     THEN RIGHT('0000' + CAST(@SiguienteVenta AS VARCHAR(10)), 4)
+                     ELSE CAST(@SiguienteVenta AS VARCHAR(10))
+                END;
         END
 
         INSERT INTO Ventas (NumeroFactura, IdCliente, IdUsuarioVendedor, FechaVenta, TipoVenta, MetodoPago,
@@ -1784,7 +1792,7 @@ CREATE OR ALTER PROCEDURE RegistrarAjusteInventario
     @IdProducto INT,
     @TipoMovimiento VARCHAR(40),
     @Cantidad INT,
-    @Justificacion VARCHAR(255),
+    @Justificacion VARCHAR(255) = NULL,
     @IdUsuario INT
 AS
 BEGIN
@@ -1873,6 +1881,9 @@ BEGIN
 
         IF @EstadoActual <> 'Pendiente'
             THROW 50002, 'Solo se pueden recepcionar compras en estado Pendiente.', 1;
+
+        IF NOT EXISTS (SELECT 1 FROM DetalleCompras WHERE IdCompra = @IdCompra)
+            THROW 50007, 'La compra no tiene productos agregados.', 1;
 
         DECLARE @IdProducto INT, @Cantidad INT, @CostoUnitario DECIMAL(18,2);
         DECLARE @StockAnterior INT, @CostoPromedioAnterior DECIMAL(18,2);
@@ -2315,8 +2326,12 @@ BEGIN
         DECLARE @AplicadoMora DECIMAL(18,2) = CASE WHEN @MontoAbono < @MoraPendiente THEN @MontoAbono ELSE @MoraPendiente END;
         DECLARE @AplicadoCapital DECIMAL(18,2) = @MontoAbono - @AplicadoMora;
 
+        DECLARE @SiguienteAbono INT = ISNULL((SELECT MAX(IdAbono) FROM Abonos WITH (UPDLOCK, HOLDLOCK)), 0) + 1;
         DECLARE @NumeroRecibo VARCHAR(30) = 'REC-' + CONVERT(VARCHAR(8), GETDATE(), 112) + '-' +
-            RIGHT('0000' + CAST((SELECT COUNT(1) + 1 FROM Abonos) AS VARCHAR(10)), 4);
+            CASE WHEN @SiguienteAbono < 10000
+                 THEN RIGHT('0000' + CAST(@SiguienteAbono AS VARCHAR(10)), 4)
+                 ELSE CAST(@SiguienteAbono AS VARCHAR(10))
+            END;
 
         INSERT INTO Abonos (
             NumeroRecibo, IdCuota, IdUsuarioRegistro, FechaAbono, MontoAbono,
@@ -2339,7 +2354,12 @@ BEGIN
 
         UPDATE Creditos
         SET SaldoPendiente = CASE WHEN (SaldoPendiente - @AplicadoCapital) <= 0 THEN 0 ELSE SaldoPendiente - @AplicadoCapital END,
-            Estado = CASE WHEN (SaldoPendiente - @AplicadoCapital) <= 0 THEN 'Pagado' ELSE Estado END
+            Estado = CASE
+                WHEN (SaldoPendiente - @AplicadoCapital) <= 0
+                     AND NOT EXISTS (SELECT 1 FROM CuotasCredito WHERE IdCredito = @IdCredito AND SaldoCuota > 0)
+                THEN 'Pagado'
+                ELSE Estado
+            END
         WHERE IdCredito = @IdCredito;
 
         IF @TranPropia = 1 COMMIT TRANSACTION;
@@ -2455,11 +2475,13 @@ BEGIN
             SET @TranPropia = 1;
         END
 
-        DECLARE @IdCredito INT, @EstadoCuota VARCHAR(20), @MoraAbonada DECIMAL(18,2), @FechaVencimiento DATE;
+        DECLARE @IdCredito INT, @EstadoCuota VARCHAR(20), @MontoCuota DECIMAL(18,2), @MontoAbonado DECIMAL(18,2), @MoraAbonada DECIMAL(18,2), @FechaVencimiento DATE;
 
         SELECT
             @IdCredito = IdCredito,
             @EstadoCuota = Estado,
+            @MontoCuota = MontoCuota,
+            @MontoAbonado = MontoAbonado,
             @MoraAbonada = MoraAbonada,
             @FechaVencimiento = FechaVencimiento
         FROM CuotasCredito WITH (UPDLOCK)
@@ -2477,7 +2499,9 @@ BEGIN
         UPDATE CuotasCredito
         SET RecargoMora = @RecargoMora,
             Estado = CASE
+                WHEN @MontoAbonado >= (@MontoCuota + @RecargoMora) THEN 'Pagada'
                 WHEN Estado = 'Pendiente' AND @FechaVencimiento < CAST(GETDATE() AS DATE) THEN 'Vencida'
+                WHEN Estado = 'Vencida' AND @RecargoMora = 0 AND @FechaVencimiento >= CAST(GETDATE() AS DATE) THEN 'Pendiente'
                 ELSE Estado
             END
         WHERE IdCuota = @IdCuota;
@@ -2487,6 +2511,21 @@ BEGIN
             UPDATE Creditos
             SET Estado = 'EnMora'
             WHERE IdCredito = @IdCredito AND Estado = 'Activo';
+        END
+        ELSE
+        BEGIN
+            UPDATE Creditos
+            SET Estado = CASE
+                WHEN SaldoPendiente <= 0 AND NOT EXISTS (SELECT 1 FROM CuotasCredito WHERE IdCredito = @IdCredito AND SaldoCuota > 0) THEN 'Pagado'
+                WHEN Estado = 'EnMora' AND NOT EXISTS (
+                    SELECT 1 FROM CuotasCredito
+                    WHERE IdCredito = @IdCredito
+                      AND Estado NOT IN ('Pagada', 'Anulada')
+                      AND ((RecargoMora > MoraAbonada) OR (FechaVencimiento < CAST(GETDATE() AS DATE)))
+                ) THEN 'Activo'
+                ELSE Estado
+            END
+            WHERE IdCredito = @IdCredito;
         END
 
         IF @TranPropia = 1 COMMIT TRANSACTION;

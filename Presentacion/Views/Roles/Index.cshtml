@@ -96,14 +96,14 @@
             @if (TempData["Success"] != null)
             {
                 <text>
-                Swal.fire({ icon: 'success', title: '¡Operación Exitosa!', text: '@Html.Raw(TempData["Success"])', timer: 3000, showConfirmButton: false });
+                Swal.fire({ icon: 'success', title: '¡Operación Exitosa!', text: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Success"])), timer: 3000, showConfirmButton: false });
                 </text>
             }
 
             @if (TempData["Error"] != null)
             {
                 <text>
-                Swal.fire({ icon: 'error', title: 'Atención', text: '@Html.Raw(TempData["Error"])' });
+                Swal.fire({ icon: 'error', title: 'Atención', text: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Error"])) });
                 </text>
             }
 
@@ -128,6 +128,8 @@
                             } else {
                                 Swal.fire({ icon: 'error', title: 'No se pudo eliminar', text: res.message });
                             }
+                        }).fail(function () {
+                            Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'No se pudo completar la solicitud. Intente nuevamente.' });
                         });
                     }
                 });

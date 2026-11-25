@@ -52,6 +52,7 @@
                                 <option value="@t.IdUsuario">@t.Nombres @t.Apellidos</option>
                             }
                         </select>
+                        <span asp-validation-for="IdUsuarioTecnico" class="text-danger small"></span>
                     </div>
 
                     <div class="col-md-12">
@@ -75,6 +76,7 @@
                                 <option value="@s.IdSerieVendida" data-detalle="@s.IdDetalleVenta">@s.NumeroSerie</option>
                             }
                         </select>
+                        <span asp-validation-for="IdSerieVendida" class="text-danger small"></span>
                     </div>
 
                     <div class="col-md-12">
@@ -92,6 +94,7 @@
                             <option value="Resuelto">Resuelto</option>
                             <option value="Rechazado">Rechazado</option>
                         </select>
+                        <span asp-validation-for="EstadoRevision" class="text-danger small"></span>
                     </div>
 
                     <div class="col-md-6">
@@ -103,6 +106,7 @@
                             <option value="Nota de Credito">Nota de Crédito</option>
                             <option value="No Aplica Garantia">No Aplica Garantía</option>
                         </select>
+                        <span asp-validation-for="AccionTomada" class="text-danger small"></span>
                     </div>
                 </div>
             </div>

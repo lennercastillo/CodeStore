@@ -1,4 +1,4 @@
-using Aplicacion.Interface;
+﻿using Aplicacion.Interface;
 using Dominio.Entidades;
 using Estructura.database;
 using Microsoft.Data.SqlClient;
@@ -42,7 +42,7 @@ namespace Estructura.Repositorio
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -60,7 +60,7 @@ namespace Estructura.Repositorio
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -124,7 +124,7 @@ namespace Estructura.Repositorio
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 

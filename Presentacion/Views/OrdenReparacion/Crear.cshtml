@@ -102,6 +102,7 @@
                             <option value="Entregado">Entregado</option>
                             <option value="Sin Solucion">Sin Solución</option>
                         </select>
+                        <span asp-validation-for="EstadoEquipo" class="text-danger small"></span>
                     </div>
 
                     <div class="col-md-4">
@@ -110,6 +111,7 @@
                             <span class="input-group-text">C$</span>
                             <input asp-for="CostoReparacion" type="number" step="0.01" class="form-control" />
                         </div>
+                        <span asp-validation-for="CostoReparacion" class="text-danger small"></span>
                     </div>
 
                     <div class="col-md-4">
@@ -121,16 +123,19 @@
                                 <option value="@g.IdGarantia">@g.NumeroReclamo (@g.EstadoRevision)</option>
                             }
                         </select>
+                        <span asp-validation-for="IdGarantia" class="text-danger small"></span>
                     </div>
 
                     <div class="col-md-12">
                         <label asp-for="DiagnosticoTecnico" class="form-label"></label>
                         <textarea asp-for="DiagnosticoTecnico" rows="2" class="form-control" placeholder="Diagnóstico inicial o falla reportada..."></textarea>
+                        <span asp-validation-for="DiagnosticoTecnico" class="text-danger small"></span>
                     </div>
 
                     <div class="col-md-12">
                         <label asp-for="Observaciones" class="form-label"></label>
                         <textarea asp-for="Observaciones" rows="2" class="form-control" placeholder="Accesorios incluidos (cargador, funda), rayones previos..."></textarea>
+                        <span asp-validation-for="Observaciones" class="text-danger small"></span>
                     </div>
                 </div>
             </div>

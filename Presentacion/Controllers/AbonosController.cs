@@ -85,21 +85,30 @@ namespace Presentacion.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Crear(int idCuota, decimal montoAbono, string metodoPago, string? observaciones)
         {
-            int idUsuario = 1;
-            var claimId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (int.TryParse(claimId, out int parsed))
-                idUsuario = parsed;
+            if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int idUsuario))
+                return RedirectToAction("Login", "Account");
 
-            var res = await _abonoService.RegistrarAbono(idCuota, montoAbono, metodoPago, observaciones, idUsuario);
-            if (res.Success)
+            try
             {
-                TempData["Success"] = res.Message;
-                return RedirectToAction(nameof(Recibo), new { id = res.IdAbono });
+                var res = await _abonoService.RegistrarAbono(idCuota, montoAbono, metodoPago, observaciones, idUsuario);
+                if (res.Success)
+                {
+                    TempData["Success"] = res.Message;
+                    return RedirectToAction(nameof(Recibo), new { id = res.IdAbono });
+                }
+
+                TempData["Error"] = MensajeErrorHelper.ObtenerMensajeDesdeTexto(res.Message, "registrar el abono");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "registrar el abono");
             }
 
-            TempData["Error"] = res.Message;
-            await CargarCuotasPendientesViewBag();
+            try { await CargarCuotasPendientesViewBag(); } catch { }
             ViewBag.IdCuotaSeleccionada = idCuota;
+            ViewBag.MontoAbono = montoAbono;
+            ViewBag.MetodoPago = metodoPago;
+            ViewBag.Observaciones = observaciones;
             return View();
         }
 
@@ -139,16 +148,23 @@ namespace Presentacion.Controllers
 
         // POST: /Abonos/Anular
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Anular(int id, string motivo)
         {
-            int idUsuario = 1;
-            var claimId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (int.TryParse(claimId, out int parsed))
-                idUsuario = parsed;
+            if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int idUsuario))
+                return Unauthorized(new { success = false, message = "Sesión expirada." });
 
-            var res = await _abonoService.AnularAbono(id, idUsuario, motivo);
-            return Json(new { success = res.Success, message = res.Message });
+            try
+            {
+                var res = await _abonoService.AnularAbono(id, idUsuario, motivo);
+                string msg = res.Success ? res.Message : MensajeErrorHelper.ObtenerMensajeDesdeTexto(res.Message, "anular el abono");
+                return Json(new { success = res.Success, message = msg });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "anular el abono") });
+            }
         }
 
         private async Task CargarCuotasPendientesViewBag()

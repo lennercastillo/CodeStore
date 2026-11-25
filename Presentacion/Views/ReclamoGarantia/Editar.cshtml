@@ -45,6 +45,7 @@
                     <div class="col-md-4">
                         <label asp-for="NumeroReclamo" class="form-label required"></label>
                         <input asp-for="NumeroReclamo" class="form-control font-monospace" readonly />
+                        <span asp-validation-for="NumeroReclamo" class="text-danger small"></span>
                     </div>
 
                     <div class="col-md-8">
@@ -55,11 +56,13 @@
                                 <option value="@t.IdUsuario" selected="@(t.IdUsuario == Model.IdUsuarioTecnico)">@t.Nombres @t.Apellidos</option>
                             }
                         </select>
+                        <span asp-validation-for="IdUsuarioTecnico" class="text-danger small"></span>
                     </div>
 
                     <div class="col-md-12">
                         <label asp-for="MotivoFalla" class="form-label required"></label>
                         <textarea asp-for="MotivoFalla" rows="2" class="form-control"></textarea>
+                        <span asp-validation-for="MotivoFalla" class="text-danger small"></span>
                     </div>
 
                     <div class="col-md-6">
@@ -71,6 +74,7 @@
                             <option value="Resuelto">Resuelto</option>
                             <option value="Rechazado">Rechazado</option>
                         </select>
+                        <span asp-validation-for="EstadoRevision" class="text-danger small"></span>
                     </div>
 
                     <div class="col-md-6">
@@ -82,11 +86,13 @@
                             <option value="Nota de Credito">Nota de Crédito</option>
                             <option value="No Aplica Garantia">No Aplica Garantía</option>
                         </select>
+                        <span asp-validation-for="AccionTomada" class="text-danger small"></span>
                     </div>
 
                     <div class="col-md-12">
                         <label asp-for="DescripcionResolucion" class="form-label"></label>
                         <textarea asp-for="DescripcionResolucion" rows="3" class="form-control" placeholder="Detalle técnico de la resolución aplicada..."></textarea>
+                        <span asp-validation-for="DescripcionResolucion" class="text-danger small"></span>
                     </div>
                 </div>
             </div>

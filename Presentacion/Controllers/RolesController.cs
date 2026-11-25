@@ -70,13 +70,21 @@ namespace Presentacion.Controllers
         // GET: /Roles/Editar/5
         public async Task<IActionResult> Editar(int id)
         {
-            var rol = await _rolesService.ObtenerPorId(id);
-            if (rol == null)
+            try
             {
-                TempData["Error"] = "El rol solicitado no existe.";
+                var rol = await _rolesService.ObtenerPorId(id);
+                if (rol == null)
+                {
+                    TempData["Error"] = "El rol solicitado no existe.";
+                    return RedirectToAction(nameof(Index));
+                }
+                return View(rol);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "cargar el rol");
                 return RedirectToAction(nameof(Index));
             }
-            return View(rol);
         }
 
         // POST: /Roles/Editar/5
@@ -104,6 +112,7 @@ namespace Presentacion.Controllers
 
         // POST: /Roles/Eliminar/5
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Eliminar(int id)
         {
             try

@@ -85,11 +85,11 @@
 
             @if (TempData["Success"] != null)
             {
-                <text>Swal.fire({ icon: 'success', title: '¡Éxito!', text: '@Html.Raw(TempData["Success"])', timer: 3000, showConfirmButton: false });</text>
+                <text>Swal.fire({ icon: 'success', title: '¡Éxito!', text: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Success"])), timer: 3000, showConfirmButton: false });</text>
             }
             @if (TempData["Error"] != null)
             {
-                <text>Swal.fire({ icon: 'error', title: 'Atención', text: '@Html.Raw(TempData["Error"])' });</text>
+                <text>Swal.fire({ icon: 'error', title: 'Atención', text: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Error"])) });</text>
             }
 
             $(document).on('click', '.btn-eliminar-garantia', function () {
@@ -111,6 +111,8 @@
                             } else {
                                 Swal.fire({ icon: 'error', title: 'Error', text: res.message });
                             }
+                        }).fail(function () {
+                            Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'No se pudo completar la solicitud. Intente nuevamente.' });
                         });
                     }
                 });

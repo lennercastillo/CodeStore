@@ -83,11 +83,20 @@ namespace Presentacion.Controllers
 
         // POST: /Creditos/AplicarMora
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> AplicarMora(int idCuota, decimal recargoMora)
         {
-            var res = await _cuotaService.AplicarMora(idCuota, recargoMora);
-            return Json(new { success = res.Success, message = res.Message });
+            try
+            {
+                var res = await _cuotaService.AplicarMora(idCuota, recargoMora);
+                string msg = res.Success ? res.Message : MensajeErrorHelper.ObtenerMensajeDesdeTexto(res.Message, "actualizar el recargo por mora");
+                return Json(new { success = res.Success, message = msg });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "actualizar el recargo por mora") });
+            }
         }
     }
 }

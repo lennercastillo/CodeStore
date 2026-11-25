@@ -97,15 +97,38 @@ namespace Aplicacion.Services
             string? observaciones,
             int idUsuario)
         {
-            return await _repo.RegistrarAbonoTransaccionalAsync(idCuota, montoAbono, metodoPago, observaciones, idUsuario);
+            if (idCuota <= 0)
+                return (false, "Debe seleccionar una cuota válida.", 0, string.Empty);
+            if (montoAbono <= 0)
+                return (false, "El monto del abono debe ser mayor a cero.", 0, string.Empty);
+            if (idUsuario <= 0)
+                return (false, "Usuario inválido.", 0, string.Empty);
+
+            string? metodoNorm = new[] { "Efectivo", "Tarjeta", "Transferencia" }
+                .FirstOrDefault(m => string.Equals(m, metodoPago?.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (metodoNorm == null)
+                return (false, "Método de pago no válido. Use Efectivo, Tarjeta o Transferencia.", 0, string.Empty);
+
+            string? obsLimpia = string.IsNullOrWhiteSpace(observaciones) ? null : observaciones.Trim();
+            if (obsLimpia != null && obsLimpia.Length > 255)
+                obsLimpia = obsLimpia[..255];
+
+            return await _repo.RegistrarAbonoTransaccionalAsync(idCuota, Math.Round(montoAbono, 2), metodoNorm, obsLimpia, idUsuario);
         }
 
         public async Task<(bool Success, string Message)> AnularAbono(int idAbono, int idUsuarioAnulacion, string motivo)
         {
+            if (idAbono <= 0 || idUsuarioAnulacion <= 0)
+                return (false, "Datos inválidos para anular el abono.");
+
             if (string.IsNullOrWhiteSpace(motivo))
                 return (false, "Debe especificar el motivo de anulación.");
 
-            return await _repo.AnularAbonoTransaccionalAsync(idAbono, idUsuarioAnulacion, motivo.Trim());
+            string motivoLimpio = motivo.Trim();
+            if (motivoLimpio.Length > 255)
+                motivoLimpio = motivoLimpio[..255];
+
+            return await _repo.AnularAbonoTransaccionalAsync(idAbono, idUsuarioAnulacion, motivoLimpio);
         }
     }
 }

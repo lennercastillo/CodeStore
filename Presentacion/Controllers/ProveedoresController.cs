@@ -69,13 +69,21 @@ namespace Presentacion.Controllers
         // GET: /Proveedores/Editar/5
         public async Task<IActionResult> Editar(int id)
         {
-            var proveedor = await _proveedorService.ObtenerPorId(id);
-            if (proveedor == null)
+            try
             {
-                TempData["Error"] = "El proveedor solicitado no fue encontrado.";
+                var proveedor = await _proveedorService.ObtenerPorId(id);
+                if (proveedor == null)
+                {
+                    TempData["Error"] = "El proveedor solicitado no fue encontrado.";
+                    return RedirectToAction(nameof(Index));
+                }
+                return View(proveedor);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "cargar el proveedor");
                 return RedirectToAction(nameof(Index));
             }
-            return View(proveedor);
         }
 
         // POST: /Proveedores/Editar/5
@@ -103,6 +111,7 @@ namespace Presentacion.Controllers
 
         // POST: /Proveedores/Eliminar/5
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Eliminar(int id)
         {
             try

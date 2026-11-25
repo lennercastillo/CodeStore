@@ -1,4 +1,4 @@
-using Aplicacion.Interface;
+﻿using Aplicacion.Interface;
 using Dominio.Entidades;
 using Estructura.database;
 using Microsoft.Data.SqlClient;
@@ -32,7 +32,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@NumeroDocumento", compra.NumeroDocumento));
                 cmd.Parameters.Add(new SqlParameter("@IdProveedor", compra.IdProveedor));
                 cmd.Parameters.Add(new SqlParameter("@IdUsuarioRegistro", compra.IdUsuarioRegistro));
-                cmd.Parameters.Add(new SqlParameter("@FechaCompra", compra.FechaCompra));
+                cmd.Parameters.Add(new SqlParameter("@FechaCompra", compra.FechaCompra == default ? DateTime.Now : compra.FechaCompra));
                 cmd.Parameters.Add(new SqlParameter("@TotalCompra", compra.TotalCompra));
                 cmd.Parameters.Add(new SqlParameter("@Estado", compra.Estado));
                 cmd.Parameters.Add(new SqlParameter("@IdUsuarioRecepcion", compra.IdUsuarioRecepcion == null ? DBNull.Value : compra.IdUsuarioRecepcion));
@@ -46,7 +46,7 @@ namespace Estructura.Repositorio
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -64,7 +64,7 @@ namespace Estructura.Repositorio
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -117,10 +117,10 @@ namespace Estructura.Repositorio
                 await con.OpenAsync();
                 using var cmd = new SqlCommand("InsertarCompra", con);
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(new SqlParameter("@NumeroDocumento", compra.NumeroDocumento));
+                cmd.Parameters.Add(new SqlParameter("@NumeroDocumento", string.IsNullOrWhiteSpace(compra.NumeroDocumento) ? DBNull.Value : compra.NumeroDocumento));
                 cmd.Parameters.Add(new SqlParameter("@IdProveedor", compra.IdProveedor));
                 cmd.Parameters.Add(new SqlParameter("@IdUsuarioRegistro", compra.IdUsuarioRegistro));
-                cmd.Parameters.Add(new SqlParameter("@FechaCompra", compra.FechaCompra));
+                cmd.Parameters.Add(new SqlParameter("@FechaCompra", compra.FechaCompra == default ? DBNull.Value : compra.FechaCompra));
                 cmd.Parameters.Add(new SqlParameter("@IdUsuarioRecepcion", compra.IdUsuarioRecepcion == null ? DBNull.Value : compra.IdUsuarioRecepcion));
                 cmd.Parameters.Add(new SqlParameter("@FechaRecepcion", compra.FechaRecepcion == null ? DBNull.Value : compra.FechaRecepcion));
                 cmd.Parameters.Add(new SqlParameter("@TotalCompra", compra.TotalCompra));
@@ -134,7 +134,7 @@ namespace Estructura.Repositorio
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -149,12 +149,14 @@ namespace Estructura.Repositorio
             List<DetalleCompra> detalles,
             bool recibirInmediatamente)
         {
-            using var con = _cone.GetConnection();
-            await con.OpenAsync();
-            using var tran = con.BeginTransaction();
+            SqlTransaction? tran = null;
 
             try
             {
+                using var con = _cone.GetConnection();
+                await con.OpenAsync();
+                tran = con.BeginTransaction();
+
                 int idCompraGenerado = 0;
                 string numeroDocumentoGenerado = string.Empty;
 
@@ -206,8 +208,15 @@ namespace Estructura.Repositorio
             }
             catch (Exception ex)
             {
-                try { await tran.RollbackAsync(); } catch { }
+                if (tran != null)
+                {
+                    try { await tran.RollbackAsync(); } catch { }
+                }
                 return (false, ex.Message, 0, string.Empty);
+            }
+            finally
+            {
+                tran?.Dispose();
             }
         }
 
@@ -223,7 +232,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@IdUsuarioRecepcion", idUsuarioRecepcion));
 
                 await cmd.ExecuteNonQueryAsync();
-                return (true, "Recepción confirmada e inventario actualizado correctamente.");
+                return (true, "RecepciÃ³n confirmada e inventario actualizado correctamente.");
             }
             catch (Exception ex)
             {

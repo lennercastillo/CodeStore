@@ -30,7 +30,7 @@ namespace Estructura.Repositorio
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter("@IdMovimiento", kardex.IdMovimiento));
                 cmd.Parameters.Add(new SqlParameter("@IdProducto", kardex.IdProducto));
-                cmd.Parameters.Add(new SqlParameter("@FechaMovimiento", kardex.FechaMovimiento));
+                cmd.Parameters.Add(new SqlParameter("@FechaMovimiento", kardex.FechaMovimiento == default ? DateTime.Now : kardex.FechaMovimiento));
                 cmd.Parameters.Add(new SqlParameter("@TipoMovimiento", kardex.TipoMovimiento));
                 cmd.Parameters.Add(new SqlParameter("@Cantidad", kardex.Cantidad));
                 cmd.Parameters.Add(new SqlParameter("@StockAnterior", kardex.StockAnterior));
@@ -45,7 +45,7 @@ namespace Estructura.Repositorio
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -63,7 +63,7 @@ namespace Estructura.Repositorio
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -121,7 +121,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@StockAnterior", kardex.StockAnterior));
                 cmd.Parameters.Add(new SqlParameter("@StockNuevo", kardex.StockNuevo));
                 cmd.Parameters.Add(new SqlParameter("@IdUsuarioResponsable", kardex.IdUsuarioResponsable));
-                cmd.Parameters.Add(new SqlParameter("@FechaMovimiento", kardex.FechaMovimiento));
+                cmd.Parameters.Add(new SqlParameter("@FechaMovimiento", kardex.FechaMovimiento == default ? DateTime.Now : kardex.FechaMovimiento));
                 cmd.Parameters.Add(new SqlParameter("@CostoUnitario", kardex.CostoUnitario));
                 cmd.Parameters.Add(new SqlParameter("@DocumentoOrigen", kardex.DocumentoOrigen == null ? DBNull.Value : kardex.DocumentoOrigen));
                 cmd.Parameters.Add(new SqlParameter("@IdReferenciaOrigen", kardex.IdReferenciaOrigen == null ? DBNull.Value : kardex.IdReferenciaOrigen));
@@ -131,7 +131,7 @@ namespace Estructura.Repositorio
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -151,7 +151,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@IdProducto", idProducto));
                 cmd.Parameters.Add(new SqlParameter("@TipoMovimiento", tipoMovimiento));
                 cmd.Parameters.Add(new SqlParameter("@Cantidad", cantidad));
-                cmd.Parameters.Add(new SqlParameter("@Justificacion", justificacion));
+                cmd.Parameters.Add(new SqlParameter("@Justificacion", string.IsNullOrWhiteSpace(justificacion) ? DBNull.Value : justificacion));
                 cmd.Parameters.Add(new SqlParameter("@IdUsuario", idUsuario));
 
                 string nombreProd = "Producto";

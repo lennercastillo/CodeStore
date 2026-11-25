@@ -153,7 +153,7 @@
 
             @if (TempData["Error"] != null)
             {
-                <text>Swal.fire({ icon: 'error', title: 'Atención', text: '@Html.Raw(TempData["Error"])' });</text>
+                <text>Swal.fire({ icon: 'error', title: 'Atención', text: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Error"])) });</text>
             }
         });
     </script>

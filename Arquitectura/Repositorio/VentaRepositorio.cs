@@ -32,7 +32,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@NumeroFactura", venta.NumeroFactura));
                 cmd.Parameters.Add(new SqlParameter("@IdCliente", venta.IdCliente));
                 cmd.Parameters.Add(new SqlParameter("@IdUsuarioVendedor", venta.IdUsuarioVendedor));
-                cmd.Parameters.Add(new SqlParameter("@FechaVenta", venta.FechaVenta));
+                cmd.Parameters.Add(new SqlParameter("@FechaVenta", venta.FechaVenta == default ? DateTime.Now : venta.FechaVenta));
                 cmd.Parameters.Add(new SqlParameter("@TipoVenta", venta.TipoVenta));
                 cmd.Parameters.Add(new SqlParameter("@MetodoPago", venta.MetodoPago));
                 cmd.Parameters.Add(new SqlParameter("@PorcentajeImpuesto", venta.PorcentajeImpuesto));
@@ -50,7 +50,7 @@ namespace Estructura.Repositorio
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -68,7 +68,7 @@ namespace Estructura.Repositorio
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -125,12 +125,12 @@ namespace Estructura.Repositorio
                 await con.OpenAsync();
                 using var cmd = new SqlCommand("InsertarVenta", con);
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(new SqlParameter("@NumeroFactura", venta.NumeroFactura));
+                cmd.Parameters.Add(new SqlParameter("@NumeroFactura", string.IsNullOrWhiteSpace(venta.NumeroFactura) ? DBNull.Value : venta.NumeroFactura));
                 cmd.Parameters.Add(new SqlParameter("@IdCliente", venta.IdCliente));
                 cmd.Parameters.Add(new SqlParameter("@IdUsuarioVendedor", venta.IdUsuarioVendedor));
                 cmd.Parameters.Add(new SqlParameter("@TipoVenta", venta.TipoVenta));
                 cmd.Parameters.Add(new SqlParameter("@MetodoPago", venta.MetodoPago));
-                cmd.Parameters.Add(new SqlParameter("@FechaVenta", venta.FechaVenta));
+                cmd.Parameters.Add(new SqlParameter("@FechaVenta", venta.FechaVenta == default ? DBNull.Value : venta.FechaVenta));
                 cmd.Parameters.Add(new SqlParameter("@PorcentajeImpuesto", venta.PorcentajeImpuesto));
                 cmd.Parameters.Add(new SqlParameter("@Subtotal", venta.Subtotal));
                 cmd.Parameters.Add(new SqlParameter("@Impuesto", venta.Impuesto));
@@ -146,7 +146,7 @@ namespace Estructura.Repositorio
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -163,12 +163,14 @@ namespace Estructura.Repositorio
             Credito? credito,
             List<CuotaCredito>? cuotas)
         {
-            using var con = _cone.GetConnection();
-            await con.OpenAsync();
-            using var tran = con.BeginTransaction();
+            SqlTransaction? tran = null;
 
             try
             {
+                using var con = _cone.GetConnection();
+                await con.OpenAsync();
+                tran = con.BeginTransaction();
+
                 // 1. Insertar Cabecera de Venta (en Pendiente para luego confirmar stock y Kardex)
                 int idVentaGenerado = 0;
                 string numeroFacturaGenerada = string.Empty;
@@ -225,7 +227,7 @@ namespace Estructura.Repositorio
                     }
                 }
 
-                // 3. Confirmar venta (valida stock, actualiza garantías, descuenta stock, registra Kardex y marca Completada)
+                // 3. Confirmar venta (valida stock, actualiza garantÃ­as, descuenta stock, registra Kardex y marca Completada)
                 using (var confirmarCmd = new SqlCommand("ConfirmarVenta", con, tran))
                 {
                     confirmarCmd.CommandType = CommandType.StoredProcedure;
@@ -234,7 +236,7 @@ namespace Estructura.Repositorio
                     await confirmarCmd.ExecuteNonQueryAsync();
                 }
 
-                // 4. Crédito y Cuotas si aplica
+                // 4. CrÃ©dito y Cuotas si aplica
                 if (credito != null)
                 {
                     int idCreditoGenerado;
@@ -276,8 +278,15 @@ namespace Estructura.Repositorio
             }
             catch (Exception ex)
             {
-                try { await tran.RollbackAsync(); } catch { }
+                if (tran != null)
+                {
+                    try { await tran.RollbackAsync(); } catch { }
+                }
                 return (false, ex.Message, 0, string.Empty);
+            }
+            finally
+            {
+                tran?.Dispose();
             }
         }
 
@@ -300,7 +309,7 @@ namespace Estructura.Repositorio
                     numeroFactura = rdr["NumeroFactura"].ToString()!;
                 }
 
-                return (true, $"Factura {numeroFactura} anulada. Stock, Kardex y crédito revertidos correctamente.");
+                return (true, $"Factura {numeroFactura} anulada. Stock, Kardex y crÃ©dito revertidos correctamente.");
             }
             catch (Exception ex)
             {
