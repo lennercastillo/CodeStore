@@ -42,7 +42,7 @@ namespace Estructura.Repositorio
                         Nombres = Dr["Nombres"].ToString()!,
                         Apellidos = Dr["Apellidos"].ToString()!,
                         Correo = Dr["Correo"].ToString()!,
-                        Telefono = Dr["Telefono"].ToString()!,
+                        Telefono = Dr["Telefono"] == DBNull.Value ? null : Dr["Telefono"].ToString(),
                         Activo = Convert.ToBoolean(Dr["Activo"]),
                         FechaCreacion = Convert.ToDateTime(Dr["FechaCreacion"])
                     };
@@ -68,15 +68,15 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@Nombres", usuario.Nombres));
                 cmd.Parameters.Add(new SqlParameter("@Apellidos", usuario.Apellidos));
                 cmd.Parameters.Add(new SqlParameter("@Correo", usuario.Correo));
-                cmd.Parameters.Add(new SqlParameter("@PasswordHash", usuario.Contraseña == null ? DBNull.Value : usuario.Contraseña));
-                cmd.Parameters.Add(new SqlParameter("@Telefono", usuario.Telefono == null ? DBNull.Value : usuario.Telefono));
+                cmd.Parameters.Add(new SqlParameter("@PasswordHash", string.IsNullOrWhiteSpace(usuario.Contraseña) ? DBNull.Value : usuario.Contraseña));
+                cmd.Parameters.Add(new SqlParameter("@Telefono", string.IsNullOrWhiteSpace(usuario.Telefono) ? DBNull.Value : usuario.Telefono));
                 cmd.Parameters.Add(new SqlParameter("@Activo", usuario.Activo));
 
                 await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -94,14 +94,14 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@Apellidos", usuario.Apellidos));
                 cmd.Parameters.Add(new SqlParameter("@Correo", usuario.Correo));
                 cmd.Parameters.Add(new SqlParameter("@Activo", usuario.Activo));
-                cmd.Parameters.Add(new SqlParameter("@PasswordHash", usuario.Contraseña == null ? DBNull.Value : usuario.Contraseña));
-                cmd.Parameters.Add(new SqlParameter("@Telefono", usuario.Telefono == null ? DBNull.Value : usuario.Telefono));
+                cmd.Parameters.Add(new SqlParameter("@PasswordHash", string.IsNullOrWhiteSpace(usuario.Contraseña) ? DBNull.Value : usuario.Contraseña));
+                cmd.Parameters.Add(new SqlParameter("@Telefono", string.IsNullOrWhiteSpace(usuario.Telefono) ? DBNull.Value : usuario.Telefono));
 
                 await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -119,7 +119,7 @@ namespace Estructura.Repositorio
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 

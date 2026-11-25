@@ -93,7 +93,7 @@
                         <tbody>
                             @foreach (var p in productos)
                             {
-                                <tr class="fila-producto" data-id="@p.IdProducto" data-sku="@p.CodigoSKU" data-nombre="@p.Nombre" data-precio="@p.PrecioVenta" data-stock="@p.StockActual" data-serie="@(p.RequiereSerie ? "1" : "0")">
+                                <tr class="fila-producto" data-id="@p.IdProducto" data-sku="@p.CodigoSKU" data-nombre="@p.Nombre" data-precio="@p.PrecioVenta.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" data-stock="@p.StockActual" data-serie="@(p.RequiereSerie ? "1" : "0")">
                                     <td><span class="badge bg-dark-lt font-monospace">@p.CodigoSKU</span></td>
                                     <td>
                                         <div class="fw-semibold">@p.Nombre</div>

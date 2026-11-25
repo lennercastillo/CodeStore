@@ -30,7 +30,12 @@ namespace Presentacion.Helpers
                 }
             }
 
-            string msg = ex.Message ?? string.Empty;
+            return ObtenerMensajeDesdeTexto(ex.Message, accion);
+        }
+
+        public static string ObtenerMensajeDesdeTexto(string? rawMessage, string accion = "procesar la solicitud")
+        {
+            string msg = rawMessage ?? string.Empty;
 
             if (msg.Contains("network-related", StringComparison.OrdinalIgnoreCase) ||
                 msg.Contains("instance-specific", StringComparison.OrdinalIgnoreCase) ||
@@ -63,17 +68,28 @@ namespace Presentacion.Helpers
                 return "Uno de los valores ingresados no es válido o está fuera del rango permitido.";
             }
 
-            if (msg.Contains("Sql", StringComparison.OrdinalIgnoreCase) ||
+            if (msg.Contains("Cannot insert", StringComparison.OrdinalIgnoreCase) ||
+                msg.Contains("Could not find stored procedure", StringComparison.OrdinalIgnoreCase) ||
+                msg.Contains("expects parameter", StringComparison.OrdinalIgnoreCase) ||
+                msg.Contains("truncated", StringComparison.OrdinalIgnoreCase) ||
+                msg.Contains("Conversion failed", StringComparison.OrdinalIgnoreCase) ||
+                msg.Contains("Invalid column", StringComparison.OrdinalIgnoreCase) ||
+                msg.Contains("Arithmetic overflow", StringComparison.OrdinalIgnoreCase) ||
+                msg.Contains("The INSERT statement", StringComparison.OrdinalIgnoreCase) ||
+                msg.Contains("The UPDATE statement", StringComparison.OrdinalIgnoreCase) ||
+                msg.Contains("The DELETE statement", StringComparison.OrdinalIgnoreCase) ||
+                msg.Contains("Violation of", StringComparison.OrdinalIgnoreCase) ||
+                msg.Contains("Sql", StringComparison.OrdinalIgnoreCase) ||
                 msg.Contains("Object reference", StringComparison.OrdinalIgnoreCase) ||
                 msg.Contains("Index was outside", StringComparison.OrdinalIgnoreCase) ||
+                msg.Contains("IndexOutOfRange", StringComparison.OrdinalIgnoreCase) ||
                 msg.Contains("FormatException", StringComparison.OrdinalIgnoreCase) ||
                 msg.Contains("InvalidCast", StringComparison.OrdinalIgnoreCase))
             {
                 return $"Ocurrió un inconveniente inesperado al {accion}. Por favor, intenta de nuevo.";
             }
 
-            // Si ya es un mensaje amigable en español (ej. de THROW 50002 o validación de servicio)
-            if (!string.IsNullOrWhiteSpace(msg) && msg.Length < 180)
+            if (!string.IsNullOrWhiteSpace(msg) && msg.Length < 220)
             {
                 return msg;
             }
@@ -82,4 +98,3 @@ namespace Presentacion.Helpers
         }
     }
 }
-

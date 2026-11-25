@@ -103,8 +103,11 @@ namespace Aplicacion.Services
 
         public async Task<DTOSUsuario?> ValidarLogin(string correo, string password)
         {
+            if (string.IsNullOrWhiteSpace(correo) || string.IsNullOrWhiteSpace(password))
+                return null;
+
             var hash = GenerarHash(password);
-            var u = await _repo.ValidarCredencialesAsync(correo, hash);
+            var u = await _repo.ValidarCredencialesAsync(correo.Trim(), hash);
             if (u == null) return null;
 
             return new DTOSUsuario

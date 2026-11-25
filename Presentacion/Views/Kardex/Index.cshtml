@@ -119,13 +119,13 @@
             @if (TempData["Success"] != null)
             {
                 <text>
-                Swal.fire({ icon: 'success', title: '¡Ajuste Aplicado!', text: '@Html.Raw(TempData["Success"])', timer: 3000, showConfirmButton: false });
+                Swal.fire({ icon: 'success', title: '¡Ajuste Aplicado!', text: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Success"])), timer: 3000, showConfirmButton: false });
                 </text>
             }
             @if (TempData["Error"] != null)
             {
                 <text>
-                Swal.fire({ icon: 'error', title: 'Atención', text: '@Html.Raw(TempData["Error"])' });
+                Swal.fire({ icon: 'error', title: 'Atención', text: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Error"])) });
                 </text>
             }
         });

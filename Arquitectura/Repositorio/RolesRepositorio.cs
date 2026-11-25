@@ -1,4 +1,4 @@
-using Aplicacion.DTOs;
+﻿using Aplicacion.DTOs;
 using Aplicacion.Interface;
 using Dominio.Entidades;
 using Estructura.database;
@@ -41,7 +41,7 @@ namespace Estructura.Repositorio
             catch (Exception ex)
             {
 
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
 
         }
@@ -62,7 +62,7 @@ namespace Estructura.Repositorio
             catch (Exception ex)
             {
 
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -121,7 +121,7 @@ namespace Estructura.Repositorio
             catch (Exception ex)
             {
 
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
     }

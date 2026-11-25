@@ -98,6 +98,26 @@ namespace Presentacion.Controllers
                 }
 
                 if (model.FechaReclamo == default) model.FechaReclamo = DateTime.Now;
+                if ((model.EstadoRevision == "Resuelto" || model.EstadoRevision == "Rechazado") && !model.FechaResolucion.HasValue)
+                    model.FechaResolucion = DateTime.Now;
+
+                if (model.EstadoRevision == "Resuelto" && model.AccionTomada == "Reemplazo de Equipo")
+                {
+                    var resKardex = await _kardexService.RegistrarAjuste(
+                        detalle.IdProducto,
+                        "Salida por Reemplazo Garantia",
+                        1,
+                        $"Reemplazo por garantía {model.NumeroReclamo}",
+                        ObtenerUsuarioActual());
+
+                    if (!resKardex.Success)
+                    {
+                        TempData["Error"] = MensajeErrorHelper.ObtenerMensajeDesdeTexto(resKardex.Message, "registrar el reemplazo de garantía");
+                        await CargarCatalogos(model.IdUsuarioTecnico);
+                        return View(model);
+                    }
+                }
+
                 await _reclamoService.NuevoReclamoGarantia(model);
                 TempData["Success"] = $"Reclamo de garantía \"{model.NumeroReclamo}\" registrado correctamente.";
                 return RedirectToAction(nameof(Index));
@@ -105,7 +125,7 @@ namespace Presentacion.Controllers
             catch (Exception ex)
             {
                 TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "registrar el reclamo");
-                await CargarCatalogos();
+                await CargarCatalogos(model.IdUsuarioTecnico);
                 return View(model);
             }
         }
@@ -113,14 +133,22 @@ namespace Presentacion.Controllers
         // GET: /ReclamoGarantia/Editar/5
         public async Task<IActionResult> Editar(int id)
         {
-            var reclamo = await _reclamoService.ObtenerPorId(id);
-            if (reclamo == null)
+            try
             {
-                TempData["Error"] = "El reclamo solicitado no existe.";
+                var reclamo = await _reclamoService.ObtenerPorId(id);
+                if (reclamo == null)
+                {
+                    TempData["Error"] = "El reclamo solicitado no existe.";
+                    return RedirectToAction(nameof(Index));
+                }
+                await CargarCatalogos(reclamo.IdUsuarioTecnico);
+                return View(reclamo);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "cargar el reclamo");
                 return RedirectToAction(nameof(Index));
             }
-            await CargarCatalogos();
-            return View(reclamo);
         }
 
         // POST: /ReclamoGarantia/Editar/5
@@ -130,7 +158,7 @@ namespace Presentacion.Controllers
         {
             if (!ModelState.IsValid)
             {
-                await CargarCatalogos();
+                await CargarCatalogos(model.IdUsuarioTecnico);
                 return View(model);
             }
 
@@ -161,8 +189,8 @@ namespace Presentacion.Controllers
 
                         if (!resKardex.Success)
                         {
-                            TempData["Error"] = resKardex.Message;
-                            await CargarCatalogos();
+                            TempData["Error"] = MensajeErrorHelper.ObtenerMensajeDesdeTexto(resKardex.Message, "registrar el reemplazo de garantía");
+                            await CargarCatalogos(model.IdUsuarioTecnico);
                             return View(model);
                         }
                     }
@@ -178,13 +206,14 @@ namespace Presentacion.Controllers
             catch (Exception ex)
             {
                 TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "actualizar el reclamo");
-                await CargarCatalogos();
+                await CargarCatalogos(model.IdUsuarioTecnico);
                 return View(model);
             }
         }
 
         // POST: /ReclamoGarantia/Eliminar/5
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Eliminar(int id)
         {
@@ -199,36 +228,45 @@ namespace Presentacion.Controllers
             }
         }
 
-        private async Task CargarCatalogos()
+        private async Task CargarCatalogos(int? idTecnicoActual = null)
         {
-            var detalles = await _detalleVentaService.ListarDetalleVenta();
-            var ventas = await _ventaService.ListarVenta();
-            var productos = await _productosService.ListarProducto();
-            var usuarios = await _usuarioService.ListaRoles();
-
-            var dictVentas = ventas.ToDictionary(v => v.IdVenta, v => v);
-            var dictProductos = productos.ToDictionary(p => p.IdProducto, p => p);
-
-            var itemsGarantia = detalles.Select(d =>
+            try
             {
-                var ven = dictVentas.ContainsKey(d.IdVenta) ? dictVentas[d.IdVenta] : null;
-                var prod = dictProductos.ContainsKey(d.IdProducto) ? dictProductos[d.IdProducto] : null;
-                var vence = d.FechaFinGarantia.HasValue ? d.FechaFinGarantia.Value.ToString("dd/MM/yyyy") : "Sin garantía";
-                return new
+                var detalles = await _detalleVentaService.ListarDetalleVenta();
+                var ventas = await _ventaService.ListarVenta();
+                var productos = await _productosService.ListarProducto();
+                var usuarios = await _usuarioService.ListaRoles();
+
+                var dictVentas = ventas.ToDictionary(v => v.IdVenta, v => v);
+                var dictProductos = productos.ToDictionary(p => p.IdProducto, p => p);
+
+                var itemsGarantia = detalles.Select(d =>
                 {
-                    d.IdDetalleVenta,
-                    Texto = $"Factura {ven?.NumeroFactura ?? "-"} | {prod?.Nombre ?? "Producto"} | Cant: {d.Cantidad} | Garantía hasta: {vence}"
-                };
-            }).OrderByDescending(x => x.IdDetalleVenta).ToList();
+                    var ven = dictVentas.ContainsKey(d.IdVenta) ? dictVentas[d.IdVenta] : null;
+                    var prod = dictProductos.ContainsKey(d.IdProducto) ? dictProductos[d.IdProducto] : null;
+                    var vence = d.FechaFinGarantia.HasValue ? d.FechaFinGarantia.Value.ToString("dd/MM/yyyy") : "Sin garantía";
+                    return new
+                    {
+                        d.IdDetalleVenta,
+                        Texto = $"Factura {ven?.NumeroFactura ?? "-"} | {prod?.Nombre ?? "Producto"} | Cant: {d.Cantidad} | Garantía hasta: {vence}"
+                    };
+                }).OrderByDescending(x => x.IdDetalleVenta).ToList();
 
-            ViewBag.DetallesVenta = itemsGarantia;
-            ViewBag.Tecnicos = usuarios.Where(u => u.Activo).ToList();
+                ViewBag.DetallesVenta = itemsGarantia;
+                ViewBag.Tecnicos = usuarios.Where(u => u.Activo || (idTecnicoActual.HasValue && u.IdUsuario == idTecnicoActual.Value)).ToList();
 
-            var series = await _serieService.ListarDetalleVentaSerie();
-            ViewBag.Series = series
-                .Where(s => s.EstadoSerie == "Vendido")
-                .Select(s => new { s.IdSerieVendida, s.IdDetalleVenta, s.NumeroSerie })
-                .ToList();
+                var series = await _serieService.ListarDetalleVentaSerie();
+                ViewBag.Series = series
+                    .Where(s => s.EstadoSerie == "Vendido")
+                    .Select(s => new { s.IdSerieVendida, s.IdDetalleVenta, s.NumeroSerie })
+                    .ToList();
+            }
+            catch
+            {
+                ViewBag.DetallesVenta = Enumerable.Empty<object>();
+                ViewBag.Tecnicos = new List<DTOSUsuario>();
+                ViewBag.Series = Enumerable.Empty<object>();
+            }
         }
 
         private int ObtenerUsuarioActual()

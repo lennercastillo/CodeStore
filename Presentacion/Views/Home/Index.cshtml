@@ -135,7 +135,10 @@
                 <h3 class="card-title fw-bold text-dark m-0">
                     <i class="ti ti-receipt me-2 text-primary"></i>Últimas Ventas Registradas
                 </h3>
-                <a asp-controller="Ventas" asp-action="Index" class="btn btn-sm btn-outline-primary">Ver Todas</a>
+                @if (User.IsInRole("Administrador") || User.IsInRole("Vendedor"))
+                {
+                    <a asp-controller="Ventas" asp-action="Index" class="btn btn-sm btn-outline-primary">Ver Todas</a>
+                }
             </div>
             <div class="table-responsive">
                 <table class="table table-vcenter card-table table-hover">
@@ -161,7 +164,16 @@
                             {
                                 var cli = Model.ClientesNombres.ContainsKey(v.IdCliente) ? Model.ClientesNombres[v.IdCliente] : $"Cliente #{v.IdCliente}";
                                 <tr>
-                                    <td><a asp-controller="Ventas" asp-action="Detalle" asp-route-id="@v.IdVenta" class="badge bg-dark-lt font-monospace text-decoration-none">@v.NumeroFactura</a></td>
+                                    <td>
+                                        @if (User.IsInRole("Administrador") || User.IsInRole("Vendedor"))
+                                        {
+                                            <a asp-controller="Ventas" asp-action="Detalle" asp-route-id="@v.IdVenta" class="badge bg-dark-lt font-monospace text-decoration-none">@v.NumeroFactura</a>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-dark-lt font-monospace">@v.NumeroFactura</span>
+                                        }
+                                    </td>
                                     <td class="fw-medium">@cli</td>
                                     <td><span class="badge @(v.TipoVenta == "Contado" ? "bg-azure-lt" : "bg-purple-lt")">@v.TipoVenta</span></td>
                                     <td class="text-end fw-bold text-success">C$ @v.TotalVenta.ToString("N2")</td>
@@ -316,10 +328,23 @@
             </div>
         </div>
     </div>
+}
 
-    @section Scripts {
-        <script>
-            $(document).ready(function () {
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            @if (TempData["Success"] != null)
+            {
+                <text>Swal.fire({ icon: 'success', title: '¡Operación Exitosa!', text: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Success"])), timer: 3000, showConfirmButton: false });</text>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <text>Swal.fire({ icon: 'error', title: 'Atención', text: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Error"])) });</text>
+            }
+
+            @if (User.IsInRole("Administrador"))
+            {
+                <text>
                 const clave = 'codestore_terminos_aceptados';
                 if (!localStorage.getItem(clave)) {
                     const modalEl = document.getElementById('modalTerminos');
@@ -331,7 +356,8 @@
                         modal.hide();
                     });
                 }
-            });
-        </script>
-    }
+                </text>
+            }
+        });
+    </script>
 }

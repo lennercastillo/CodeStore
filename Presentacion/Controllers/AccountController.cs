@@ -57,21 +57,15 @@ namespace Presentacion.Controllers
                     return View(model);
                 }
 
-                // Obtener nombre del rol
-                string nombreRol = "Usuario";
-                try
+                // Obtener y verificar rol activo del usuario
+                var roles = await _rolesService.ListaRoles();
+                var rol = roles.FirstOrDefault(r => r.IdRol == usuario.IdRol);
+                if (rol == null || !rol.Activo)
                 {
-                    var roles = await _rolesService.ListaRoles();
-                    var rol = roles.FirstOrDefault(r => r.IdRol == usuario.IdRol);
-                    if (rol != null)
-                    {
-                        nombreRol = rol.NombreRol;
-                    }
+                    ModelState.AddModelError(string.Empty, "Tu perfil de acceso se encuentra deshabilitado. Contacta al administrador.");
+                    return View(model);
                 }
-                catch
-                {
-                    // Si falla consulta de rol, se mantiene rol por defecto
-                }
+                string nombreRol = rol.NombreRol;
 
                 var claims = new List<Claim>
                 {

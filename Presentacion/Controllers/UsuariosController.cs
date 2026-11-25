@@ -82,15 +82,23 @@ namespace Presentacion.Controllers
         // GET: /Usuarios/Editar/5
         public async Task<IActionResult> Editar(int id)
         {
-            var usuario = await _usuarioService.ObtenerPorId(id);
-            if (usuario == null)
+            try
             {
-                TempData["Error"] = "El usuario solicitado no existe.";
+                var usuario = await _usuarioService.ObtenerPorId(id);
+                if (usuario == null)
+                {
+                    TempData["Error"] = "El usuario solicitado no existe.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                await CargarRolesViewBag(usuario.IdRol);
+                return View(usuario);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "cargar el usuario");
                 return RedirectToAction(nameof(Index));
             }
-
-            await CargarRolesViewBag();
-            return View(usuario);
         }
 
         // POST: /Usuarios/Editar/5
@@ -100,7 +108,7 @@ namespace Presentacion.Controllers
         {
             if (!ModelState.IsValid)
             {
-                await CargarRolesViewBag();
+                await CargarRolesViewBag(model.IdRol);
                 return View(model);
             }
 
@@ -113,17 +121,24 @@ namespace Presentacion.Controllers
             catch (Exception ex)
             {
                 TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "actualizar el usuario");
-                await CargarRolesViewBag();
+                await CargarRolesViewBag(model.IdRol);
                 return View(model);
             }
         }
 
         // POST: /Usuarios/Eliminar/5
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Eliminar(int id)
         {
             try
             {
+                var claimId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (int.TryParse(claimId, out int idActual) && idActual == id)
+                {
+                    return Json(new { success = false, message = "No puedes eliminar tu propia cuenta mientras tienes la sesión abierta." });
+                }
+
                 await _usuarioService.Eliminarusuario(id);
                 return Json(new { success = true, message = "Usuario eliminado correctamente." });
             }
@@ -133,12 +148,12 @@ namespace Presentacion.Controllers
             }
         }
 
-        private async Task CargarRolesViewBag()
+        private async Task CargarRolesViewBag(int? idRolActual = null)
         {
             try
             {
                 var roles = await _rolesService.ListaRoles();
-                ViewBag.Roles = roles.Where(r => r.Activo).ToList();
+                ViewBag.Roles = roles.Where(r => r.Activo || (idRolActual.HasValue && r.IdRol == idRolActual.Value)).ToList();
             }
             catch
             {

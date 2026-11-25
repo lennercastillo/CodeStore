@@ -93,15 +93,23 @@ namespace Presentacion.Controllers
         // GET: /OrdenReparacion/Editar/5
         public async Task<IActionResult> Editar(int id)
         {
-            var orden = await _ordenService.ObtenerPorId(id);
-            if (orden == null)
+            try
             {
-                TempData["Error"] = "La orden solicitada no existe.";
+                var orden = await _ordenService.ObtenerPorId(id);
+                if (orden == null)
+                {
+                    TempData["Error"] = "La orden solicitada no existe.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                await CargarCatalogos(orden.IdCliente, orden.IdUsuarioTecnico);
+                return View(orden);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "cargar la orden de reparación");
                 return RedirectToAction(nameof(Index));
             }
-
-            await CargarCatalogos();
-            return View(orden);
         }
 
         // POST: /OrdenReparacion/Editar/5
@@ -111,7 +119,7 @@ namespace Presentacion.Controllers
         {
             if (!ModelState.IsValid)
             {
-                await CargarCatalogos();
+                await CargarCatalogos(model.IdCliente, model.IdUsuarioTecnico);
                 return View(model);
             }
 
@@ -130,13 +138,14 @@ namespace Presentacion.Controllers
             catch (Exception ex)
             {
                 TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "actualizar la orden");
-                await CargarCatalogos();
+                await CargarCatalogos(model.IdCliente, model.IdUsuarioTecnico);
                 return View(model);
             }
         }
 
         // POST: /OrdenReparacion/Eliminar/5
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Eliminar(int id)
         {
@@ -151,14 +160,23 @@ namespace Presentacion.Controllers
             }
         }
 
-        private async Task CargarCatalogos()
+        private async Task CargarCatalogos(int? idClienteActual = null, int? idTecnicoActual = null)
         {
-            var clientes = await _clientesService.ListaClientes();
-            var usuarios = await _usuarioService.ListaRoles();
-            var garantias = await _reclamoService.ListarReclamoGarantia();
-            ViewBag.Clientes = clientes.Where(c => c.Activo).ToList();
-            ViewBag.Tecnicos = usuarios.Where(u => u.Activo).ToList();
-            ViewBag.Garantias = garantias.OrderByDescending(g => g.FechaReclamo).ToList();
+            try
+            {
+                var clientes = await _clientesService.ListaClientes();
+                var usuarios = await _usuarioService.ListaRoles();
+                var garantias = await _reclamoService.ListarReclamoGarantia();
+                ViewBag.Clientes = clientes.Where(c => c.Activo || (idClienteActual.HasValue && c.IdCliente == idClienteActual.Value)).ToList();
+                ViewBag.Tecnicos = usuarios.Where(u => u.Activo || (idTecnicoActual.HasValue && u.IdUsuario == idTecnicoActual.Value)).ToList();
+                ViewBag.Garantias = garantias.OrderByDescending(g => g.FechaReclamo).ToList();
+            }
+            catch
+            {
+                ViewBag.Clientes = new List<DTOsClientes>();
+                ViewBag.Tecnicos = new List<DTOSUsuario>();
+                ViewBag.Garantias = new List<DTOSReclamoGarantia>();
+            }
         }
 
         private int ObtenerUsuarioActual()

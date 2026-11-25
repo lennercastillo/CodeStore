@@ -73,7 +73,7 @@
                         <tbody>
                             @foreach (var prod in productos)
                             {
-                                <tr data-id="@prod.IdProducto" data-sku="@prod.CodigoSKU" data-nombre="@prod.Nombre" data-costo="@(prod.UltimoCostoCompra > 0 ? prod.UltimoCostoCompra : prod.PrecioVenta * 0.7m)">
+                                <tr data-id="@prod.IdProducto" data-sku="@prod.CodigoSKU" data-nombre="@prod.Nombre" data-costo="@((prod.UltimoCostoCompra > 0 ? prod.UltimoCostoCompra : prod.PrecioVenta * 0.7m).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture))">
                                     <td><span class="badge bg-dark-lt font-monospace">@prod.CodigoSKU</span></td>
                                     <td>
                                         <div class="fw-semibold">@prod.Nombre</div>

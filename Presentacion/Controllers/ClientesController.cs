@@ -70,13 +70,21 @@ namespace Presentacion.Controllers
         // GET: /Clientes/Editar/5
         public async Task<IActionResult> Editar(int id)
         {
-            var cliente = await _clientesService.ObtenerPorId(id);
-            if (cliente == null)
+            try
             {
-                TempData["Error"] = "El cliente solicitado no fue encontrado.";
+                var cliente = await _clientesService.ObtenerPorId(id);
+                if (cliente == null)
+                {
+                    TempData["Error"] = "El cliente solicitado no fue encontrado.";
+                    return RedirectToAction(nameof(Index));
+                }
+                return View(cliente);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "cargar el cliente");
                 return RedirectToAction(nameof(Index));
             }
-            return View(cliente);
         }
 
         // POST: /Clientes/Editar/5
@@ -104,6 +112,7 @@ namespace Presentacion.Controllers
 
         // POST: /Clientes/Eliminar/5
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Eliminar(int id)
         {

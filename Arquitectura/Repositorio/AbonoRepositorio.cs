@@ -32,7 +32,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@NumeroRecibo", abono.NumeroRecibo));
                 cmd.Parameters.Add(new SqlParameter("@IdCuota", abono.IdCuota));
                 cmd.Parameters.Add(new SqlParameter("@IdUsuarioRegistro", abono.IdUsuarioRegistro));
-                cmd.Parameters.Add(new SqlParameter("@FechaAbono", abono.FechaAbono));
+                cmd.Parameters.Add(new SqlParameter("@FechaAbono", abono.FechaAbono == default ? DateTime.Now : abono.FechaAbono));
                 cmd.Parameters.Add(new SqlParameter("@MontoAbono", abono.MontoAbono));
                 cmd.Parameters.Add(new SqlParameter("@MontoAplicadoMora", abono.MontoAplicadoMora));
                 cmd.Parameters.Add(new SqlParameter("@MontoAplicadoCapital", abono.MontoAplicadoCapital));
@@ -47,7 +47,7 @@ namespace Estructura.Repositorio
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -65,7 +65,7 @@ namespace Estructura.Repositorio
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -124,7 +124,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@IdUsuarioRegistro", abono.IdUsuarioRegistro));
                 cmd.Parameters.Add(new SqlParameter("@MontoAbono", abono.MontoAbono));
                 cmd.Parameters.Add(new SqlParameter("@MetodoPago", abono.MetodoPago));
-                cmd.Parameters.Add(new SqlParameter("@FechaAbono", abono.FechaAbono));
+                cmd.Parameters.Add(new SqlParameter("@FechaAbono", abono.FechaAbono == default ? DateTime.Now : abono.FechaAbono));
                 cmd.Parameters.Add(new SqlParameter("@MontoAplicadoMora", abono.MontoAplicadoMora));
                 cmd.Parameters.Add(new SqlParameter("@MontoAplicadoCapital", abono.MontoAplicadoCapital));
                 cmd.Parameters.Add(new SqlParameter("@Observaciones", abono.Observaciones == null ? DBNull.Value : abono.Observaciones));
@@ -137,7 +137,7 @@ namespace Estructura.Repositorio
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -170,7 +170,7 @@ namespace Estructura.Repositorio
                     numeroRecibo = rdr["NumeroRecibo"].ToString()!;
                 }
 
-                return (true, $"Abono registrado con éxito. Recibo {numeroRecibo}.", idAbono, numeroRecibo);
+                return (true, $"Abono registrado con Ã©xito. Recibo {numeroRecibo}.", idAbono, numeroRecibo);
             }
             catch (Exception ex)
             {
@@ -181,7 +181,7 @@ namespace Estructura.Repositorio
         public async Task<(bool Success, string Message)> AnularAbonoTransaccionalAsync(int idAbono, int idUsuarioAnulacion, string motivo)
         {
             if (string.IsNullOrWhiteSpace(motivo))
-                return (false, "Debe especificar el motivo de anulación.");
+                return (false, "Debe especificar el motivo de anulaciÃ³n.");
 
             try
             {

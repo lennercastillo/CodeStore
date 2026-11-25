@@ -83,7 +83,12 @@ namespace Aplicacion.Services
 
         public async Task<(bool Success, string Message)> AplicarMora(int idCuota, decimal recargoMora)
         {
-            return await _repo.AplicarMoraAsync(idCuota, recargoMora);
+            if (idCuota <= 0)
+                return (false, "Cuota inválida.");
+            if (recargoMora < 0)
+                return (false, "El recargo por mora no puede ser negativo.");
+
+            return await _repo.AplicarMoraAsync(idCuota, Math.Round(recargoMora, 2));
         }
     }
 }

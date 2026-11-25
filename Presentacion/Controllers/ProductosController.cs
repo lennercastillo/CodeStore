@@ -105,23 +105,31 @@ namespace Presentacion.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Editar(int id)
         {
-            var producto = await _productosService.ObtenerPorId(id);
-            if (producto == null)
-            {
-                TempData["Error"] = "El producto solicitado no fue encontrado.";
-                return RedirectToAction(nameof(Index));
-            }
-
             try
             {
-                ViewBag.Proveedores = await _proveedorService.ListarProveedor();
-            }
-            catch
-            {
-                ViewBag.Proveedores = Enumerable.Empty<DTOProveedor>();
-            }
+                var producto = await _productosService.ObtenerPorId(id);
+                if (producto == null)
+                {
+                    TempData["Error"] = "El producto solicitado no fue encontrado.";
+                    return RedirectToAction(nameof(Index));
+                }
 
-            return View(producto);
+                try
+                {
+                    ViewBag.Proveedores = await _proveedorService.ListarProveedor();
+                }
+                catch
+                {
+                    ViewBag.Proveedores = Enumerable.Empty<DTOProveedor>();
+                }
+
+                return View(producto);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "cargar el producto");
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: /Productos/Editar/5
@@ -166,6 +174,7 @@ namespace Presentacion.Controllers
 
         // POST: /Productos/Eliminar/5
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Eliminar(int id)
         {

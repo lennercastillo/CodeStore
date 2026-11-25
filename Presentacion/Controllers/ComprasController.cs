@@ -66,24 +66,38 @@ namespace Presentacion.Controllers
 
         // POST: /Compras/RegistrarCompra (AJAX)
         [HttpPost]
-        public async Task<IActionResult> RegistrarCompra([FromBody] CompraRegistroDTO model)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RegistrarCompra([FromBody] CompraRegistroDTO? model)
         {
+            if (model == null)
+                return Json(new { success = false, message = "No se recibieron los datos de la compra." });
+
             if (!ModelState.IsValid)
             {
                 var errors = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
                 return Json(new { success = false, message = errors });
             }
 
-            int idUsuario = ObtenerIdUsuarioActual();
-            var res = await _compraService.RegistrarCompraCompleta(model, idUsuario);
+            if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int idUsuario))
+                return Unauthorized(new { success = false, message = "Sesión expirada. Vuelve a iniciar sesión." });
 
-            return Json(new
+            try
             {
-                success = res.Success,
-                message = res.Message,
-                idCompra = res.IdCompra,
-                numeroDocumento = res.NumeroDocumento
-            });
+                var res = await _compraService.RegistrarCompraCompleta(model, idUsuario);
+                string msg = res.Success ? res.Message : MensajeErrorHelper.ObtenerMensajeDesdeTexto(res.Message, "registrar la compra");
+
+                return Json(new
+                {
+                    success = res.Success,
+                    message = msg,
+                    idCompra = res.IdCompra,
+                    numeroDocumento = res.NumeroDocumento
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "registrar la compra") });
+            }
         }
 
         // GET: /Compras/Detalle/5
@@ -141,26 +155,42 @@ namespace Presentacion.Controllers
 
         // POST: /Compras/ConfirmarRecepcion/5
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ConfirmarRecepcion(int id)
         {
-            int idUsuario = ObtenerIdUsuarioActual();
-            var res = await _compraService.ConfirmarRecepcion(id, idUsuario);
-            return Json(new { success = res.Success, message = res.Message });
+            if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int idUsuario))
+                return Unauthorized(new { success = false, message = "Sesión expirada." });
+
+            try
+            {
+                var res = await _compraService.ConfirmarRecepcion(id, idUsuario);
+                string msg = res.Success ? res.Message : MensajeErrorHelper.ObtenerMensajeDesdeTexto(res.Message, "confirmar la recepción");
+                return Json(new { success = res.Success, message = msg });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "confirmar la recepción") });
+            }
         }
 
         // POST: /Compras/Anular
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Anular(int id, string motivo)
         {
-            int idUsuario = ObtenerIdUsuarioActual();
-            var res = await _compraService.AnularCompra(id, idUsuario, motivo);
-            return Json(new { success = res.Success, message = res.Message });
-        }
+            if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int idUsuario))
+                return Unauthorized(new { success = false, message = "Sesión expirada." });
 
-        private int ObtenerIdUsuarioActual()
-        {
-            var claimId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return int.TryParse(claimId, out int parsedId) ? parsedId : 1;
+            try
+            {
+                var res = await _compraService.AnularCompra(id, idUsuario, motivo);
+                string msg = res.Success ? res.Message : MensajeErrorHelper.ObtenerMensajeDesdeTexto(res.Message, "anular la compra");
+                return Json(new { success = res.Success, message = msg });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "anular la compra") });
+            }
         }
     }
 }

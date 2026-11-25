@@ -36,7 +36,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@MotivoFalla", reclamo.MotivoFalla));
                 cmd.Parameters.Add(new SqlParameter("@EstadoRevision", reclamo.EstadoRevision));
                 cmd.Parameters.Add(new SqlParameter("@IdSerieVendida", reclamo.IdSerieVendida == null ? DBNull.Value : reclamo.IdSerieVendida));
-                cmd.Parameters.Add(new SqlParameter("@AccionTomada", reclamo.AccionTomada == null ? DBNull.Value : reclamo.AccionTomada));
+                cmd.Parameters.Add(new SqlParameter("@AccionTomada", string.IsNullOrWhiteSpace(reclamo.AccionTomada) ? DBNull.Value : reclamo.AccionTomada));
                 cmd.Parameters.Add(new SqlParameter("@DescripcionResolucion", reclamo.DescripcionResolucion == null ? DBNull.Value : reclamo.DescripcionResolucion));
                 cmd.Parameters.Add(new SqlParameter("@FechaResolucion", reclamo.FechaResolucion == null ? DBNull.Value : reclamo.FechaResolucion));
 
@@ -44,7 +44,7 @@ namespace Estructura.Repositorio
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -62,7 +62,7 @@ namespace Estructura.Repositorio
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -120,7 +120,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@IdSerieVendida", reclamo.IdSerieVendida == null ? DBNull.Value : reclamo.IdSerieVendida));
                 cmd.Parameters.Add(new SqlParameter("@FechaReclamo", reclamo.FechaReclamo == default ? DBNull.Value : reclamo.FechaReclamo));
                 cmd.Parameters.Add(new SqlParameter("@EstadoRevision", reclamo.EstadoRevision));
-                cmd.Parameters.Add(new SqlParameter("@AccionTomada", reclamo.AccionTomada == null ? DBNull.Value : reclamo.AccionTomada));
+                cmd.Parameters.Add(new SqlParameter("@AccionTomada", string.IsNullOrWhiteSpace(reclamo.AccionTomada) ? DBNull.Value : reclamo.AccionTomada));
                 cmd.Parameters.Add(new SqlParameter("@DescripcionResolucion", reclamo.DescripcionResolucion == null ? DBNull.Value : reclamo.DescripcionResolucion));
                 cmd.Parameters.Add(new SqlParameter("@FechaResolucion", reclamo.FechaResolucion == null ? DBNull.Value : reclamo.FechaResolucion));
 
@@ -128,7 +128,7 @@ namespace Estructura.Repositorio
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message, ex);
             }
         }
     }

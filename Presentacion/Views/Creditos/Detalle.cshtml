@@ -159,6 +159,8 @@
                             } else {
                                 Swal.fire({ icon: 'error', title: 'No se pudo aplicar', text: res.message });
                             }
+                        }).fail(function () {
+                            Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'No se pudo completar la solicitud. Intente nuevamente.' });
                         });
                     }
                 });

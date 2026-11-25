@@ -82,30 +82,42 @@ namespace Presentacion.Controllers
 
         // POST: /Ventas/RegistrarVenta (AJAX)
         [HttpPost]
-        public async Task<IActionResult> RegistrarVenta([FromBody] VentaRegistroDTO model)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RegistrarVenta([FromBody] VentaRegistroDTO? model)
         {
+            if (model == null)
+                return Json(new { success = false, message = "No se recibieron los datos de la venta." });
+
             if (!ModelState.IsValid)
             {
                 var errors = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
                 return Json(new { success = false, message = errors });
             }
 
-            int idUsuario = 1; // Fallback
-            var claimId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (int.TryParse(claimId, out int parsedId))
+            if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int idUsuario))
             {
-                idUsuario = parsedId;
+                return Unauthorized(new { success = false, message = "Sesión expirada. Vuelve a iniciar sesión." });
             }
 
-            var resultado = await _ventaService.RegistrarVentaCompleta(model, idUsuario);
-
-            return Json(new
+            try
             {
-                success = resultado.Success,
-                message = resultado.Message,
-                idVenta = resultado.IdVenta,
-                numeroFactura = resultado.NumeroFactura
-            });
+                var resultado = await _ventaService.RegistrarVentaCompleta(model, idUsuario);
+                string msg = resultado.Success
+                    ? resultado.Message
+                    : MensajeErrorHelper.ObtenerMensajeDesdeTexto(resultado.Message, "registrar la venta");
+
+                return Json(new
+                {
+                    success = resultado.Success,
+                    message = msg,
+                    idVenta = resultado.IdVenta,
+                    numeroFactura = resultado.NumeroFactura
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "registrar la venta") });
+            }
         }
 
         // GET: /Ventas/Detalle/5
@@ -146,6 +158,7 @@ namespace Presentacion.Controllers
                         MontoRecibido = venta.MontoRecibido,
                         Vuelto = venta.Vuelto,
                         Estado = venta.Estado,
+                        IdUsuarioAutorizaAnulacion = venta.IdUsuarioAutorizaAnulacion,
                         FechaAnulacion = venta.FechaAnulacion,
                         MotivoAnulacion = venta.MotivoAnulacion
                     },
@@ -181,18 +194,25 @@ namespace Presentacion.Controllers
 
         // POST: /Ventas/Anular
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Anular(int id, string motivo)
         {
-            int idUsuario = 1;
-            var claimId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (int.TryParse(claimId, out int parsedId))
+            if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int idUsuario))
             {
-                idUsuario = parsedId;
+                return Unauthorized(new { success = false, message = "Sesión expirada. Vuelve a iniciar sesión." });
             }
 
-            var res = await _ventaService.AnularVenta(id, idUsuario, motivo);
-            return Json(new { success = res.Success, message = res.Message });
+            try
+            {
+                var res = await _ventaService.AnularVenta(id, idUsuario, motivo);
+                string msg = res.Success ? res.Message : MensajeErrorHelper.ObtenerMensajeDesdeTexto(res.Message, "anular la venta");
+                return Json(new { success = res.Success, message = msg });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "anular la venta") });
+            }
         }
     }
 }

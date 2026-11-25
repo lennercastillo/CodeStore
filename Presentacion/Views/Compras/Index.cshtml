@@ -50,7 +50,7 @@
                         var provNombre = proveedoresDict.ContainsKey(item.IdProveedor) ? proveedoresDict[item.IdProveedor] : $"Proveedor #{item.IdProveedor}";
                         <tr>
                             <td><span class="badge bg-dark-lt font-monospace fs-5">@item.NumeroDocumento</span></td>
-                            <td>
+                            <td data-order="@item.FechaCompra.ToString("yyyyMMddHHmmss")">
                                 <div class="text-dark fw-medium">@item.FechaCompra.ToString("dd/MM/yyyy")</div>
                                 <div class="text-secondary small">@item.FechaCompra.ToString("hh:mm tt")</div>
                             </td>
@@ -110,13 +110,13 @@
             @if (TempData["Success"] != null)
             {
                 <text>
-                Swal.fire({ icon: 'success', title: '¡Éxito!', text: '@Html.Raw(TempData["Success"])', timer: 3000, showConfirmButton: false });
+                Swal.fire({ icon: 'success', title: '¡Éxito!', text: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Success"])), timer: 3000, showConfirmButton: false });
                 </text>
             }
             @if (TempData["Error"] != null)
             {
                 <text>
-                Swal.fire({ icon: 'error', title: 'Atención', text: '@Html.Raw(TempData["Error"])' });
+                Swal.fire({ icon: 'error', title: 'Atención', text: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Error"])) });
                 </text>
             }
 
@@ -140,6 +140,8 @@
                             } else {
                                 Swal.fire({ icon: 'error', title: 'Error', text: res.message });
                             }
+                        }).fail(function () {
+                            Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'No se pudo completar la solicitud. Intente nuevamente.' });
                         });
                     }
                 });
@@ -170,6 +172,8 @@
                             } else {
                                 Swal.fire({ icon: 'error', title: 'No se pudo anular', text: res.message });
                             }
+                        }).fail(function () {
+                            Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'No se pudo completar la solicitud. Intente nuevamente.' });
                         });
                     }
                 });

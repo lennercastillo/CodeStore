@@ -65,21 +65,38 @@ namespace Presentacion.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Ajuste(int idProducto, string tipoMovimiento, int cantidad, string justificacion)
         {
-            int idUsuario = 1;
-            var claimId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (int.TryParse(claimId, out int parsed))
-                idUsuario = parsed;
+            if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int idUsuario))
+                return RedirectToAction("Login", "Account");
 
-            var res = await _kardexService.RegistrarAjuste(idProducto, tipoMovimiento, cantidad, justificacion, idUsuario);
-            if (res.Success)
+            try
             {
-                TempData["Success"] = res.Message;
-                return RedirectToAction(nameof(Index));
+                var res = await _kardexService.RegistrarAjuste(idProducto, tipoMovimiento, cantidad, justificacion, idUsuario);
+                if (res.Success)
+                {
+                    TempData["Success"] = res.Message;
+                    return RedirectToAction(nameof(Index));
+                }
+
+                TempData["Error"] = MensajeErrorHelper.ObtenerMensajeDesdeTexto(res.Message, "registrar el ajuste de inventario");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "registrar el ajuste de inventario");
             }
 
-            TempData["Error"] = res.Message;
-            var productos = await _productosService.ListarProducto();
-            ViewBag.Productos = productos.Where(p => p.Activo).ToList();
+            try
+            {
+                var productos = await _productosService.ListarProducto();
+                ViewBag.Productos = productos.Where(p => p.Activo).ToList();
+            }
+            catch
+            {
+                ViewBag.Productos = new List<DTOSProductos>();
+            }
+            ViewBag.IdProducto = idProducto;
+            ViewBag.TipoMovimiento = tipoMovimiento;
+            ViewBag.Cantidad = cantidad;
+            ViewBag.Justificacion = justificacion;
             return View();
         }
     }

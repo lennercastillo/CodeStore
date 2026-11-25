@@ -50,8 +50,8 @@ namespace Aplicacion.Services
                 FechaReclamo = dt.FechaReclamo,
                 MotivoFalla = dt.MotivoFalla,
                 EstadoRevision = dt.EstadoRevision,
-                AccionTomada = dt.AccionTomada,
-                DescripcionResolucion = dt.DescripcionResolucion,
+                AccionTomada = string.IsNullOrWhiteSpace(dt.AccionTomada) ? null : dt.AccionTomada.Trim(),
+                DescripcionResolucion = string.IsNullOrWhiteSpace(dt.DescripcionResolucion) ? null : dt.DescripcionResolucion.Trim(),
                 FechaResolucion = dt.FechaResolucion
             };
             await _repo.NuevoReclamoGarantiaAsync(nr);
@@ -69,8 +69,8 @@ namespace Aplicacion.Services
                 FechaReclamo = dt.FechaReclamo,
                 MotivoFalla = dt.MotivoFalla,
                 EstadoRevision = dt.EstadoRevision,
-                AccionTomada = dt.AccionTomada,
-                DescripcionResolucion = dt.DescripcionResolucion,
+                AccionTomada = string.IsNullOrWhiteSpace(dt.AccionTomada) ? null : dt.AccionTomada.Trim(),
+                DescripcionResolucion = string.IsNullOrWhiteSpace(dt.DescripcionResolucion) ? null : dt.DescripcionResolucion.Trim(),
                 FechaResolucion = dt.FechaResolucion
             };
             await _repo.EditarReclamoGarantiaAsync(er);

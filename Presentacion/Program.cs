@@ -1,13 +1,16 @@
 using Aplicacion.Interface;
 using Aplicacion.Services;
-using Dominio.Entidades;
 using Estructura.database;
 using Estructura.Repositorio;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var con = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddSingleton(new BD(con!));
+if (string.IsNullOrWhiteSpace(con))
+{
+    throw new InvalidOperationException("No se encontró configurada la cadena de conexión 'DefaultConnection'.");
+}
+builder.Services.AddSingleton(new BD(con));
 
 // Repositorios
 builder.Services.AddScoped<IRol, RolesRepositorio>();

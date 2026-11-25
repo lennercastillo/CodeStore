@@ -4,11 +4,11 @@ namespace Aplicacion.DTOs
 {
     public class VentaItemDTO
     {
-        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un producto válido")]
         public int IdProducto { get; set; }
 
-        public string Nombre { get; set; } = string.Empty;
-        public string CodigoSKU { get; set; } = string.Empty;
+        public string? Nombre { get; set; }
+        public string? CodigoSKU { get; set; }
 
         [Range(1, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor a 0")]
         public int Cantidad { get; set; }
@@ -19,28 +19,30 @@ namespace Aplicacion.DTOs
         public decimal Subtotal => Cantidad * PrecioUnitario;
 
         public bool RequiereSerie { get; set; } = false;
-        public List<string> Series { get; set; } = new();
+        public List<string>? Series { get; set; } = new();
     }
 
     public class VentaRegistroDTO
     {
-        [Required(ErrorMessage = "Debe seleccionar un cliente")]
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un cliente válido")]
         public int IdCliente { get; set; }
 
+        [StringLength(30, ErrorMessage = "El número de factura no puede exceder 30 caracteres")]
         public string? NumeroFactura { get; set; }
 
         [Required]
         public string TipoVenta { get; set; } = "Contado"; // "Contado" o "Credito"
 
         [Required]
-        public string MetodoPago { get; set; } = "Efectivo"; // "Efectivo", "Tarjeta", "Transferencia", "Credito"
+        public string MetodoPago { get; set; } = "Efectivo"; // "Efectivo", "Tarjeta", "Transferencia", "Mixto", "Credito"
 
-        [Range(0, 100)]
+        [Range(0, 100, ErrorMessage = "El impuesto debe estar entre 0% y 100%")]
         public decimal PorcentajeImpuesto { get; set; } = 15.00m;
 
-        [Range(0, double.MaxValue)]
+        [Range(0, double.MaxValue, ErrorMessage = "El monto recibido no puede ser negativo")]
         public decimal MontoRecibido { get; set; }
 
+        [StringLength(255)]
         public string? Observaciones { get; set; }
 
         [MinLength(1, ErrorMessage = "Debe agregar al menos un producto a la venta")]
@@ -50,10 +52,10 @@ namespace Aplicacion.DTOs
         [Range(0, double.MaxValue, ErrorMessage = "La prima inicial no puede ser negativa")]
         public decimal PrimaInicial { get; set; } = 0;
 
-        [Range(1, 120, ErrorMessage = "La cantidad de cuotas debe estar entre 1 y 120")]
+        [Range(0, 120, ErrorMessage = "La cantidad de cuotas debe estar entre 1 y 120")]
         public int CantidadCuotas { get; set; } = 1;
 
-        public string FrecuenciaPago { get; set; } = "Mensual"; // "Semanal", "Quincenal", "Mensual"
+        public string? FrecuenciaPago { get; set; } = "Mensual"; // "Semanal", "Quincenal", "Mensual"
 
         [Range(0, 100, ErrorMessage = "El porcentaje de interés no puede ser negativo")]
         public decimal PorcentajeInteres { get; set; } = 0;

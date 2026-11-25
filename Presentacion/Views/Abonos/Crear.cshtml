@@ -43,7 +43,7 @@
                         <option value="">-- Seleccione la cuota a abonar --</option>
                         @foreach (var c in cuotas)
                         {
-                            <option value="@c.IdCuota" data-saldo="@c.SaldoCuota" selected="@(idSel == (int)c.IdCuota)">@c.Texto</option>
+                            <option value="@c.IdCuota" data-saldo="@(((decimal)c.SaldoCuota).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture))" selected="@(idSel == (int)c.IdCuota)">@c.Texto</option>
                         }
                     </select>
                 </div>
@@ -53,7 +53,7 @@
                         <label class="form-label required">Monto a Abonar (C$)</label>
                         <div class="input-group">
                             <span class="input-group-text">C$</span>
-                            <input type="number" name="montoAbono" id="inputMontoAbono" step="0.01" min="0.01" class="form-control form-control-lg fw-bold text-success" required />
+                            <input type="number" name="montoAbono" id="inputMontoAbono" step="0.01" min="0.01" value="@(ViewBag.MontoAbono != null ? ((decimal)ViewBag.MontoAbono).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) : "")" class="form-control form-control-lg fw-bold text-success" required />
                         </div>
                         <div class="text-secondary small mt-1" id="saldoInfo">Seleccione una cuota para ver su saldo máximo.</div>
                     </div>
@@ -61,16 +61,16 @@
                     <div class="col-md-6">
                         <label class="form-label required">Método de Pago</label>
                         <select name="metodoPago" class="form-select form-select-lg" required>
-                            <option value="Efectivo">Efectivo</option>
-                            <option value="Tarjeta">Tarjeta</option>
-                            <option value="Transferencia">Transferencia</option>
+                            <option value="Efectivo" selected="@(ViewBag.MetodoPago == "Efectivo" || ViewBag.MetodoPago == null)">Efectivo</option>
+                            <option value="Tarjeta" selected="@(ViewBag.MetodoPago == "Tarjeta")">Tarjeta</option>
+                            <option value="Transferencia" selected="@(ViewBag.MetodoPago == "Transferencia")">Transferencia</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Observaciones</label>
-                    <textarea name="observaciones" rows="2" class="form-control" placeholder="Referencia de transferencia, notas del pago..."></textarea>
+                    <textarea name="observaciones" rows="2" class="form-control" placeholder="Referencia de transferencia, notas del pago...">@ViewBag.Observaciones</textarea>
                 </div>
             </div>
 

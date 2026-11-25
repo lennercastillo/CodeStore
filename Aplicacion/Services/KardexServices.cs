@@ -91,10 +91,25 @@ namespace Aplicacion.Services
             string justificacion,
             int idUsuario)
         {
+            if (idProducto <= 0)
+                return (false, "Debe seleccionar un producto válido.");
+            if (cantidad <= 0)
+                return (false, "La cantidad debe ser mayor a cero.");
+            if (idUsuario <= 0)
+                return (false, "Usuario inválido.");
             if (string.IsNullOrWhiteSpace(justificacion))
                 return (false, "La justificación del ajuste es obligatoria.");
 
-            return await _repo.RegistrarAjusteInventarioAsync(idProducto, tipoMovimiento, cantidad, justificacion.Trim(), idUsuario);
+            string? tipoNorm = new[] { "Ajuste de Entrada", "Ajuste de Salida", "Baja de Inventario", "Salida por Reemplazo Garantia" }
+                .FirstOrDefault(t => string.Equals(t, tipoMovimiento?.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (tipoNorm == null)
+                return (false, "Tipo de movimiento no permitido para ajuste manual.");
+
+            string justLimpia = justificacion.Trim();
+            if (justLimpia.Length > 255)
+                justLimpia = justLimpia[..255];
+
+            return await _repo.RegistrarAjusteInventarioAsync(idProducto, tipoNorm, cantidad, justLimpia, idUsuario);
         }
     }
 }
