@@ -286,3 +286,52 @@
         </div>
     </div>
 </div>
+
+@if (User.IsInRole("Administrador"))
+{
+    <div class="modal modal-blur fade" id="modalTerminos" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">
+                        <i class="ti ti-file-text me-2 text-primary"></i>Términos y Condiciones de CodeStore
+                    </h5>
+                </div>
+                <div class="modal-body text-secondary">
+                    <p class="mb-2">
+                        Bienvenido a <strong>CodeStore</strong>. Antes de comenzar a operar el sistema, te invitamos a revisar las condiciones de licencia, uso, soporte y respaldo de datos.
+                    </p>
+                    <p class="mb-0 small">
+                        Al continuar, confirmás que leíste y aceptás los términos aplicables al uso del software.
+                    </p>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <a asp-controller="Home" asp-action="Terminos" target="_blank" class="btn btn-outline-primary">
+                        <i class="ti ti-external-link me-1"></i> Leer Términos
+                    </a>
+                    <button type="button" id="btnAceptarTerminos" class="btn btn-primary">
+                        <i class="ti ti-check me-1"></i> Aceptar y Continuar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+        <script>
+            $(document).ready(function () {
+                const clave = 'codestore_terminos_aceptados';
+                if (!localStorage.getItem(clave)) {
+                    const modalEl = document.getElementById('modalTerminos');
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+
+                    $('#btnAceptarTerminos').on('click', function () {
+                        localStorage.setItem(clave, '1');
+                        modal.hide();
+                    });
+                }
+            });
+        </script>
+    }
+}
