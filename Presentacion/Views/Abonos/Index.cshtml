@@ -4,6 +4,8 @@
     ViewData["Title"] = "Pagos y Abonos";
     var totalRecaudado = Model.Where(a => a.Estado == "Activo").Sum(a => a.MontoAbono);
     var infoCuotas = ViewBag.InfoCuotas as Dictionary<int, string> ?? new Dictionary<int, string>();
+    var productosCuota = ViewBag.ProductosCuota as Dictionary<int, string> ?? new Dictionary<int, string>();
+    var vendedorCuota = ViewBag.VendedorCuota as Dictionary<int, string> ?? new Dictionary<int, string>();
 }
 
 <div class="page-header d-print-none mb-4">
@@ -27,7 +29,7 @@
         <h3 class="card-title fw-bold text-dark m-0">
             <i class="ti ti-receipt me-2 text-primary"></i>Historial de Recibos
         </h3>
-        <span class="badge bg-success-lt fs-4">Total Recaudado: C$ @totalRecaudado.ToString("N2")</span>
+        <span class="badge bg-success-lt fs-4">Total Recaudado: $ @totalRecaudado.ToString("N2")</span>
     </div>
 
     <div class="card-body p-3">
@@ -38,6 +40,8 @@
                         <th class="w-1">Recibo</th>
                         <th>Fecha</th>
                         <th>Cuota</th>
+                        <th>Producto(s)</th>
+                        <th>Vendedor</th>
                         <th>Método</th>
                         <th class="text-end">A Mora</th>
                         <th class="text-end">A Capital</th>
@@ -50,6 +54,8 @@
                     @foreach (var item in Model)
                     {
                         var infoCuota = infoCuotas.ContainsKey(item.IdCuota) ? infoCuotas[item.IdCuota] : $"Cuota #{item.IdCuota}";
+                        var prodTexto = productosCuota.ContainsKey(item.IdCuota) ? productosCuota[item.IdCuota] : "-";
+                        var vendTexto = vendedorCuota.ContainsKey(item.IdCuota) ? vendedorCuota[item.IdCuota] : "N/D";
                         <tr>
                             <td><span class="badge bg-dark-lt font-monospace">@item.NumeroRecibo</span></td>
                             <td>
@@ -57,10 +63,12 @@
                                 <div class="text-secondary small">@item.FechaAbono.ToString("hh:mm tt")</div>
                             </td>
                             <td><span class="text-dark small fw-medium">@infoCuota</span></td>
+                            <td><span class="text-secondary small">@prodTexto</span></td>
+                            <td><span class="text-secondary small">@vendTexto</span></td>
                             <td>@item.MetodoPago</td>
-                            <td class="text-end text-danger">C$ @item.MontoAplicadoMora.ToString("N2")</td>
-                            <td class="text-end text-dark">C$ @item.MontoAplicadoCapital.ToString("N2")</td>
-                            <td class="text-end fw-bold text-success">C$ @item.MontoAbono.ToString("N2")</td>
+                            <td class="text-end text-danger">$ @item.MontoAplicadoMora.ToString("N2")</td>
+                            <td class="text-end text-dark">$ @item.MontoAplicadoCapital.ToString("N2")</td>
+                            <td class="text-end fw-bold text-success">$ @item.MontoAbono.ToString("N2")</td>
                             <td class="text-center">
                                 <span class="badge @(item.Estado == "Activo" ? "bg-success-lt" : "bg-danger-lt")">@item.Estado</span>
                             </td>

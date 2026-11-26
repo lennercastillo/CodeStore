@@ -15,7 +15,7 @@
             </h2>
         </div>
         <div class="col-auto ms-auto d-print-none">
-            <a asp-action="Index" class="btn btn-outline-secondary">
+            <a asp-controller="Productos" asp-action="Index" class="btn btn-outline-secondary">
                 <i class="ti ti-arrow-left me-1"></i> Volver al Catálogo
             </a>
         </div>
@@ -99,7 +99,7 @@
                     <div class="col-md-4">
                         <label asp-for="PrecioVenta" class="form-label required"></label>
                         <div class="input-group">
-                            <span class="input-group-text">C$</span>
+                            <span class="input-group-text">$</span>
                             <input asp-for="PrecioVenta" type="number" step="0.01" class="form-control" />
                         </div>
                         <span asp-validation-for="PrecioVenta" class="text-danger small"></span>
@@ -107,20 +107,18 @@
 
                     <div class="col-md-4">
                         <label asp-for="UltimoCostoCompra" class="form-label"></label>
-                        <div class="input-group">
-                            <span class="input-group-text">C$</span>
-                            <input asp-for="UltimoCostoCompra" type="number" step="0.01" class="form-control" />
+                        <input type="hidden" asp-for="UltimoCostoCompra" />
+                        <div class="form-control-plaintext fw-semibold text-dark px-2 border rounded bg-light">
+                            $ @Model.UltimoCostoCompra.ToString("N2")
                         </div>
-                        <span asp-validation-for="UltimoCostoCompra" class="text-danger small"></span>
                     </div>
 
                     <div class="col-md-4">
                         <label asp-for="CostoPromedio" class="form-label"></label>
-                        <div class="input-group">
-                            <span class="input-group-text">C$</span>
-                            <input asp-for="CostoPromedio" type="number" step="0.01" class="form-control" />
+                        <input type="hidden" asp-for="CostoPromedio" />
+                        <div class="form-control-plaintext fw-semibold text-dark px-2 border rounded bg-light">
+                            $ @Model.CostoPromedio.ToString("N2")
                         </div>
-                        <span asp-validation-for="CostoPromedio" class="text-danger small"></span>
                     </div>
                 </div>
 
@@ -129,8 +127,12 @@
                 <div class="row g-3 mb-4">
                     <div class="col-md-3">
                         <label asp-for="StockActual" class="form-label"></label>
-                        <input asp-for="StockActual" type="number" class="form-control" />
-                        <span asp-validation-for="StockActual" class="text-danger small"></span>
+                        <input type="hidden" asp-for="StockActual" />
+                        <div class="form-control-plaintext px-2 border rounded bg-light">
+                            <span class="badge @(Model.StockActual <= Model.StockMinimo ? "bg-danger text-white" : "bg-success-lt") fs-5">
+                                @Model.StockActual uds
+                            </span>
+                        </div>
                     </div>
 
                     <div class="col-md-3">
@@ -189,7 +191,7 @@
             </div>
 
             <div class="card-footer bg-light py-3 d-flex justify-content-between align-items-center">
-                <a asp-action="Index" class="btn btn-link link-secondary">Cancelar</a>
+                <a asp-controller="Productos" asp-action="Index" class="btn btn-link link-secondary">Cancelar</a>
                 <button type="submit" class="btn btn-primary d-inline-flex align-items-center">
                     <i class="ti ti-device-floppy me-2 fs-3"></i> Guardar Cambios
                 </button>

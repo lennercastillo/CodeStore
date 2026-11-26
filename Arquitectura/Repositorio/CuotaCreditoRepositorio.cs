@@ -140,7 +140,7 @@ namespace Estructura.Repositorio
                 cmd.Parameters.Add(new SqlParameter("@RecargoMora", recargoMora));
 
                 await cmd.ExecuteNonQueryAsync();
-                return (true, $"Recargo por mora actualizado a C$ {recargoMora:N2}.");
+                return (true, $"Recargo por mora actualizado a $ {recargoMora:N2}.");
             }
             catch (Exception ex)
             {

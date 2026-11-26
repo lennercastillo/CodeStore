@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Historial de Ventas";
     var clientesDict = ViewBag.Clientes as Dictionary<int, string> ?? new Dictionary<int, string>();
+    var vendedoresDict = ViewBag.Vendedores as Dictionary<int, string> ?? new Dictionary<int, string>();
     var totalVentas = Model.Count();
     var montoTotal = Model.Where(v => v.Estado == "Completada").Sum(v => v.TotalVenta);
     var contado = Model.Count(v => v.TipoVenta == "Contado");
@@ -56,7 +57,7 @@
                     </div>
                     <div class="col">
                         <div class="text-secondary small fw-medium">Ingresos Facturados</div>
-                        <div class="fs-2 fw-bold text-success">C$ @montoTotal.ToString("N2")</div>
+                        <div class="fs-2 fw-bold text-success">$ @montoTotal.ToString("N2")</div>
                     </div>
                 </div>
             </div>
@@ -115,6 +116,7 @@
                         <th class="w-1">Factura</th>
                         <th>Fecha</th>
                         <th>Cliente</th>
+                        <th>Vendedor</th>
                         <th>Tipo / Pago</th>
                         <th class="text-end">Subtotal</th>
                         <th class="text-end">IVA (15%)</th>
@@ -127,6 +129,7 @@
                     @foreach (var item in Model)
                     {
                         var clienteNombre = clientesDict.ContainsKey(item.IdCliente) ? clientesDict[item.IdCliente] : $"Cliente #{item.IdCliente}";
+                        var vendedorNombre = vendedoresDict.ContainsKey(item.IdUsuarioVendedor) ? vendedoresDict[item.IdUsuarioVendedor] : $"Usuario #{item.IdUsuarioVendedor}";
                         <tr>
                             <td>
                                 <span class="badge bg-dark-lt font-monospace fs-5">@item.NumeroFactura</span>
@@ -139,6 +142,9 @@
                                 <div class="fw-semibold text-dark">@clienteNombre</div>
                             </td>
                             <td>
+                                <div class="text-secondary small">@vendedorNombre</div>
+                            </td>
+                            <td>
                                 <div>
                                     <span class="badge @(item.TipoVenta == "Contado" ? "bg-azure-lt" : "bg-purple-lt") me-1">
                                         @item.TipoVenta
@@ -147,13 +153,13 @@
                                 </div>
                             </td>
                             <td class="text-end text-secondary">
-                                C$ @item.Subtotal.ToString("N2")
+                                $ @item.Subtotal.ToString("N2")
                             </td>
                             <td class="text-end text-secondary">
-                                C$ @item.Impuesto.ToString("N2")
+                                $ @item.Impuesto.ToString("N2")
                             </td>
                             <td class="text-end fw-bold text-success fs-4">
-                                C$ @item.TotalVenta.ToString("N2")
+                                $ @item.TotalVenta.ToString("N2")
                             </td>
                             <td class="text-center">
                                 @if (item.Estado == "Completada")

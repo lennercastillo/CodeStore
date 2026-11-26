@@ -1,4 +1,4 @@
-@model Aplicacion.DTOs.DTOSAbono
+﻿@model Aplicacion.DTOs.DTOSAbono
 
 @{
     ViewData["Title"] = $"Recibo {Model.NumeroRecibo}";
@@ -71,15 +71,15 @@
                     <tbody>
                         <tr>
                             <td>Aplicación a Mora</td>
-                            <td class="text-end">C$ @Model.MontoAplicadoMora.ToString("N2")</td>
+                            <td class="text-end">$ @Model.MontoAplicadoMora.ToString("N2")</td>
                         </tr>
                         <tr>
                             <td>Aplicación a Capital / Interés</td>
-                            <td class="text-end">C$ @Model.MontoAplicadoCapital.ToString("N2")</td>
+                            <td class="text-end">$ @Model.MontoAplicadoCapital.ToString("N2")</td>
                         </tr>
                         <tr class="table-success">
                             <td class="fw-bold fs-3">Total Abonado</td>
-                            <td class="text-end fw-bold fs-2 text-success">C$ @Model.MontoAbono.ToString("N2")</td>
+                            <td class="text-end fw-bold fs-2 text-success">$ @Model.MontoAbono.ToString("N2")</td>
                         </tr>
                     </tbody>
                 </table>
@@ -87,7 +87,7 @@
                 @if (credito != null)
                 {
                     <div class="alert alert-info mb-0">
-                        <strong>Saldo Pendiente Actual del Crédito:</strong> C$ @credito.SaldoPendiente.ToString("N2")
+                        <strong>Saldo Pendiente Actual del Crédito:</strong> $ @credito.SaldoPendiente.ToString("N2")
                         <span class="badge bg-blue-lt ms-2">@credito.Estado</span>
                     </div>
                 }

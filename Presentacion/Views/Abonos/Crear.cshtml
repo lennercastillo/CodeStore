@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewData["Title"] = "Registrar Abono";
     var cuotas = ViewBag.CuotasPendientes as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
     int? idSel = ViewBag.IdCuotaSeleccionada as int?;
@@ -50,9 +50,9 @@
 
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
-                        <label class="form-label required">Monto a Abonar (C$)</label>
+                        <label class="form-label required">Monto a Abonar ($)</label>
                         <div class="input-group">
-                            <span class="input-group-text">C$</span>
+                            <span class="input-group-text">$</span>
                             <input type="number" name="montoAbono" id="inputMontoAbono" step="0.01" min="0.01" value="@(ViewBag.MontoAbono != null ? ((decimal)ViewBag.MontoAbono).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) : "")" class="form-control form-control-lg fw-bold text-success" required />
                         </div>
                         <div class="text-secondary small mt-1" id="saldoInfo">Seleccione una cuota para ver su saldo máximo.</div>
@@ -94,7 +94,7 @@
                 if (!$('#inputMontoAbono').val()) {
                     $('#inputMontoAbono').val(saldo.toFixed(2));
                 }
-                $('#saldoInfo').html(`Saldo pendiente de esta cuota: <strong class="text-primary">C$ ${saldo.toFixed(2)}</strong>`);
+                $('#saldoInfo').html(`Saldo pendiente de esta cuota: <strong class="text-primary">$ ${saldo.toFixed(2)}</strong>`);
             } else {
                 $('#saldoInfo').text('Seleccione una cuota para ver su saldo máximo.');
             }

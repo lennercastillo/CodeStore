@@ -67,6 +67,47 @@ namespace Presentacion.Controllers
             }
         }
 
+        // POST: /Clientes/CrearRapido (AJAX desde POS)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CrearRapido([FromBody] DTOsClientes? model)
+        {
+            if (model == null)
+                return Json(new { success = false, message = "No se recibieron los datos del cliente." });
+
+            model.Activo = true;
+
+            if (!ModelState.IsValid)
+            {
+                var errors = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                return Json(new { success = false, message = errors });
+            }
+
+            try
+            {
+                await _clientesService.NuevoClientes(model);
+                var lista = await _clientesService.ListaClientes();
+                var creado = lista
+                    .OrderByDescending(c => c.IdCliente)
+                    .FirstOrDefault(c => string.Equals(c.NumeroIdentificacion?.Trim(), model.NumeroIdentificacion.Trim(), StringComparison.OrdinalIgnoreCase));
+
+                if (creado == null)
+                    return Json(new { success = false, message = "Cliente guardado, pero no se pudo recuperar su identificador." });
+
+                return Json(new
+                {
+                    success = true,
+                    message = $"Cliente \"{creado.Nombres} {creado.Apellidos}\" registrado.",
+                    idCliente = creado.IdCliente,
+                    texto = $"{creado.Nombres} {creado.Apellidos} ({creado.NumeroIdentificacion})"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = MensajeErrorHelper.ObtenerMensajeAmigable(ex, "registrar el cliente") });
+            }
+        }
+
         // GET: /Clientes/Editar/5
         public async Task<IActionResult> Editar(int id)
         {

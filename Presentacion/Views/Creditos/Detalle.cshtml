@@ -4,7 +4,9 @@
     ViewData["Title"] = $"Crédito #{Model.IdCredito}";
     var venta = ViewBag.Venta as Dominio.Entidades.Venta;
     var cliente = ViewBag.Cliente as Aplicacion.DTOs.DTOsClientes;
+    var vendedor = ViewBag.Vendedor as Aplicacion.DTOs.DTOSUsuario;
     var cuotas = ViewBag.Cuotas as List<Aplicacion.DTOs.DTOSCuotaCredito> ?? new List<Aplicacion.DTOs.DTOSCuotaCredito>();
+    const int diasPlazoGracia = 5;
 }
 
 <div class="page-header d-print-none mb-4">
@@ -31,20 +33,21 @@
                 <div class="text-secondary small">Cliente</div>
                 <div class="fw-bold fs-3 text-dark">@(cliente != null ? $"{cliente.Nombres} {cliente.Apellidos}" : "Cliente N/D")</div>
                 <div class="text-secondary small">Factura: <span class="font-monospace">@(venta?.NumeroFactura ?? $"#{Model.IdVenta}")</span></div>
+                <div class="text-secondary small">Vendedor: <strong class="text-dark">@(vendedor != null ? $"{vendedor.Nombres} {vendedor.Apellidos}" : "N/D")</strong></div>
             </div>
             <div class="col-md-2">
                 <div class="text-secondary small">Total Venta</div>
-                <div class="fw-semibold fs-3">C$ @Model.MontoVentaTotal.ToString("N2")</div>
-                <div class="text-secondary small">Prima: C$ @Model.PrimaInicial.ToString("N2")</div>
+                <div class="fw-semibold fs-3">$ @Model.MontoVentaTotal.ToString("N2")</div>
+                <div class="text-secondary small">Prima: $ @Model.PrimaInicial.ToString("N2")</div>
             </div>
             <div class="col-md-2">
                 <div class="text-secondary small">Total Financiado</div>
-                <div class="fw-semibold fs-3">C$ @Model.MontoTotalCredito.ToString("N2")</div>
+                <div class="fw-semibold fs-3">$ @Model.MontoTotalCredito.ToString("N2")</div>
                 <div class="text-secondary small">Interés: @Model.PorcentajeInteres%</div>
             </div>
             <div class="col-md-2">
                 <div class="text-secondary small">Saldo Pendiente</div>
-                <div class="fw-bold fs-2 @(Model.SaldoPendiente > 0 ? "text-danger" : "text-success")">C$ @Model.SaldoPendiente.ToString("N2")</div>
+                <div class="fw-bold fs-2 @(Model.SaldoPendiente > 0 ? "text-danger" : "text-success")">$ @Model.SaldoPendiente.ToString("N2")</div>
             </div>
             <div class="col-md-2 text-md-end">
                 <div class="text-secondary small mb-1">Estado</div>
@@ -79,23 +82,30 @@
                 <tbody>
                     @foreach (var c in cuotas)
                     {
-                        bool vencida = c.Estado != "Pagada" && c.Estado != "Anulada" && c.FechaVencimiento.Date < DateTime.Today;
-                        <tr class="@(vencida ? "table-danger" : "")">
+                        bool pendiente = c.Estado != "Pagada" && c.Estado != "Anulada";
+                        int diasAtraso = pendiente ? (DateTime.Today - c.FechaVencimiento.Date).Days : 0;
+                        bool retrasada = pendiente && diasAtraso > diasPlazoGracia;
+                        bool enPlazoGracia = pendiente && diasAtraso > 0 && diasAtraso <= diasPlazoGracia;
+                        <tr class="@(retrasada ? "table-danger" : enPlazoGracia ? "table-warning" : "")">
                             <td class="text-center fw-bold">@c.NumeroCuota</td>
                             <td>
                                 @c.FechaVencimiento.ToString("dd/MM/yyyy")
-                                @if (vencida)
+                                @if (retrasada)
                                 {
-                                    <span class="badge bg-danger text-white ms-1">Vencida</span>
+                                    <span class="badge bg-danger text-white ms-1">Retrasada (@diasAtraso d)</span>
+                                }
+                                else if (enPlazoGracia)
+                                {
+                                    <span class="badge bg-warning text-dark ms-1">En plazo (@diasAtraso/@diasPlazoGracia d)</span>
                                 }
                             </td>
-                            <td class="text-end">C$ @c.MontoCuota.ToString("N2")</td>
-                            <td class="text-end text-danger">C$ @c.RecargoMora.ToString("N2")</td>
-                            <td class="text-end text-success">C$ @c.MontoAbonado.ToString("N2")</td>
-                            <td class="text-end fw-bold">C$ @c.SaldoCuota.ToString("N2")</td>
+                            <td class="text-end">$ @c.MontoCuota.ToString("N2")</td>
+                            <td class="text-end text-danger">$ @c.RecargoMora.ToString("N2")</td>
+                            <td class="text-end text-success">$ @c.MontoAbonado.ToString("N2")</td>
+                            <td class="text-end fw-bold">$ @c.SaldoCuota.ToString("N2")</td>
                             <td class="text-center">
-                                <span class="badge @(c.Estado == "Pagada" ? "bg-success-lt" : c.Estado == "Parcial" ? "bg-azure-lt" : c.Estado == "Anulada" ? "bg-danger-lt" : "bg-warning-lt")">
-                                    @c.Estado
+                                <span class="badge @(c.Estado == "Pagada" ? "bg-success-lt" : retrasada ? "bg-danger text-white" : c.Estado == "Parcial" ? "bg-azure-lt" : c.Estado == "Anulada" ? "bg-danger-lt" : "bg-warning-lt")">
+                                    @(retrasada ? "Retrasada" : c.Estado)
                                 </span>
                             </td>
                             <td class="text-center text-nowrap">
@@ -138,7 +148,7 @@
                 Swal.fire({
                     title: `Recargo por Mora - Cuota #${num}`,
                     input: 'number',
-                    inputLabel: 'Monto de mora (C$)',
+                    inputLabel: 'Monto de mora ($)',
                     inputValue: moraActual,
                     inputAttributes: { min: '0', step: '0.01' },
                     icon: 'warning',

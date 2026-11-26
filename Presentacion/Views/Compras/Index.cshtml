@@ -1,4 +1,4 @@
-@model IEnumerable<Aplicacion.DTOs.DTOSCompra>
+﻿@model IEnumerable<Aplicacion.DTOs.DTOSCompra>
 
 @{
     ViewData["Title"] = "Historial de Compras";
@@ -55,7 +55,7 @@
                                 <div class="text-secondary small">@item.FechaCompra.ToString("hh:mm tt")</div>
                             </td>
                             <td><div class="fw-semibold text-dark">@provNombre</div></td>
-                            <td class="text-end fw-bold text-dark fs-4">C$ @item.TotalCompra.ToString("N2")</td>
+                            <td class="text-end fw-bold text-dark fs-4">$ @item.TotalCompra.ToString("N2")</td>
                             <td class="text-center">
                                 @if (item.Estado == "Recibida")
                                 {

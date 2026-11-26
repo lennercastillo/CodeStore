@@ -153,6 +153,14 @@ namespace Presentacion.Controllers
 
             try
             {
+                var actual = await _productosService.ObtenerPorId(model.IdProducto);
+                if (actual != null)
+                {
+                    model.StockActual = actual.StockActual;
+                    model.UltimoCostoCompra = actual.UltimoCostoCompra;
+                    model.CostoPromedio = actual.CostoPromedio;
+                }
+
                 await _productosService.EditarProducto(model);
                 TempData["Success"] = $"El producto \"{model.Nombre}\" ha sido actualizado exitosamente.";
                 return RedirectToAction(nameof(Index));

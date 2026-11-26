@@ -1,4 +1,4 @@
-@model Aplicacion.DTOs.CompraDetalleCompletoDTO
+﻿@model Aplicacion.DTOs.CompraDetalleCompletoDTO
 
 @{
     ViewData["Title"] = $"Compra #{Model.Compra.NumeroDocumento}";
@@ -76,15 +76,15 @@
                                 <div class="text-secondary small font-monospace">@(item.Producto?.CodigoSKU ?? "")</div>
                             </td>
                             <td class="text-center fw-bold">@item.Detalle.Cantidad</td>
-                            <td class="text-end">C$ @item.Detalle.CostoUnitario.ToString("N2")</td>
-                            <td class="text-end fw-bold">C$ @item.Detalle.Subtotal.ToString("N2")</td>
+                            <td class="text-end">$ @item.Detalle.CostoUnitario.ToString("N2")</td>
+                            <td class="text-end fw-bold">$ @item.Detalle.Subtotal.ToString("N2")</td>
                         </tr>
                     }
                 </tbody>
                 <tfoot>
                     <tr>
                         <td colspan="4" class="text-end fs-3 fw-bold">Total Compra:</td>
-                        <td class="text-end fs-2 fw-bold text-primary">C$ @compra.TotalCompra.ToString("N2")</td>
+                        <td class="text-end fs-2 fw-bold text-primary">$ @compra.TotalCompra.ToString("N2")</td>
                     </tr>
                 </tfoot>
             </table>

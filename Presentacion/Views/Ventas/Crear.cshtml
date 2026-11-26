@@ -32,13 +32,18 @@
                 <div class="row g-3 align-items-center">
                     <div class="col-md-6">
                         <label class="form-label required small fw-bold">Cliente</label>
-                        <select id="selectCliente" class="form-select">
-                            <option value="">-- Seleccione un Cliente --</option>
-                            @foreach (var c in clientes)
-                            {
-                                <option value="@c.IdCliente">@c.Nombres @c.Apellidos (@c.NumeroIdentificacion)</option>
-                            }
-                        </select>
+                        <div class="input-group">
+                            <select id="selectCliente" class="form-select">
+                                <option value="">-- Seleccione un Cliente --</option>
+                                @foreach (var c in clientes)
+                                {
+                                    <option value="@c.IdCliente">@c.Nombres @c.Apellidos (@c.NumeroIdentificacion)</option>
+                                }
+                            </select>
+                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoCliente" title="Registrar Nuevo Cliente">
+                                <i class="ti ti-user-plus me-1"></i> Nuevo
+                            </button>
+                        </div>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label required small fw-bold">Modalidad</label>
@@ -109,7 +114,7 @@
                                             <span class="badge bg-success-lt">@p.StockActual uds</span>
                                         }
                                     </td>
-                                    <td class="text-end fw-bold text-success">C$ @p.PrecioVenta.ToString("N2")</td>
+                                    <td class="text-end fw-bold text-success">$ @p.PrecioVenta.ToString("N2")</td>
                                     <td class="text-center">
                                         <button type="button" class="btn btn-sm btn-primary btn-agregar-carrito" @(p.StockActual <= 0 ? "disabled" : "")>
                                             <i class="ti ti-plus"></i>
@@ -170,16 +175,16 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between mb-2">
                     <span class="text-secondary">Subtotal:</span>
-                    <span class="fw-semibold text-dark fs-3" id="resumenSubtotal">C$ 0.00</span>
+                    <span class="fw-semibold text-dark fs-3" id="resumenSubtotal">$ 0.00</span>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
                     <span class="text-secondary">IVA (15%):</span>
-                    <span class="fw-semibold text-dark fs-3" id="resumenImpuesto">C$ 0.00</span>
+                    <span class="fw-semibold text-dark fs-3" id="resumenImpuesto">$ 0.00</span>
                 </div>
                 <div class="hr my-3"></div>
                 <div class="d-flex justify-content-between mb-4 align-items-center">
                     <span class="fs-2 fw-bold text-dark">Total a Pagar:</span>
-                    <span class="fs-1 fw-bold text-success" id="resumenTotal">C$ 0.00</span>
+                    <span class="fs-1 fw-bold text-success" id="resumenTotal">$ 0.00</span>
                 </div>
 
                 <!-- Sección Contado -->
@@ -187,13 +192,13 @@
                     <div class="mb-3">
                         <label class="form-label required small fw-bold">Monto Recibido</label>
                         <div class="input-group">
-                            <span class="input-group-text">C$</span>
+                            <span class="input-group-text">$</span>
                             <input type="number" id="inputMontoRecibido" step="0.01" class="form-control form-control-lg text-end fw-bold" placeholder="0.00" />
                         </div>
                     </div>
                     <div class="d-flex justify-content-between p-2 rounded bg-light mb-3">
                         <span class="fw-medium text-dark">Vuelto / Cambio:</span>
-                        <span class="fw-bold fs-3 text-primary" id="resumenVuelto">C$ 0.00</span>
+                        <span class="fw-bold fs-3 text-primary" id="resumenVuelto">$ 0.00</span>
                     </div>
                 </div>
 
@@ -202,7 +207,7 @@
                     <div class="mb-2">
                         <label class="form-label small fw-bold">Prima Inicial</label>
                         <div class="input-group">
-                            <span class="input-group-text">C$</span>
+                            <span class="input-group-text">$</span>
                             <input type="number" id="inputPrima" step="0.01" value="0.00" class="form-control text-end" />
                         </div>
                     </div>
@@ -227,11 +232,11 @@
                     <div class="p-2 rounded bg-purple-lt mb-3 small">
                         <div class="d-flex justify-content-between">
                             <span>Financiado:</span>
-                            <strong id="creditoFinanciado">C$ 0.00</strong>
+                            <strong id="creditoFinanciado">$ 0.00</strong>
                         </div>
                         <div class="d-flex justify-content-between">
                             <span>Valor Cuota:</span>
-                            <strong id="creditoValorCuota">C$ 0.00</strong>
+                            <strong id="creditoValorCuota">$ 0.00</strong>
                         </div>
                     </div>
                 </div>
@@ -245,6 +250,56 @@
                     <i class="ti ti-check me-2 fs-2"></i> Emitir Factura
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nuevo Cliente -->
+<div class="modal fade" id="modalNuevoCliente" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">
+                    <i class="ti ti-user-plus me-2 text-primary"></i>Registrar Cliente Nuevo
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <form id="formNuevoCliente">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label required">Número de Identificación / Cédula</label>
+                            <input type="text" id="ncIdentificacion" class="form-control" maxlength="25" required placeholder="Ej: 001-010190-0000A" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Nombres</label>
+                            <input type="text" id="ncNombres" class="form-control" maxlength="100" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Apellidos</label>
+                            <input type="text" id="ncApellidos" class="form-control" maxlength="100" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" id="ncTelefono" class="form-control" maxlength="20" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Correo</label>
+                            <input type="email" id="ncCorreo" class="form-control" maxlength="120" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Dirección</label>
+                            <textarea id="ncDireccion" rows="2" class="form-control" maxlength="250"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" id="btnGuardarClienteRapido" class="btn btn-primary">
+                        <i class="ti ti-device-floppy me-1"></i> Guardar Cliente
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -329,6 +384,48 @@
             $('#btnProcesarVenta').on('click', function () {
                 procesarVenta();
             });
+
+            // Registro rápido de cliente desde POS
+            $('#formNuevoCliente').on('submit', function (e) {
+                e.preventDefault();
+                const btn = $('#btnGuardarClienteRapido');
+                btn.prop('disabled', true);
+
+                const payload = {
+                    numeroIdentificacion: $('#ncIdentificacion').val().trim(),
+                    nombres: $('#ncNombres').val().trim(),
+                    apellidos: $('#ncApellidos').val().trim(),
+                    telefono: $('#ncTelefono').val().trim() || null,
+                    correo: $('#ncCorreo').val().trim() || null,
+                    direccion: $('#ncDireccion').val().trim() || null
+                };
+
+                $.ajax({
+                    url: '@Url.Action("CrearRapido", "Clientes")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload),
+                    success: function (res) {
+                        if (res.success) {
+                            const nuevaOpcion = new Option(res.texto, res.idCliente, true, true);
+                            $('#selectCliente').append(nuevaOpcion).trigger('change');
+                            $('#formNuevoCliente')[0].reset();
+                            const modalEl = document.getElementById('modalNuevoCliente');
+                            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                            modal.hide();
+                            Swal.fire({ icon: 'success', title: 'Cliente Agregado', text: res.message, timer: 2000, showConfirmButton: false });
+                        } else {
+                            Swal.fire({ icon: 'error', title: 'No se pudo registrar', text: res.message });
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({ icon: 'error', title: 'Error de Servidor', text: 'No se pudo registrar el cliente.' });
+                    },
+                    complete: function () {
+                        btn.prop('disabled', false);
+                    }
+                });
+            });
         });
 
         function renderizarCarrito() {
@@ -371,7 +468,7 @@
                             ${item.requiereSerie ? '<span class="badge bg-purple-lt small mt-1"><i class="ti ti-barcode me-1"></i>Requiere Serie</span>' : ''}
                             ${seriesHtml}
                         </td>
-                        <td class="text-end fw-medium">C$ ${item.precioUnitario.toFixed(2)}</td>
+                        <td class="text-end fw-medium">$ ${item.precioUnitario.toFixed(2)}</td>
                         <td class="text-center">
                             <div class="input-group input-group-sm justify-content-center">
                                 <button type="button" class="btn btn-outline-secondary btn-restar" data-index="${index}">-</button>
@@ -379,7 +476,7 @@
                                 <button type="button" class="btn btn-outline-secondary btn-sumar" data-index="${index}">+</button>
                             </div>
                         </td>
-                        <td class="text-end fw-bold text-dark">C$ ${subtotal.toFixed(2)}</td>
+                        <td class="text-end fw-bold text-dark">$ ${subtotal.toFixed(2)}</td>
                         <td class="text-center">
                             <button type="button" class="btn btn-sm btn-link text-danger p-0 btn-eliminar-item" data-index="${index}">
                                 <i class="ti ti-trash fs-3"></i>
@@ -443,15 +540,15 @@
             const impuesto = subtotal * 0.15;
             const total = subtotal + impuesto;
 
-            $('#resumenSubtotal').text('C$ ' + subtotal.toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-            $('#resumenImpuesto').text('C$ ' + impuesto.toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-            $('#resumenTotal').text('C$ ' + total.toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            $('#resumenSubtotal').text('$ ' + subtotal.toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            $('#resumenImpuesto').text('$ ' + impuesto.toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            $('#resumenTotal').text('$ ' + total.toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
             const tipoVenta = $('#selectTipoVenta').val();
             if (tipoVenta === 'Contado') {
                 const recibido = parseFloat($('#inputMontoRecibido').val()) || 0;
                 const vuelto = Math.max(0, recibido - total);
-                $('#resumenVuelto').text('C$ ' + vuelto.toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                $('#resumenVuelto').text('$ ' + vuelto.toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
             } else {
                 const prima = parseFloat($('#inputPrima').val()) || 0;
                 const cuotas = parseInt($('#inputCuotas').val()) || 1;
@@ -462,8 +559,8 @@
                 const totalCredito = financiado + interesMonto;
                 const valorCuota = cuotas > 0 ? (totalCredito / cuotas) : totalCredito;
 
-                $('#creditoFinanciado').text('C$ ' + financiado.toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-                $('#creditoValorCuota').text('C$ ' + valorCuota.toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                $('#creditoFinanciado').text('$ ' + financiado.toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                $('#creditoValorCuota').text('$ ' + valorCuota.toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
             }
         }
 
@@ -497,7 +594,7 @@
                 Swal.fire({
                     icon: 'warning',
                     title: 'Monto Insuficiente',
-                    text: `El monto recibido (C$ ${recibido.toFixed(2)}) es inferior al total a pagar (C$ ${total.toFixed(2)}).`
+                    text: `El monto recibido ($ ${recibido.toFixed(2)}) es inferior al total a pagar ($ ${total.toFixed(2)}).`
                 });
                 return;
             }
@@ -561,7 +658,7 @@
 
             Swal.fire({
                 title: '¿Confirmar Factura?',
-                html: `Total a cobrar: <strong class="text-success fs-2">C$ ${total.toFixed(2)}</strong><br>Modalidad: <strong>${tipoVenta}</strong>`,
+                html: `Total a cobrar: <strong class="text-success fs-2">$ ${total.toFixed(2)}</strong><br>Modalidad: <strong>${tipoVenta}</strong>`,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#2fb344',

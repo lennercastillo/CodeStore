@@ -15,19 +15,28 @@ namespace Presentacion.Controllers
         private readonly CreditoServices _creditoService;
         private readonly VentaServices _ventaService;
         private readonly Clientes_Services _clientesService;
+        private readonly DetalleVentaServices _detalleVentaService;
+        private readonly ProductosServices _productosService;
+        private readonly UsuarioServices _usuarioService;
 
         public AbonosController(
             AbonoServices abonoService,
             CuotaCreditoServices cuotaService,
             CreditoServices creditoService,
             VentaServices ventaService,
-            Clientes_Services clientesService)
+            Clientes_Services clientesService,
+            DetalleVentaServices detalleVentaService,
+            ProductosServices productosService,
+            UsuarioServices usuarioService)
         {
             _abonoService = abonoService;
             _cuotaService = cuotaService;
             _creditoService = creditoService;
             _ventaService = ventaService;
             _clientesService = clientesService;
+            _detalleVentaService = detalleVentaService;
+            _productosService = productosService;
+            _usuarioService = usuarioService;
         }
 
         // GET: /Abonos
@@ -40,10 +49,25 @@ namespace Presentacion.Controllers
                 var creditos = await _creditoService.ListarCredito();
                 var ventas = await _ventaService.ListarVenta();
                 var clientes = await _clientesService.ListaClientes();
+                var detallesVenta = await _detalleVentaService.ListarDetalleVenta();
+                var productos = await _productosService.ListarProducto();
+                var usuarios = await _usuarioService.ListaRoles();
 
                 var dictCreditos = creditos.ToDictionary(c => c.IdCredito, c => c);
                 var dictVentas = ventas.ToDictionary(v => v.IdVenta, v => v);
                 var dictClientes = clientes.ToDictionary(c => c.IdCliente, c => $"{c.Nombres} {c.Apellidos}");
+                var dictProductos = productos.ToDictionary(p => p.IdProducto, p => p.Nombre);
+                var dictUsuarios = usuarios.ToDictionary(u => u.IdUsuario, u => $"{u.Nombres} {u.Apellidos}");
+                var dictProductosPorVenta = detallesVenta
+                    .GroupBy(d => d.IdVenta)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => string.Join(", ", g.Select(d =>
+                        {
+                            var nom = dictProductos.ContainsKey(d.IdProducto) ? dictProductos[d.IdProducto] : $"Producto #{d.IdProducto}";
+                            return $"{d.Cantidad}x {nom}";
+                        }))
+                    );
 
                 ViewBag.InfoCuotas = cuotas.ToDictionary(
                     c => c.IdCuota,
@@ -53,6 +77,27 @@ namespace Presentacion.Controllers
                         var ven = (cred != null && dictVentas.ContainsKey(cred.IdVenta)) ? dictVentas[cred.IdVenta] : null;
                         var cli = (ven != null && dictClientes.ContainsKey(ven.IdCliente)) ? dictClientes[ven.IdCliente] : "Cliente N/D";
                         return $"{cli} | {ven?.NumeroFactura ?? "-"} | Cuota #{c.NumeroCuota}";
+                    });
+
+                ViewBag.ProductosCuota = cuotas.ToDictionary(
+                    c => c.IdCuota,
+                    c =>
+                    {
+                        var cred = dictCreditos.ContainsKey(c.IdCredito) ? dictCreditos[c.IdCredito] : null;
+                        if (cred != null && dictProductosPorVenta.ContainsKey(cred.IdVenta))
+                            return dictProductosPorVenta[cred.IdVenta];
+                        return "Sin detalle";
+                    });
+
+                ViewBag.VendedorCuota = cuotas.ToDictionary(
+                    c => c.IdCuota,
+                    c =>
+                    {
+                        var cred = dictCreditos.ContainsKey(c.IdCredito) ? dictCreditos[c.IdCredito] : null;
+                        var ven = (cred != null && dictVentas.ContainsKey(cred.IdVenta)) ? dictVentas[cred.IdVenta] : null;
+                        if (ven != null && dictUsuarios.ContainsKey(ven.IdUsuarioVendedor))
+                            return dictUsuarios[ven.IdUsuarioVendedor];
+                        return "N/D";
                     });
 
                 return View(abonos.OrderByDescending(a => a.FechaAbono));
@@ -190,7 +235,7 @@ namespace Presentacion.Controllers
                     {
                         c.IdCuota,
                         c.SaldoCuota,
-                        Texto = $"{cliNombre} | Factura {ven?.NumeroFactura ?? "-"} | Cuota #{c.NumeroCuota} | Vence: {c.FechaVencimiento:dd/MM/yyyy} | Saldo: C$ {c.SaldoCuota:N2}"
+                        Texto = $"{cliNombre} | Factura {ven?.NumeroFactura ?? "-"} | Cuota #{c.NumeroCuota} | Vence: {c.FechaVencimiento:dd/MM/yyyy} | Saldo: $ {c.SaldoCuota:N2}"
                     };
                 }).ToList();
 

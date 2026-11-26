@@ -1,4 +1,4 @@
-@model IEnumerable<Aplicacion.DTOs.DTOSOrdenReparacion>
+﻿@model IEnumerable<Aplicacion.DTOs.DTOSOrdenReparacion>
 
 @{
     ViewData["Title"] = "Órdenes de Reparación";
@@ -56,7 +56,7 @@
                                 <div class="fw-medium text-dark">@item.DescripcionEquipo</div>
                                 <div class="text-secondary small">@item.Marca @item.Modelo | Serie: <span class="font-monospace">@item.NumeroSerie</span></div>
                             </td>
-                            <td class="text-end fw-bold">C$ @item.CostoReparacion.ToString("N2")</td>
+                            <td class="text-end fw-bold">$ @item.CostoReparacion.ToString("N2")</td>
                             <td class="text-center">
                                 <span class="badge @(item.EstadoEquipo == "Entregado" ? "bg-success-lt" : item.EstadoEquipo == "Reparado" ? "bg-azure-lt" : item.EstadoEquipo == "Sin Solucion" ? "bg-danger-lt" : "bg-warning-lt")">
                                     @item.EstadoEquipo

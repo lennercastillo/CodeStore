@@ -1,4 +1,4 @@
-using Aplicacion.DTOs;
+﻿using Aplicacion.DTOs;
 using Aplicacion.Interface;
 using Dominio.Entidades;
 using System;
@@ -177,7 +177,7 @@ namespace Aplicacion.Services
 
             if (tipoVentaNorm == "Contado" && dto.MontoRecibido < total)
             {
-                return (false, $"El monto recibido (C$ {dto.MontoRecibido:N2}) es menor al total de la venta (C$ {total:N2}).", 0, string.Empty);
+                return (false, $"El monto recibido ($ {dto.MontoRecibido:N2}) es menor al total de la venta ($ {total:N2}).", 0, string.Empty);
             }
 
             if (tipoVentaNorm == "Credito")
@@ -265,7 +265,7 @@ namespace Aplicacion.Services
                 decimal totalCredito = Math.Round(financiado + interes, 2);
 
                 if (totalCredito < dto.CantidadCuotas * 0.01m)
-                    return (false, $"El monto a financiar (C$ {totalCredito:N2}) es demasiado pequeño para dividirlo en {dto.CantidadCuotas} cuotas.", 0, string.Empty);
+                    return (false, $"El monto a financiar ($ {totalCredito:N2}) es demasiado pequeño para dividirlo en {dto.CantidadCuotas} cuotas.", 0, string.Empty);
 
                 credito = new Credito
                 {

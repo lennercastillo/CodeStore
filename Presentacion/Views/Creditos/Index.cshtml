@@ -4,6 +4,8 @@
     ViewData["Title"] = "Créditos y Financiamientos";
     var ventas = ViewBag.Ventas as Dictionary<int, Aplicacion.DTOs.DTOSVenta> ?? new Dictionary<int, Aplicacion.DTOs.DTOSVenta>();
     var clientes = ViewBag.Clientes as Dictionary<int, string> ?? new Dictionary<int, string>();
+    var vendedores = ViewBag.Vendedores as Dictionary<int, string> ?? new Dictionary<int, string>();
+    var creditosRetrasados = ViewBag.CreditosRetrasados as HashSet<int> ?? new HashSet<int>();
 
     var activos = Model.Count(c => c.Estado == "Activo" || c.Estado == "EnMora");
     var pagados = Model.Count(c => c.Estado == "Pagado");
@@ -61,7 +63,7 @@
                     <div class="col-auto"><span class="bg-warning-lt avatar avatar-md"><i class="ti ti-cash fs-2"></i></span></div>
                     <div class="col">
                         <div class="text-secondary small fw-medium">Saldo Total por Cobrar</div>
-                        <div class="fs-2 fw-bold text-warning">C$ @carteraPendiente.ToString("N2")</div>
+                        <div class="fs-2 fw-bold text-warning">$ @carteraPendiente.ToString("N2")</div>
                     </div>
                 </div>
             </div>
@@ -84,6 +86,7 @@
                     <tr>
                         <th>Factura</th>
                         <th>Cliente</th>
+                        <th>Vendedor</th>
                         <th>Frecuencia</th>
                         <th class="text-end">Total Crédito</th>
                         <th class="text-end">Saldo Pendiente</th>
@@ -96,6 +99,8 @@
                     {
                         var venta = ventas.ContainsKey(item.IdVenta) ? ventas[item.IdVenta] : null;
                         var nombreCliente = (venta != null && clientes.ContainsKey(venta.IdCliente)) ? clientes[venta.IdCliente] : "Cliente N/D";
+                        var nombreVendedor = (venta != null && vendedores.ContainsKey(venta.IdUsuarioVendedor)) ? vendedores[venta.IdUsuarioVendedor] : "N/D";
+                        bool tieneRetraso = creditosRetrasados.Contains(item.IdCredito) && item.Estado != "Pagado" && item.Estado != "Anulado";
                         <tr>
                             <td><span class="badge bg-dark-lt font-monospace">@(venta?.NumeroFactura ?? $"Venta #{item.IdVenta}")</span></td>
                             <td>
@@ -103,12 +108,15 @@
                                 <div class="text-secondary small">@item.FechaRegistro.ToString("dd/MM/yyyy")</div>
                             </td>
                             <td>
+                                <span class="text-secondary small">@nombreVendedor</span>
+                            </td>
+                            <td>
                                 <span class="badge bg-purple-lt">@item.FrecuenciaPago</span>
                                 <span class="text-secondary small ms-1">@item.CantidadCuotas cuotas</span>
                             </td>
-                            <td class="text-end fw-medium">C$ @item.MontoTotalCredito.ToString("N2")</td>
+                            <td class="text-end fw-medium">$ @item.MontoTotalCredito.ToString("N2")</td>
                             <td class="text-end fw-bold @(item.SaldoPendiente > 0 ? "text-danger" : "text-success")">
-                                C$ @item.SaldoPendiente.ToString("N2")
+                                $ @item.SaldoPendiente.ToString("N2")
                             </td>
                             <td class="text-center">
                                 @if (item.Estado == "Pagado")
@@ -119,9 +127,9 @@
                                 {
                                     <span class="badge bg-danger-lt">Anulado</span>
                                 }
-                                else if (item.Estado == "EnMora")
+                                else if (item.Estado == "EnMora" || tieneRetraso)
                                 {
-                                    <span class="badge bg-danger text-white">En Mora</span>
+                                    <span class="badge bg-danger text-white">Retrasada</span>
                                 }
                                 else
                                 {

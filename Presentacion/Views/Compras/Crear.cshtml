@@ -1,4 +1,4 @@
-@model Aplicacion.DTOs.CompraRegistroDTO
+﻿@model Aplicacion.DTOs.CompraRegistroDTO
 
 @{
     ViewData["Title"] = "Registrar Compra";
@@ -80,7 +80,7 @@
                                         <div class="text-secondary small">@prod.Marca @prod.Modelo</div>
                                     </td>
                                     <td class="text-center"><span class="badge bg-secondary-lt">@prod.StockActual uds</span></td>
-                                    <td class="text-end text-secondary">C$ @prod.UltimoCostoCompra.ToString("N2")</td>
+                                    <td class="text-end text-secondary">$ @prod.UltimoCostoCompra.ToString("N2")</td>
                                     <td class="text-center">
                                         <button type="button" class="btn btn-sm btn-primary btn-agregar-compra"><i class="ti ti-plus"></i></button>
                                     </td>
@@ -106,7 +106,7 @@
                             <tr>
                                 <th>Producto</th>
                                 <th class="text-center" style="width: 120px;">Cantidad</th>
-                                <th class="text-end" style="width: 150px;">Costo Unit. (C$)</th>
+                                <th class="text-end" style="width: 150px;">Costo Unit. ($)</th>
                                 <th class="text-end" style="width: 130px;">Subtotal</th>
                                 <th class="w-1"></th>
                             </tr>
@@ -135,7 +135,7 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between mb-3 align-items-center">
                     <span class="fs-3 fw-bold text-dark">Total Compra:</span>
-                    <span class="fs-1 fw-bold text-primary" id="totalCompraTexto">C$ 0.00</span>
+                    <span class="fs-1 fw-bold text-primary" id="totalCompraTexto">$ 0.00</span>
                 </div>
 
                 <div class="mb-3">
@@ -206,7 +206,7 @@
 
             if (itemsCompra.length === 0) {
                 tbody.html('<tr><td colspan="5" class="text-center py-4 text-secondary">Agregue productos de la tabla superior para armar la orden de compra.</td></tr>');
-                $('#totalCompraTexto').text('C$ 0.00');
+                $('#totalCompraTexto').text('$ 0.00');
                 return;
             }
 
@@ -227,7 +227,7 @@
                         <td>
                             <input type="number" min="0.01" step="0.01" class="form-control form-control-sm text-end inp-costo" data-idx="${idx}" value="${item.costoUnitario}" />
                         </td>
-                        <td class="text-end fw-bold">C$ ${sub.toFixed(2)}</td>
+                        <td class="text-end fw-bold">$ ${sub.toFixed(2)}</td>
                         <td class="text-center">
                             <button type="button" class="btn btn-sm btn-link text-danger p-0 btn-del-item" data-idx="${idx}">
                                 <i class="ti ti-trash fs-3"></i>
@@ -237,7 +237,7 @@
                 `);
             });
 
-            $('#totalCompraTexto').text('C$ ' + total.toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            $('#totalCompraTexto').text('$ ' + total.toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
             $('.inp-cant').on('change', function () {
                 const idx = $(this).data('idx');

@@ -17,6 +17,7 @@ namespace Presentacion.Controllers
         private readonly DetalleVentaSerieServices _serieService;
         private readonly CreditoServices _creditoService;
         private readonly CuotaCreditoServices _cuotaService;
+        private readonly UsuarioServices _usuarioService;
 
         public VentasController(
             VentaServices ventaService,
@@ -25,7 +26,8 @@ namespace Presentacion.Controllers
             DetalleVentaServices detalleVentaService,
             DetalleVentaSerieServices serieService,
             CreditoServices creditoService,
-            CuotaCreditoServices cuotaService)
+            CuotaCreditoServices cuotaService,
+            UsuarioServices usuarioService)
         {
             _ventaService = ventaService;
             _productosService = productosService;
@@ -34,6 +36,7 @@ namespace Presentacion.Controllers
             _serieService = serieService;
             _creditoService = creditoService;
             _cuotaService = cuotaService;
+            _usuarioService = usuarioService;
         }
 
         // GET: /Ventas
@@ -43,7 +46,9 @@ namespace Presentacion.Controllers
             {
                 var ventas = await _ventaService.ListarVenta();
                 var clientes = await _clientesService.ListaClientes();
+                var usuarios = await _usuarioService.ListaRoles();
                 ViewBag.Clientes = clientes.ToDictionary(c => c.IdCliente, c => $"{c.Nombres} {c.Apellidos}");
+                ViewBag.Vendedores = usuarios.ToDictionary(u => u.IdUsuario, u => $"{u.Nombres} {u.Apellidos}");
                 return View(ventas.OrderByDescending(v => v.FechaVenta));
             }
             catch (Exception ex)
@@ -133,6 +138,7 @@ namespace Presentacion.Controllers
                 }
 
                 var cliente = await _clientesService.ObtenerPorId(venta.IdCliente);
+                var vendedor = await _usuarioService.ObtenerPorId(venta.IdUsuarioVendedor);
                 var todosDetalles = await _detalleVentaService.ListarDetalleVenta();
                 var detallesVenta = todosDetalles.Where(d => d.IdVenta == id).ToList();
 
@@ -163,6 +169,7 @@ namespace Presentacion.Controllers
                         MotivoAnulacion = venta.MotivoAnulacion
                     },
                     Cliente = cliente,
+                    Vendedor = vendedor,
                     Detalles = detallesVenta.Select(d => new ItemDetalleCompletoDTO
                     {
                         Detalle = d,

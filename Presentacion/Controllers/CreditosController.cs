@@ -13,17 +13,20 @@ namespace Presentacion.Controllers
         private readonly CuotaCreditoServices _cuotaService;
         private readonly VentaServices _ventaService;
         private readonly Clientes_Services _clientesService;
+        private readonly UsuarioServices _usuarioService;
 
         public CreditosController(
             CreditoServices creditoService,
             CuotaCreditoServices cuotaService,
             VentaServices ventaService,
-            Clientes_Services clientesService)
+            Clientes_Services clientesService,
+            UsuarioServices usuarioService)
         {
             _creditoService = creditoService;
             _cuotaService = cuotaService;
             _ventaService = ventaService;
             _clientesService = clientesService;
+            _usuarioService = usuarioService;
         }
 
         // GET: /Creditos
@@ -34,12 +37,22 @@ namespace Presentacion.Controllers
                 var creditos = await _creditoService.ListarCredito();
                 var ventas = await _ventaService.ListarVenta();
                 var clientes = await _clientesService.ListaClientes();
+                var usuarios = await _usuarioService.ListaRoles();
+                var cuotas = await _cuotaService.ListarCuotaCredito();
 
                 var dictVentas = ventas.ToDictionary(v => v.IdVenta, v => v);
                 var dictClientes = clientes.ToDictionary(c => c.IdCliente, c => $"{c.Nombres} {c.Apellidos}");
+                var dictVendedores = usuarios.ToDictionary(u => u.IdUsuario, u => $"{u.Nombres} {u.Apellidos}");
+                var fechaCorteRetraso = DateTime.Today.AddDays(-5);
+                var creditosRetrasados = cuotas
+                    .Where(q => q.Estado != "Pagada" && q.Estado != "Anulada" && q.FechaVencimiento.Date < fechaCorteRetraso)
+                    .Select(q => q.IdCredito)
+                    .ToHashSet();
 
                 ViewBag.Ventas = dictVentas;
                 ViewBag.Clientes = dictClientes;
+                ViewBag.Vendedores = dictVendedores;
+                ViewBag.CreditosRetrasados = creditosRetrasados;
 
                 return View(creditos.OrderByDescending(c => c.FechaRegistro));
             }
@@ -65,11 +78,13 @@ namespace Presentacion.Controllers
 
                 var venta = await _ventaService.ObtenerPorId(credito.IdVenta);
                 var cliente = venta != null ? await _clientesService.ObtenerPorId(venta.IdCliente) : null;
+                var vendedor = venta != null ? await _usuarioService.ObtenerPorId(venta.IdUsuarioVendedor) : null;
                 var todasCuotas = await _cuotaService.ListarCuotaCredito();
                 var cuotas = todasCuotas.Where(c => c.IdCredito == id).OrderBy(c => c.NumeroCuota).ToList();
 
                 ViewBag.Venta = venta;
                 ViewBag.Cliente = cliente;
+                ViewBag.Vendedor = vendedor;
                 ViewBag.Cuotas = cuotas;
 
                 return View(credito);

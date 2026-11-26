@@ -1,4 +1,4 @@
-@model Presentacion.Models.DashboardViewModel
+﻿@model Presentacion.Models.DashboardViewModel
 
 @{
     ViewData["Title"] = "Dashboard Principal";
@@ -49,7 +49,7 @@
                     </div>
                     <div class="col">
                         <div class="text-secondary small fw-medium">Ventas del Mes</div>
-                        <div class="fs-2 fw-bold text-dark mt-1">C$ @Model.VentasDelMes.ToString("N2")</div>
+                        <div class="fs-2 fw-bold text-dark mt-1">$ @Model.VentasDelMes.ToString("N2")</div>
                         <div class="text-success small mt-1 d-flex align-items-center">
                             <i class="ti ti-receipt me-1"></i> @Model.CantidadVentasMes facturas completadas
                         </div>
@@ -73,7 +73,7 @@
                         <div class="text-secondary small fw-medium">Clientes Activos</div>
                         <div class="fs-2 fw-bold text-dark mt-1">@Model.TotalClientesActivos</div>
                         <div class="text-secondary small mt-1 d-flex align-items-center">
-                            <i class="ti ti-credit-card me-1"></i> Cartera: C$ @Model.CarteraCreditosPendiente.ToString("N2")
+                            <i class="ti ti-credit-card me-1"></i> Cartera: $ @Model.CarteraCreditosPendiente.ToString("N2")
                         </div>
                     </div>
                 </div>
@@ -176,7 +176,7 @@
                                     </td>
                                     <td class="fw-medium">@cli</td>
                                     <td><span class="badge @(v.TipoVenta == "Contado" ? "bg-azure-lt" : "bg-purple-lt")">@v.TipoVenta</span></td>
-                                    <td class="text-end fw-bold text-success">C$ @v.TotalVenta.ToString("N2")</td>
+                                    <td class="text-end fw-bold text-success">$ @v.TotalVenta.ToString("N2")</td>
                                     <td class="text-center">
                                         <span class="badge @(v.Estado == "Completada" ? "bg-success-lt" : "bg-danger-lt")">@v.Estado</span>
                                     </td>
